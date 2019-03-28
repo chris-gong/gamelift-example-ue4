@@ -1,4 +1,7 @@
-# Example project implementing basic features of AWS GameLift in Unreal Engine
+# GameLift Example in UE4
+
+## About
+This repository is an example project that implements the basic features of AWS GameLift in Unreal Engine.
 
 I would highly suggest watching my tutorials on youtube before jumping straight in so that you have a better understanding of GameLift.
 
