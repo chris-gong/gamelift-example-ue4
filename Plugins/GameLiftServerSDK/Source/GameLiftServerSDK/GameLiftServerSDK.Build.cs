@@ -13,24 +13,14 @@
 */
 
 using UnrealBuildTool;
+using System.IO;
 
 public class GameLiftServerSDK : ModuleRules
 {
     public GameLiftServerSDK(ReadOnlyTargetRules Target) : base (Target)
     {
-        PublicIncludePaths.AddRange(
-            new string[] {
-            "GameLiftServerSDK/Public"
-            }
-            );
-
-
-        PrivateIncludePaths.AddRange(
-            new string[] {
-            "GameLiftServerSDK/Private",
-            }
-            );
-
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
 
         PublicDependencyModuleNames.AddRange(
             new string[]

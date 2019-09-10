@@ -73,4 +73,16 @@ public:
 	**/
 	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")	
 	UGameLiftCreatePlayerSession* CreatePlayerSession(FString GameSessionID, FString UniquePlayerID);
+	
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueues(FString QueueName);
+
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftSearchGameSessions* SearchGameSessions(FString FleetId, FString AliasId, FString FilterExpression, FString SortExpression);
+
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftStartGameSessionPlacement* StartGameSessionPlacement(FString QueueName, int MaxPlayerCount, FString PlacementId);
+
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftDescribeGameSessionPlacement* DescribeGameSessionPlacement(FString GameSessionPlacementId);
 };
