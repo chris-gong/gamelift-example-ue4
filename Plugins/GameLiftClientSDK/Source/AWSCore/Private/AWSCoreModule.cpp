@@ -49,7 +49,7 @@ void FAWSCoreModule::StartupModule()
 	static const FString ChecksumsDLLName = "aws-checksums";
 	const bool bChecksumsDependencyLoaded = LoadDependency(ThirdPartyDir, ChecksumsDLLName, AWSChecksumsLibraryHandle);
 
-	if (bEventStreamDependencyLoaded == false)
+	if (bChecksumsDependencyLoaded == false)
 	{
 		FFormatNamedArguments Arguments;
 		Arguments.Add(TEXT("Name"), FText::FromString(ChecksumsDLLName));
