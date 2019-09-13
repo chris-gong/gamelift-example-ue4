@@ -16,6 +16,9 @@ public:
 private:
 	Aws::SDKOptions options;
 	static void* AWSCoreLibraryHandle;
+	static void* AWSCommonLibraryHandle;
+	static void* AWSEventStreamLibraryHandle;
+	static void* AWSChecksumsLibraryHandle;
 	static bool LoadDependency(const FString& Dir, const FString& Name, void*& Handle);
 	static void FreeDependency(void*& Handle);
 };

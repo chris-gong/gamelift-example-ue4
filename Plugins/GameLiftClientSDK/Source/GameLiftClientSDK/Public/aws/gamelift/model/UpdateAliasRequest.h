@@ -36,7 +36,7 @@ namespace Model
   {
   public:
     UpdateAliasRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -53,6 +53,12 @@ namespace Model
      * update.</p>
      */
     inline const Aws::String& GetAliasId() const{ return m_aliasId; }
+
+    /**
+     * <p>Unique identifier for a fleet alias. Specify the alias you want to
+     * update.</p>
+     */
+    inline bool AliasIdHasBeenSet() const { return m_aliasIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet alias. Specify the alias you want to
@@ -101,6 +107,12 @@ namespace Model
      * <p>Descriptive label that is associated with an alias. Alias names do not need
      * to be unique.</p>
      */
+    inline bool NameHasBeenSet() const { return m_nameHasBeenSet; }
+
+    /**
+     * <p>Descriptive label that is associated with an alias. Alias names do not need
+     * to be unique.</p>
+     */
     inline void SetName(const Aws::String& value) { m_nameHasBeenSet = true; m_name = value; }
 
     /**
@@ -142,6 +154,11 @@ namespace Model
     /**
      * <p>Human-readable description of an alias.</p>
      */
+    inline bool DescriptionHasBeenSet() const { return m_descriptionHasBeenSet; }
+
+    /**
+     * <p>Human-readable description of an alias.</p>
+     */
     inline void SetDescription(const Aws::String& value) { m_descriptionHasBeenSet = true; m_description = value; }
 
     /**
@@ -174,6 +191,11 @@ namespace Model
      * <p>Object that specifies the fleet and routing type to use for the alias.</p>
      */
     inline const RoutingStrategy& GetRoutingStrategy() const{ return m_routingStrategy; }
+
+    /**
+     * <p>Object that specifies the fleet and routing type to use for the alias.</p>
+     */
+    inline bool RoutingStrategyHasBeenSet() const { return m_routingStrategyHasBeenSet; }
 
     /**
      * <p>Object that specifies the fleet and routing type to use for the alias.</p>

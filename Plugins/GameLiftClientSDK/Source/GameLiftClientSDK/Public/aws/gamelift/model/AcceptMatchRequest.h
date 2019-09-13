@@ -37,7 +37,7 @@ namespace Model
   {
   public:
     AcceptMatchRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -54,6 +54,12 @@ namespace Model
      * <code>REQUIRES_ACCEPTANCE</code>; otherwise this request will fail.</p>
      */
     inline const Aws::String& GetTicketId() const{ return m_ticketId; }
+
+    /**
+     * <p>Unique identifier for a matchmaking ticket. The ticket must be in status
+     * <code>REQUIRES_ACCEPTANCE</code>; otherwise this request will fail.</p>
+     */
+    inline bool TicketIdHasBeenSet() const { return m_ticketIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a matchmaking ticket. The ticket must be in status
@@ -102,6 +108,12 @@ namespace Model
      * <p>Unique identifier for a player delivering the response. This parameter can
      * include one or multiple player IDs.</p>
      */
+    inline bool PlayerIdsHasBeenSet() const { return m_playerIdsHasBeenSet; }
+
+    /**
+     * <p>Unique identifier for a player delivering the response. This parameter can
+     * include one or multiple player IDs.</p>
+     */
     inline void SetPlayerIds(const Aws::Vector<Aws::String>& value) { m_playerIdsHasBeenSet = true; m_playerIds = value; }
 
     /**
@@ -145,6 +157,11 @@ namespace Model
      * <p>Player response to the proposed match.</p>
      */
     inline const AcceptanceType& GetAcceptanceType() const{ return m_acceptanceType; }
+
+    /**
+     * <p>Player response to the proposed match.</p>
+     */
+    inline bool AcceptanceTypeHasBeenSet() const { return m_acceptanceTypeHasBeenSet; }
 
     /**
      * <p>Player response to the proposed match.</p>

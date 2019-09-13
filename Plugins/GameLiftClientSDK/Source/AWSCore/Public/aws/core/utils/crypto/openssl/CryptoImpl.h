@@ -174,32 +174,16 @@ namespace Aws
                 void Reset() override;
 
             protected:
-                /**
-                 * Algorithm/Mode level config for the EVP_CIPHER_CTX
-                 */
-                virtual void InitEncryptor_Internal() = 0;
-
-                /**
-                 * Algorithm/Mode level config for the EVP_CIPHER_CTX
-                 */
-                virtual void InitDecryptor_Internal() = 0;
-
                 virtual size_t GetBlockSizeBytes() const = 0;
 
                 virtual size_t GetKeyLengthBits() const = 0;
 
-                EVP_CIPHER_CTX* m_ctx;
-
-                void CheckInitEncryptor();
-                void CheckInitDecryptor();
+                EVP_CIPHER_CTX* m_encryptor_ctx;
+                EVP_CIPHER_CTX* m_decryptor_ctx;
 
             private:
                 void Init();
                 void Cleanup();
-
-                bool m_encDecInitialized;
-                bool m_encryptionMode;
-                bool m_decryptionMode;
             };
 
             /**
@@ -229,16 +213,16 @@ namespace Aws
 
                 AES_CBC_Cipher_OpenSSL(AES_CBC_Cipher_OpenSSL&& toMove) = default;
 
+                void Reset() override;
+
             protected:
-                void InitEncryptor_Internal() override;
-
-                void InitDecryptor_Internal() override;
-
                 size_t GetBlockSizeBytes() const override;
 
                 size_t GetKeyLengthBits() const override;
 
             private:
+                void InitCipher();
+
                 static size_t BlockSizeBytes;
                 static size_t KeyLengthBits;
             };
@@ -271,16 +255,16 @@ namespace Aws
 
                 AES_CTR_Cipher_OpenSSL(AES_CTR_Cipher_OpenSSL&& toMove) = default;
 
+                void Reset() override;
+
             protected:
-                void InitEncryptor_Internal() override;
-
-                void InitDecryptor_Internal() override;
-
                 size_t GetBlockSizeBytes() const override;
 
                 size_t GetKeyLengthBits() const override;
 
             private:
+                void InitCipher();
+
                 static size_t BlockSizeBytes;
                 static size_t KeyLengthBits;
             };
@@ -323,11 +307,9 @@ namespace Aws
                  */
                 CryptoBuffer FinalizeEncryption() override;
 
+                void Reset() override;
+
             protected:
-                void InitEncryptor_Internal() override;
-
-                void InitDecryptor_Internal() override;
-
                 size_t GetBlockSizeBytes() const override;
 
                 size_t GetKeyLengthBits() const override;
@@ -335,6 +317,8 @@ namespace Aws
                 size_t GetTagLengthBytes() const;
 
             private:
+                void InitCipher();
+
                 static size_t BlockSizeBytes;
                 static size_t IVLengthBytes;
                 static size_t KeyLengthBits;
@@ -366,16 +350,16 @@ namespace Aws
                 CryptoBuffer DecryptBuffer(const CryptoBuffer&) override;
                 CryptoBuffer FinalizeDecryption() override;
 
+                void Reset() override;
+
             protected:
-                void InitEncryptor_Internal() override;
-
-                void InitDecryptor_Internal() override;
-
                 inline size_t GetBlockSizeBytes() const override { return BlockSizeBytes; }
 
                 inline size_t GetKeyLengthBits() const override { return KeyLengthBits; }
 
             private:
+                void InitCipher();
+
                 static size_t BlockSizeBytes;
                 static size_t KeyLengthBits;
 

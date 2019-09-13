@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     UnprocessedIdentityId();
-    UnprocessedIdentityId(const Aws::Utils::Json::JsonValue& jsonValue);
-    UnprocessedIdentityId& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    UnprocessedIdentityId(Aws::Utils::Json::JsonView jsonValue);
+    UnprocessedIdentityId& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -52,6 +53,11 @@ namespace Model
      * <p>A unique identifier in the format REGION:GUID.</p>
      */
     inline const Aws::String& GetIdentityId() const{ return m_identityId; }
+
+    /**
+     * <p>A unique identifier in the format REGION:GUID.</p>
+     */
+    inline bool IdentityIdHasBeenSet() const { return m_identityIdHasBeenSet; }
 
     /**
      * <p>A unique identifier in the format REGION:GUID.</p>
@@ -88,6 +94,11 @@ namespace Model
      * <p>The error code indicating the type of error that occurred.</p>
      */
     inline const ErrorCode& GetErrorCode() const{ return m_errorCode; }
+
+    /**
+     * <p>The error code indicating the type of error that occurred.</p>
+     */
+    inline bool ErrorCodeHasBeenSet() const { return m_errorCodeHasBeenSet; }
 
     /**
      * <p>The error code indicating the type of error that occurred.</p>

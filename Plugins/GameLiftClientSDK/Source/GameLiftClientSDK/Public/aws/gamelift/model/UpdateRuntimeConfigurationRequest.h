@@ -36,7 +36,7 @@ namespace Model
   {
   public:
     UpdateRuntimeConfigurationRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -52,6 +52,11 @@ namespace Model
      * <p>Unique identifier for a fleet to update run-time configuration for.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet to update run-time configuration for.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet to update run-time configuration for.</p>
@@ -86,51 +91,67 @@ namespace Model
 
     /**
      * <p>Instructions for launching server processes on each instance in the fleet.
-     * The run-time configuration for a fleet has a collection of server process
-     * configurations, one for each type of server process to run on an instance. A
-     * server process configuration specifies the location of the server executable,
-     * launch parameters, and the number of concurrent processes with that
-     * configuration to maintain on each instance.</p>
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
      */
     inline const RuntimeConfiguration& GetRuntimeConfiguration() const{ return m_runtimeConfiguration; }
 
     /**
      * <p>Instructions for launching server processes on each instance in the fleet.
-     * The run-time configuration for a fleet has a collection of server process
-     * configurations, one for each type of server process to run on an instance. A
-     * server process configuration specifies the location of the server executable,
-     * launch parameters, and the number of concurrent processes with that
-     * configuration to maintain on each instance.</p>
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
+     */
+    inline bool RuntimeConfigurationHasBeenSet() const { return m_runtimeConfigurationHasBeenSet; }
+
+    /**
+     * <p>Instructions for launching server processes on each instance in the fleet.
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
      */
     inline void SetRuntimeConfiguration(const RuntimeConfiguration& value) { m_runtimeConfigurationHasBeenSet = true; m_runtimeConfiguration = value; }
 
     /**
      * <p>Instructions for launching server processes on each instance in the fleet.
-     * The run-time configuration for a fleet has a collection of server process
-     * configurations, one for each type of server process to run on an instance. A
-     * server process configuration specifies the location of the server executable,
-     * launch parameters, and the number of concurrent processes with that
-     * configuration to maintain on each instance.</p>
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
      */
     inline void SetRuntimeConfiguration(RuntimeConfiguration&& value) { m_runtimeConfigurationHasBeenSet = true; m_runtimeConfiguration = std::move(value); }
 
     /**
      * <p>Instructions for launching server processes on each instance in the fleet.
-     * The run-time configuration for a fleet has a collection of server process
-     * configurations, one for each type of server process to run on an instance. A
-     * server process configuration specifies the location of the server executable,
-     * launch parameters, and the number of concurrent processes with that
-     * configuration to maintain on each instance.</p>
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
      */
     inline UpdateRuntimeConfigurationRequest& WithRuntimeConfiguration(const RuntimeConfiguration& value) { SetRuntimeConfiguration(value); return *this;}
 
     /**
      * <p>Instructions for launching server processes on each instance in the fleet.
-     * The run-time configuration for a fleet has a collection of server process
-     * configurations, one for each type of server process to run on an instance. A
-     * server process configuration specifies the location of the server executable,
-     * launch parameters, and the number of concurrent processes with that
-     * configuration to maintain on each instance.</p>
+     * Server processes run either a custom game build executable or a Realtime Servers
+     * script. The run-time configuration lists the types of server processes to run on
+     * an instance and includes the following configuration settings: the server
+     * executable or launch script file, launch parameters, and the number of processes
+     * to run concurrently on each instance. A CreateFleet request must include a
+     * run-time configuration with at least one server process configuration.</p>
      */
     inline UpdateRuntimeConfigurationRequest& WithRuntimeConfiguration(RuntimeConfiguration&& value) { SetRuntimeConfiguration(std::move(value)); return *this;}
 

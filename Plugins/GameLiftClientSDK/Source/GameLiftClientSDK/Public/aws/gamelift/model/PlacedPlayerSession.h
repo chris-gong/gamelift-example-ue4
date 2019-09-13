@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -36,8 +37,7 @@ namespace Model
    * <p>Information about a player session that was created as part of a
    * <a>StartGameSessionPlacement</a> request. This object contains only the player
    * ID and player session ID. To retrieve full details on a player session, call
-   * <a>DescribePlayerSessions</a> with the player session ID.</p>
-   * <p>Player-session-related operations include:</p> <ul> <li> <p>
+   * <a>DescribePlayerSessions</a> with the player session ID.</p> <ul> <li> <p>
    * <a>CreatePlayerSession</a> </p> </li> <li> <p> <a>CreatePlayerSessions</a> </p>
    * </li> <li> <p> <a>DescribePlayerSessions</a> </p> </li> <li> <p>Game session
    * placements</p> <ul> <li> <p> <a>StartGameSessionPlacement</a> </p> </li> <li>
@@ -51,8 +51,8 @@ namespace Model
   {
   public:
     PlacedPlayerSession();
-    PlacedPlayerSession(const Aws::Utils::Json::JsonValue& jsonValue);
-    PlacedPlayerSession& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    PlacedPlayerSession(Aws::Utils::Json::JsonView jsonValue);
+    PlacedPlayerSession& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -61,6 +61,12 @@ namespace Model
      * session.</p>
      */
     inline const Aws::String& GetPlayerId() const{ return m_playerId; }
+
+    /**
+     * <p>Unique identifier for a player that is associated with this player
+     * session.</p>
+     */
+    inline bool PlayerIdHasBeenSet() const { return m_playerIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player that is associated with this player
@@ -103,6 +109,11 @@ namespace Model
      * <p>Unique identifier for a player session.</p>
      */
     inline const Aws::String& GetPlayerSessionId() const{ return m_playerSessionId; }
+
+    /**
+     * <p>Unique identifier for a player session.</p>
+     */
+    inline bool PlayerSessionIdHasBeenSet() const { return m_playerSessionIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player session.</p>

@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -39,7 +40,7 @@ namespace Model
    * level, or map. Game properties are passed to the game server process when
    * initiating a new game session; the server process uses the properties as
    * appropriate. For more information, see the <a
-   * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-client-api.html#gamelift-sdk-client-api-create">
+   * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-client-api.html#gamelift-sdk-client-api-create">
    * Amazon GameLift Developer Guide</a>.</p><p><h3>See Also:</h3>   <a
    * href="http://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/GameProperty">AWS
    * API Reference</a></p>
@@ -48,8 +49,8 @@ namespace Model
   {
   public:
     GameProperty();
-    GameProperty(const Aws::Utils::Json::JsonValue& jsonValue);
-    GameProperty& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    GameProperty(Aws::Utils::Json::JsonView jsonValue);
+    GameProperty& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -57,6 +58,11 @@ namespace Model
      * <p>Game property identifier.</p>
      */
     inline const Aws::String& GetKey() const{ return m_key; }
+
+    /**
+     * <p>Game property identifier.</p>
+     */
+    inline bool KeyHasBeenSet() const { return m_keyHasBeenSet; }
 
     /**
      * <p>Game property identifier.</p>
@@ -93,6 +99,11 @@ namespace Model
      * <p>Game property value.</p>
      */
     inline const Aws::String& GetValue() const{ return m_value; }
+
+    /**
+     * <p>Game property value.</p>
+     */
+    inline bool ValueHasBeenSet() const { return m_valueHasBeenSet; }
 
     /**
      * <p>Game property value.</p>

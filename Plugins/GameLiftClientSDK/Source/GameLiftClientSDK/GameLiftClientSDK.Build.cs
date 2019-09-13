@@ -14,7 +14,9 @@ public class GameLiftClientSDK : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Engine", "Core", "CoreUObject", "InputCore", "Projects", "AWSCore" });
 		
 		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
-        	PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+
+        PublicDefinitions.Add("USE_IMPORT_EXPORT");
 
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());
@@ -25,6 +27,7 @@ public class GameLiftClientSDK : ModuleRules
 			PublicDefinitions.Add("WITH_GAMELIFTCLIENTSDK=1");
 			PublicLibraryPaths.Add(ThirdPartyPath);
 
+            // gamelift (aws cpp sdk)
 			string GameLiftLibFile = System.IO.Path.Combine(ThirdPartyPath, "aws-cpp-sdk-gamelift.lib");			
 			if(File.Exists(GameLiftLibFile))
 			{
@@ -46,6 +49,7 @@ public class GameLiftClientSDK : ModuleRules
 				throw new BuildException("aws-cpp-sdk-gamelift.dll not found. Expected in this location: " + GameLiftDLLFile);
 			}
 
+            // binaries
             string BinariesDirectory = System.IO.Path.Combine(BaseDirectory, "Binaries", Target.Platform.ToString());
             if (!Directory.Exists(BinariesDirectory))
 			{
@@ -55,7 +59,7 @@ public class GameLiftClientSDK : ModuleRules
 			{
 				File.Copy(System.IO.Path.Combine(ThirdPartyPath, "aws-cpp-sdk-gamelift.dll"), System.IO.Path.Combine(BinariesDirectory, "aws-cpp-sdk-gamelift.dll"));
 			}
-		}
+        }
 		else
 		{
 			PublicDefinitions.Add("WITH_GAMELIFTCLIENTSDK=0");

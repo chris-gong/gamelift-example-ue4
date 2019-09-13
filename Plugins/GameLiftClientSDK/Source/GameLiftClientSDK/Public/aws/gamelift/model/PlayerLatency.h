@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -46,8 +47,8 @@ namespace Model
   {
   public:
     PlayerLatency();
-    PlayerLatency(const Aws::Utils::Json::JsonValue& jsonValue);
-    PlayerLatency& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    PlayerLatency(Aws::Utils::Json::JsonView jsonValue);
+    PlayerLatency& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -55,6 +56,11 @@ namespace Model
      * <p>Unique identifier for a player associated with the latency data.</p>
      */
     inline const Aws::String& GetPlayerId() const{ return m_playerId; }
+
+    /**
+     * <p>Unique identifier for a player associated with the latency data.</p>
+     */
+    inline bool PlayerIdHasBeenSet() const { return m_playerIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player associated with the latency data.</p>
@@ -95,6 +101,11 @@ namespace Model
     /**
      * <p>Name of the region that is associated with the latency value.</p>
      */
+    inline bool RegionIdentifierHasBeenSet() const { return m_regionIdentifierHasBeenSet; }
+
+    /**
+     * <p>Name of the region that is associated with the latency value.</p>
+     */
     inline void SetRegionIdentifier(const Aws::String& value) { m_regionIdentifierHasBeenSet = true; m_regionIdentifier = value; }
 
     /**
@@ -128,6 +139,12 @@ namespace Model
      * connected to the specified region.</p>
      */
     inline double GetLatencyInMilliseconds() const{ return m_latencyInMilliseconds; }
+
+    /**
+     * <p>Amount of time that represents the time lag experienced by the player when
+     * connected to the specified region.</p>
+     */
+    inline bool LatencyInMillisecondsHasBeenSet() const { return m_latencyInMillisecondsHasBeenSet; }
 
     /**
      * <p>Amount of time that represents the time lag experienced by the player when

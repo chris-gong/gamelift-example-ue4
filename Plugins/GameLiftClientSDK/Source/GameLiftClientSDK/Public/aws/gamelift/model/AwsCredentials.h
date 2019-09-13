@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -44,8 +45,8 @@ namespace Model
   {
   public:
     AwsCredentials();
-    AwsCredentials(const Aws::Utils::Json::JsonValue& jsonValue);
-    AwsCredentials& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    AwsCredentials(Aws::Utils::Json::JsonView jsonValue);
+    AwsCredentials& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -53,6 +54,11 @@ namespace Model
      * <p>Temporary key allowing access to the Amazon GameLift S3 account.</p>
      */
     inline const Aws::String& GetAccessKeyId() const{ return m_accessKeyId; }
+
+    /**
+     * <p>Temporary key allowing access to the Amazon GameLift S3 account.</p>
+     */
+    inline bool AccessKeyIdHasBeenSet() const { return m_accessKeyIdHasBeenSet; }
 
     /**
      * <p>Temporary key allowing access to the Amazon GameLift S3 account.</p>
@@ -93,6 +99,11 @@ namespace Model
     /**
      * <p>Temporary secret key allowing access to the Amazon GameLift S3 account.</p>
      */
+    inline bool SecretAccessKeyHasBeenSet() const { return m_secretAccessKeyHasBeenSet; }
+
+    /**
+     * <p>Temporary secret key allowing access to the Amazon GameLift S3 account.</p>
+     */
     inline void SetSecretAccessKey(const Aws::String& value) { m_secretAccessKeyHasBeenSet = true; m_secretAccessKey = value; }
 
     /**
@@ -126,6 +137,12 @@ namespace Model
      * these credentials.</p>
      */
     inline const Aws::String& GetSessionToken() const{ return m_sessionToken; }
+
+    /**
+     * <p>Token used to associate a specific build ID with the files uploaded using
+     * these credentials.</p>
+     */
+    inline bool SessionTokenHasBeenSet() const { return m_sessionTokenHasBeenSet; }
 
     /**
      * <p>Token used to associate a specific build ID with the files uploaded using

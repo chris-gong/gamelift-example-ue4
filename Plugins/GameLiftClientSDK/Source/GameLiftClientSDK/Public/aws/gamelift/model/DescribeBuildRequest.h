@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     DescribeBuildRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -51,6 +51,11 @@ namespace Model
      * <p>Unique identifier for a build to retrieve properties for.</p>
      */
     inline const Aws::String& GetBuildId() const{ return m_buildId; }
+
+    /**
+     * <p>Unique identifier for a build to retrieve properties for.</p>
+     */
+    inline bool BuildIdHasBeenSet() const { return m_buildIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a build to retrieve properties for.</p>

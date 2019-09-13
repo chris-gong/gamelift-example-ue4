@@ -53,10 +53,13 @@ namespace Aws
             INVALID_SIGNATURE = 21,
             SIGNATURE_DOES_NOT_MATCH = 22,
             INVALID_ACCESS_KEY_ID = 23,
+            REQUEST_TIMEOUT = 24,
+
             NETWORK_CONNECTION = 99, // General failure to send message to service 
 
             // These are needed for logical reasons
             UNKNOWN = 100, // Unknown to the SDK
+            CLIENT_SIGNING_FAILURE = 101, // Client failed to sign the request
             SERVICE_EXTENSION_START_RANGE = 128
         };
 
@@ -66,6 +69,16 @@ namespace Aws
              * Finds a CoreErrors member if possible. Otherwise, returns UNKNOWN
              */
             AWS_CORE_API AWSError<CoreErrors> GetErrorForName(const char* errorName);
+
+            /**
+             * Build the mapping between predefined exception names and Aws CoreErrors using Aws::Map.
+             */
+            AWS_CORE_API void InitCoreErrorsMapper();
+
+            /**
+             * Cleanup memory allocated for Aws::Map used by AWS CoreError Mapper.
+             */
+            AWS_CORE_API void CleanupCoreErrorsMapper();
             /**
              * Finds a CoreErrors member if possible by HTTP response code
              */

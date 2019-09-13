@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -41,8 +42,8 @@ namespace Model
   {
   public:
     IdentityPoolShortDescription();
-    IdentityPoolShortDescription(const Aws::Utils::Json::JsonValue& jsonValue);
-    IdentityPoolShortDescription& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    IdentityPoolShortDescription(Aws::Utils::Json::JsonView jsonValue);
+    IdentityPoolShortDescription& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -50,6 +51,11 @@ namespace Model
      * <p>An identity pool ID in the format REGION:GUID.</p>
      */
     inline const Aws::String& GetIdentityPoolId() const{ return m_identityPoolId; }
+
+    /**
+     * <p>An identity pool ID in the format REGION:GUID.</p>
+     */
+    inline bool IdentityPoolIdHasBeenSet() const { return m_identityPoolIdHasBeenSet; }
 
     /**
      * <p>An identity pool ID in the format REGION:GUID.</p>
@@ -86,6 +92,11 @@ namespace Model
      * <p>A string that you provide.</p>
      */
     inline const Aws::String& GetIdentityPoolName() const{ return m_identityPoolName; }
+
+    /**
+     * <p>A string that you provide.</p>
+     */
+    inline bool IdentityPoolNameHasBeenSet() const { return m_identityPoolNameHasBeenSet; }
 
     /**
      * <p>A string that you provide.</p>

@@ -140,6 +140,11 @@ namespace Aws
             void AddQueryStringParameter(const char* key, const Aws::String& value);
 
             /**
+            * Adds multiple query string parameters to underlying query string.
+            */
+            void AddQueryStringParameter(const Aws::Map<Aws::String, Aws::String>& queryStringPairs);
+
+            /**
             * Converts the URI to a String usable for its context. e.g. an http request.
             */
             Aws::String GetURIString(bool includeQueryString = true) const;
@@ -148,6 +153,11 @@ namespace Aws
              * URLEncodes the path portions of path (doesn't encode the "/" portion)
              */
             static Aws::String URLEncodePath(const Aws::String& path);
+
+            /**
+             * URLEncodes the path portion of the URI according to RFC3986
+             */
+            static Aws::String URLEncodePathRFC3986(const Aws::String& path);
 
         private:
             void ParseURIParts(const Aws::String& uri);

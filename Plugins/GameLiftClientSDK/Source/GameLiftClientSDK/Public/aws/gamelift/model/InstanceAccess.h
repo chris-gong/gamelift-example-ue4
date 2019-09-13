@@ -27,6 +27,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -44,8 +45,8 @@ namespace Model
   {
   public:
     InstanceAccess();
-    InstanceAccess(const Aws::Utils::Json::JsonValue& jsonValue);
-    InstanceAccess& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    InstanceAccess(Aws::Utils::Json::JsonView jsonValue);
+    InstanceAccess& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -53,6 +54,11 @@ namespace Model
      * <p>Unique identifier for a fleet containing the instance being accessed.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet containing the instance being accessed.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet containing the instance being accessed.</p>
@@ -93,6 +99,11 @@ namespace Model
     /**
      * <p>Unique identifier for an instance being accessed.</p>
      */
+    inline bool InstanceIdHasBeenSet() const { return m_instanceIdHasBeenSet; }
+
+    /**
+     * <p>Unique identifier for an instance being accessed.</p>
+     */
     inline void SetInstanceId(const Aws::String& value) { m_instanceIdHasBeenSet = true; m_instanceId = value; }
 
     /**
@@ -125,6 +136,11 @@ namespace Model
      * <p>IP address assigned to the instance.</p>
      */
     inline const Aws::String& GetIpAddress() const{ return m_ipAddress; }
+
+    /**
+     * <p>IP address assigned to the instance.</p>
+     */
+    inline bool IpAddressHasBeenSet() const { return m_ipAddressHasBeenSet; }
 
     /**
      * <p>IP address assigned to the instance.</p>
@@ -165,6 +181,11 @@ namespace Model
     /**
      * <p>Operating system that is running on the instance.</p>
      */
+    inline bool OperatingSystemHasBeenSet() const { return m_operatingSystemHasBeenSet; }
+
+    /**
+     * <p>Operating system that is running on the instance.</p>
+     */
     inline void SetOperatingSystem(const OperatingSystem& value) { m_operatingSystemHasBeenSet = true; m_operatingSystem = value; }
 
     /**
@@ -187,6 +208,11 @@ namespace Model
      * <p>Credentials required to access the instance.</p>
      */
     inline const InstanceCredentials& GetCredentials() const{ return m_credentials; }
+
+    /**
+     * <p>Credentials required to access the instance.</p>
+     */
+    inline bool CredentialsHasBeenSet() const { return m_credentialsHasBeenSet; }
 
     /**
      * <p>Credentials required to access the instance.</p>

@@ -36,7 +36,7 @@ namespace Model
   {
   public:
     UnlinkDeveloperIdentityRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -52,6 +52,11 @@ namespace Model
      * <p>A unique identifier in the format REGION:GUID.</p>
      */
     inline const Aws::String& GetIdentityId() const{ return m_identityId; }
+
+    /**
+     * <p>A unique identifier in the format REGION:GUID.</p>
+     */
+    inline bool IdentityIdHasBeenSet() const { return m_identityIdHasBeenSet; }
 
     /**
      * <p>A unique identifier in the format REGION:GUID.</p>
@@ -92,6 +97,11 @@ namespace Model
     /**
      * <p>An identity pool ID in the format REGION:GUID.</p>
      */
+    inline bool IdentityPoolIdHasBeenSet() const { return m_identityPoolIdHasBeenSet; }
+
+    /**
+     * <p>An identity pool ID in the format REGION:GUID.</p>
+     */
     inline void SetIdentityPoolId(const Aws::String& value) { m_identityPoolIdHasBeenSet = true; m_identityPoolId = value; }
 
     /**
@@ -124,6 +134,11 @@ namespace Model
      * <p>The "domain" by which Cognito will refer to your users.</p>
      */
     inline const Aws::String& GetDeveloperProviderName() const{ return m_developerProviderName; }
+
+    /**
+     * <p>The "domain" by which Cognito will refer to your users.</p>
+     */
+    inline bool DeveloperProviderNameHasBeenSet() const { return m_developerProviderNameHasBeenSet; }
 
     /**
      * <p>The "domain" by which Cognito will refer to your users.</p>
@@ -161,6 +176,12 @@ namespace Model
      * user.</p>
      */
     inline const Aws::String& GetDeveloperUserIdentifier() const{ return m_developerUserIdentifier; }
+
+    /**
+     * <p>A unique ID used by your backend authentication process to identify a
+     * user.</p>
+     */
+    inline bool DeveloperUserIdentifierHasBeenSet() const { return m_developerUserIdentifierHasBeenSet; }
 
     /**
      * <p>A unique ID used by your backend authentication process to identify a

@@ -23,6 +23,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -48,8 +49,8 @@ namespace Model
   {
   public:
     ResourceCreationLimitPolicy();
-    ResourceCreationLimitPolicy(const Aws::Utils::Json::JsonValue& jsonValue);
-    ResourceCreationLimitPolicy& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    ResourceCreationLimitPolicy(Aws::Utils::Json::JsonView jsonValue);
+    ResourceCreationLimitPolicy& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -58,6 +59,12 @@ namespace Model
      * policy period. </p>
      */
     inline int GetNewGameSessionsPerCreator() const{ return m_newGameSessionsPerCreator; }
+
+    /**
+     * <p>Maximum number of game sessions that an individual can create during the
+     * policy period. </p>
+     */
+    inline bool NewGameSessionsPerCreatorHasBeenSet() const { return m_newGameSessionsPerCreatorHasBeenSet; }
 
     /**
      * <p>Maximum number of game sessions that an individual can create during the
@@ -76,6 +83,11 @@ namespace Model
      * <p>Time span used in evaluating the resource creation limit policy. </p>
      */
     inline int GetPolicyPeriodInMinutes() const{ return m_policyPeriodInMinutes; }
+
+    /**
+     * <p>Time span used in evaluating the resource creation limit policy. </p>
+     */
+    inline bool PolicyPeriodInMinutesHasBeenSet() const { return m_policyPeriodInMinutesHasBeenSet; }
 
     /**
      * <p>Time span used in evaluating the resource creation limit policy. </p>

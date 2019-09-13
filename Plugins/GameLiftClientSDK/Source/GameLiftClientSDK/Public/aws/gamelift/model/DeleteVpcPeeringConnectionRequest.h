@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     DeleteVpcPeeringConnectionRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -52,6 +52,12 @@ namespace Model
      * in the VPC peering connection record.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet. This value must match the fleet ID referenced
+     * in the VPC peering connection record.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet. This value must match the fleet ID referenced
@@ -96,6 +102,13 @@ namespace Model
      * <a>DescribeVpcPeeringConnections</a>.</p>
      */
     inline const Aws::String& GetVpcPeeringConnectionId() const{ return m_vpcPeeringConnectionId; }
+
+    /**
+     * <p>Unique identifier for a VPC peering connection. This value is included in the
+     * <a>VpcPeeringConnection</a> object, which can be retrieved by calling
+     * <a>DescribeVpcPeeringConnections</a>.</p>
+     */
+    inline bool VpcPeeringConnectionIdHasBeenSet() const { return m_vpcPeeringConnectionIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a VPC peering connection. This value is included in the

@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     UpdateBuildRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -51,6 +51,11 @@ namespace Model
      * <p>Unique identifier for a build to update.</p>
      */
     inline const Aws::String& GetBuildId() const{ return m_buildId; }
+
+    /**
+     * <p>Unique identifier for a build to update.</p>
+     */
+    inline bool BuildIdHasBeenSet() const { return m_buildIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a build to update.</p>
@@ -93,6 +98,12 @@ namespace Model
      * <p>Descriptive label that is associated with a build. Build names do not need to
      * be unique. </p>
      */
+    inline bool NameHasBeenSet() const { return m_nameHasBeenSet; }
+
+    /**
+     * <p>Descriptive label that is associated with a build. Build names do not need to
+     * be unique. </p>
+     */
     inline void SetName(const Aws::String& value) { m_nameHasBeenSet = true; m_name = value; }
 
     /**
@@ -127,44 +138,50 @@ namespace Model
 
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline const Aws::String& GetVersion() const{ return m_version; }
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
+     */
+    inline bool VersionHasBeenSet() const { return m_versionHasBeenSet; }
+
+    /**
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline void SetVersion(const Aws::String& value) { m_versionHasBeenSet = true; m_version = value; }
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline void SetVersion(Aws::String&& value) { m_versionHasBeenSet = true; m_version = std::move(value); }
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline void SetVersion(const char* value) { m_versionHasBeenSet = true; m_version.assign(value); }
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline UpdateBuildRequest& WithVersion(const Aws::String& value) { SetVersion(value); return *this;}
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline UpdateBuildRequest& WithVersion(Aws::String&& value) { SetVersion(std::move(value)); return *this;}
 
     /**
-     * <p>Version that is associated with this build. Version strings do not need to be
-     * unique.</p>
+     * <p>Version that is associated with a build or script. Version strings do not
+     * need to be unique.</p>
      */
     inline UpdateBuildRequest& WithVersion(const char* value) { SetVersion(value); return *this;}
 

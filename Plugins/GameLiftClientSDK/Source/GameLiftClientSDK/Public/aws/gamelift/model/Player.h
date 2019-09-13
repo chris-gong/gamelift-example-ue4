@@ -27,6 +27,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -45,8 +46,8 @@ namespace Model
   {
   public:
     Player();
-    Player(const Aws::Utils::Json::JsonValue& jsonValue);
-    Player& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    Player(Aws::Utils::Json::JsonView jsonValue);
+    Player& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -54,6 +55,11 @@ namespace Model
      * <p>Unique identifier for a player</p>
      */
     inline const Aws::String& GetPlayerId() const{ return m_playerId; }
+
+    /**
+     * <p>Unique identifier for a player</p>
+     */
+    inline bool PlayerIdHasBeenSet() const { return m_playerIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player</p>
@@ -87,89 +93,97 @@ namespace Model
 
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline const Aws::Map<Aws::String, AttributeValue>& GetPlayerAttributes() const{ return m_playerAttributes; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
+     */
+    inline bool PlayerAttributesHasBeenSet() const { return m_playerAttributesHasBeenSet; }
+
+    /**
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline void SetPlayerAttributes(const Aws::Map<Aws::String, AttributeValue>& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes = value; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline void SetPlayerAttributes(Aws::Map<Aws::String, AttributeValue>&& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes = std::move(value); }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& WithPlayerAttributes(const Aws::Map<Aws::String, AttributeValue>& value) { SetPlayerAttributes(value); return *this;}
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& WithPlayerAttributes(Aws::Map<Aws::String, AttributeValue>&& value) { SetPlayerAttributes(std::move(value)); return *this;}
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(const Aws::String& key, const AttributeValue& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(key, value); return *this; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(Aws::String&& key, const AttributeValue& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(std::move(key), value); return *this; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(const Aws::String& key, AttributeValue&& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(key, std::move(value)); return *this; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(Aws::String&& key, AttributeValue&& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(std::move(key), std::move(value)); return *this; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(const char* key, AttributeValue&& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(key, std::move(value)); return *this; }
 
     /**
-     * <p>Collection of name:value pairs containing player information for use in
-     * matchmaking. Player attribute names need to match <i>playerAttributes</i> names
-     * in the rule set being used. Example: <code>"PlayerAttributes": {"skill": {"N":
+     * <p>Collection of key:value pairs containing player information for use in
+     * matchmaking. Player attribute keys must match the <i>playerAttributes</i> used
+     * in a matchmaking rule set. Example: <code>"PlayerAttributes": {"skill": {"N":
      * "23"}, "gameMode": {"S": "deathmatch"}}</code>.</p>
      */
     inline Player& AddPlayerAttributes(const char* key, const AttributeValue& value) { m_playerAttributesHasBeenSet = true; m_playerAttributes.emplace(key, value); return *this; }
@@ -180,6 +194,12 @@ namespace Model
      * defined in a matchmaking rule set.</p>
      */
     inline const Aws::String& GetTeam() const{ return m_team; }
+
+    /**
+     * <p>Name of the team that the player is assigned to in a match. Team names are
+     * defined in a matchmaking rule set.</p>
+     */
+    inline bool TeamHasBeenSet() const { return m_teamHasBeenSet; }
 
     /**
      * <p>Name of the team that the player is assigned to in a match. Team names are
@@ -228,6 +248,17 @@ namespace Model
      * the ticket is not matchable. </p>
      */
     inline const Aws::Map<Aws::String, int>& GetLatencyInMs() const{ return m_latencyInMs; }
+
+    /**
+     * <p>Set of values, expressed in milliseconds, indicating the amount of latency
+     * that a player experiences when connected to AWS regions. If this property is
+     * present, FlexMatch considers placing the match only in regions for which latency
+     * is reported. </p> <p>If a matchmaker has a rule that evaluates player latency,
+     * players must report latency in order to be matched. If no latency is reported in
+     * this scenario, FlexMatch assumes that no regions are available to the player and
+     * the ticket is not matchable. </p>
+     */
+    inline bool LatencyInMsHasBeenSet() const { return m_latencyInMsHasBeenSet; }
 
     /**
      * <p>Set of values, expressed in milliseconds, indicating the amount of latency

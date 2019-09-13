@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     DescribeFleetPortSettingsRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -51,6 +51,11 @@ namespace Model
      * <p>Unique identifier for a fleet to retrieve port settings for.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet to retrieve port settings for.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet to retrieve port settings for.</p>

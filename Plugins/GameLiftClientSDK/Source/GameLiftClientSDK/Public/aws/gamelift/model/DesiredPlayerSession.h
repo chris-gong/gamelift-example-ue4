@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     DesiredPlayerSession();
-    DesiredPlayerSession(const Aws::Utils::Json::JsonValue& jsonValue);
-    DesiredPlayerSession& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    DesiredPlayerSession(Aws::Utils::Json::JsonView jsonValue);
+    DesiredPlayerSession& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -52,6 +53,11 @@ namespace Model
      * <p>Unique identifier for a player to associate with the player session.</p>
      */
     inline const Aws::String& GetPlayerId() const{ return m_playerId; }
+
+    /**
+     * <p>Unique identifier for a player to associate with the player session.</p>
+     */
+    inline bool PlayerIdHasBeenSet() const { return m_playerIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player to associate with the player session.</p>
@@ -89,6 +95,12 @@ namespace Model
      * use this data, so it can be formatted as needed for use in the game.</p>
      */
     inline const Aws::String& GetPlayerData() const{ return m_playerData; }
+
+    /**
+     * <p>Developer-defined information related to a player. Amazon GameLift does not
+     * use this data, so it can be formatted as needed for use in the game.</p>
+     */
+    inline bool PlayerDataHasBeenSet() const { return m_playerDataHasBeenSet; }
 
     /**
      * <p>Developer-defined information related to a player. Amazon GameLift does not

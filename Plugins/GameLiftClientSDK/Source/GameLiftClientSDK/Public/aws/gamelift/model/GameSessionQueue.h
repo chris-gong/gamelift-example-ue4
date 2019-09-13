@@ -28,6 +28,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -47,9 +48,8 @@ namespace Model
    * timing out. </p> </li> <li> <p>A set of optional latency policies that protect
    * individual players from high latencies, preventing game sessions from being
    * placed where any individual player is reporting latency higher than a policy's
-   * maximum.</p> </li> </ul> <p>Queue-related operations include:</p> <ul> <li> <p>
-   * <a>CreateGameSessionQueue</a> </p> </li> <li> <p>
-   * <a>DescribeGameSessionQueues</a> </p> </li> <li> <p>
+   * maximum.</p> </li> </ul> <ul> <li> <p> <a>CreateGameSessionQueue</a> </p> </li>
+   * <li> <p> <a>DescribeGameSessionQueues</a> </p> </li> <li> <p>
    * <a>UpdateGameSessionQueue</a> </p> </li> <li> <p> <a>DeleteGameSessionQueue</a>
    * </p> </li> </ul><p><h3>See Also:</h3>   <a
    * href="http://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/GameSessionQueue">AWS
@@ -59,8 +59,8 @@ namespace Model
   {
   public:
     GameSessionQueue();
-    GameSessionQueue(const Aws::Utils::Json::JsonValue& jsonValue);
-    GameSessionQueue& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    GameSessionQueue(Aws::Utils::Json::JsonView jsonValue);
+    GameSessionQueue& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -69,6 +69,12 @@ namespace Model
      * must be unique within each region.</p>
      */
     inline const Aws::String& GetName() const{ return m_name; }
+
+    /**
+     * <p>Descriptive label that is associated with game session queue. Queue names
+     * must be unique within each region.</p>
+     */
+    inline bool NameHasBeenSet() const { return m_nameHasBeenSet; }
 
     /**
      * <p>Descriptive label that is associated with game session queue. Queue names
@@ -109,57 +115,73 @@ namespace Model
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline const Aws::String& GetGameSessionQueueArn() const{ return m_gameSessionQueueArn; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
+     */
+    inline bool GameSessionQueueArnHasBeenSet() const { return m_gameSessionQueueArnHasBeenSet; }
+
+    /**
+     * <p>Amazon Resource Name (<a
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * that is assigned to a game session queue and uniquely identifies it. Format is
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline void SetGameSessionQueueArn(const Aws::String& value) { m_gameSessionQueueArnHasBeenSet = true; m_gameSessionQueueArn = value; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline void SetGameSessionQueueArn(Aws::String&& value) { m_gameSessionQueueArnHasBeenSet = true; m_gameSessionQueueArn = std::move(value); }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline void SetGameSessionQueueArn(const char* value) { m_gameSessionQueueArnHasBeenSet = true; m_gameSessionQueueArn.assign(value); }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline GameSessionQueue& WithGameSessionQueueArn(const Aws::String& value) { SetGameSessionQueueArn(value); return *this;}
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline GameSessionQueue& WithGameSessionQueueArn(Aws::String&& value) { SetGameSessionQueueArn(std::move(value)); return *this;}
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>.</p>
      */
     inline GameSessionQueue& WithGameSessionQueueArn(const char* value) { SetGameSessionQueueArn(value); return *this;}
 
@@ -170,6 +192,13 @@ namespace Model
      * changes to a <code>TIMED_OUT</code> status.</p>
      */
     inline int GetTimeoutInSeconds() const{ return m_timeoutInSeconds; }
+
+    /**
+     * <p>Maximum time, in seconds, that a new game session placement request remains
+     * in the queue. When a request exceeds this time, the game session placement
+     * changes to a <code>TIMED_OUT</code> status.</p>
+     */
+    inline bool TimeoutInSecondsHasBeenSet() const { return m_timeoutInSecondsHasBeenSet; }
 
     /**
      * <p>Maximum time, in seconds, that a new game session placement request remains
@@ -197,6 +226,18 @@ namespace Model
      * for the remainder of the placement. </p>
      */
     inline const Aws::Vector<PlayerLatencyPolicy>& GetPlayerLatencyPolicies() const{ return m_playerLatencyPolicies; }
+
+    /**
+     * <p>Collection of latency policies to apply when processing game sessions
+     * placement requests with player latency information. Multiple policies are
+     * evaluated in order of the maximum latency value, starting with the lowest
+     * latency values. With just one policy, it is enforced at the start of the game
+     * session placement for the duration period. With multiple policies, each policy
+     * is enforced consecutively for its duration period. For example, a queue might
+     * enforce a 60-second policy followed by a 120-second policy, and then no policy
+     * for the remainder of the placement. </p>
+     */
+    inline bool PlayerLatencyPoliciesHasBeenSet() const { return m_playerLatencyPoliciesHasBeenSet; }
 
     /**
      * <p>Collection of latency policies to apply when processing game sessions
@@ -277,6 +318,13 @@ namespace Model
      * Destinations are listed in default preference order.</p>
      */
     inline const Aws::Vector<GameSessionQueueDestination>& GetDestinations() const{ return m_destinations; }
+
+    /**
+     * <p>List of fleets that can be used to fulfill game session placement requests in
+     * the queue. Fleets are identified by either a fleet ARN or a fleet alias ARN.
+     * Destinations are listed in default preference order.</p>
+     */
+    inline bool DestinationsHasBeenSet() const { return m_destinationsHasBeenSet; }
 
     /**
      * <p>List of fleets that can be used to fulfill game session placement requests in

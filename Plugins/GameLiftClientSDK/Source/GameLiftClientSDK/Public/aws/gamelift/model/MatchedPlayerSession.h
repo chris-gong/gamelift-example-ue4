@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -46,8 +47,8 @@ namespace Model
   {
   public:
     MatchedPlayerSession();
-    MatchedPlayerSession(const Aws::Utils::Json::JsonValue& jsonValue);
-    MatchedPlayerSession& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    MatchedPlayerSession(Aws::Utils::Json::JsonView jsonValue);
+    MatchedPlayerSession& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -55,6 +56,11 @@ namespace Model
      * <p>Unique identifier for a player </p>
      */
     inline const Aws::String& GetPlayerId() const{ return m_playerId; }
+
+    /**
+     * <p>Unique identifier for a player </p>
+     */
+    inline bool PlayerIdHasBeenSet() const { return m_playerIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player </p>
@@ -91,6 +97,11 @@ namespace Model
      * <p>Unique identifier for a player session</p>
      */
     inline const Aws::String& GetPlayerSessionId() const{ return m_playerSessionId; }
+
+    /**
+     * <p>Unique identifier for a player session</p>
+     */
+    inline bool PlayerSessionIdHasBeenSet() const { return m_playerSessionIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a player session</p>

@@ -18,11 +18,11 @@
 #include <aws/core/Core_EXPORTS.h>
 
 #include <aws/core/utils/ratelimiter/RateLimiterInterface.h>
-#include <aws/core/utils/memory/stl/AWSFunction.h>
 
 #include <algorithm>
 #include <mutex>
 #include <thread>
+#include <functional>
 
 namespace Aws
 {
@@ -45,7 +45,7 @@ namespace Aws
                 /**
                  * Initializes state, starts counts, does some basic validation.
                  */
-                DefaultRateLimiter(int64_t maxRate, ElapsedTimeFunctionType elapsedTimeFunction = AWS_BUILD_FUNCTION(CLOCK::now)) :
+                DefaultRateLimiter(int64_t maxRate, ElapsedTimeFunctionType elapsedTimeFunction = CLOCK::now) :
                     m_elapsedTimeFunction(elapsedTimeFunction),
                     m_maxRate(0),
                     m_accumulatorLock(),
@@ -63,7 +63,7 @@ namespace Aws
                     static_assert(CLOCK::duration::period::num > 0, "RateLimiter clock duration must have positive numerator");
                     static_assert(CLOCK::duration::period::den > 0, "RateLimiter clock duration must have positive denominator");
 
-                    SetRate(maxRate, true);
+                    DefaultRateLimiter::SetRate(maxRate, true);
                 }
 
                 virtual ~DefaultRateLimiter() = default;

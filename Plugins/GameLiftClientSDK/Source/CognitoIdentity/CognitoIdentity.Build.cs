@@ -21,6 +21,7 @@ public class CognitoIdentity : ModuleRules
 		{
 			PublicLibraryPaths.Add(ThirdPartyPath);
 
+            // cognito identity
 			string CognitoLibFile = System.IO.Path.Combine(ThirdPartyPath, "aws-cpp-sdk-cognito-identity.lib");
 			if (File.Exists(CognitoLibFile))
 			{
@@ -41,6 +42,6 @@ public class CognitoIdentity : ModuleRules
 			{
 				throw new BuildException("aws-cpp-sdk-cognito-identity.dll not found. Expected in this location: " + CognitoDLLFile);
 			}
-		}
+        }
 	}
 }

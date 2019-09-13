@@ -37,7 +37,7 @@ namespace Model
   {
   public:
     UnlinkIdentityRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -53,6 +53,11 @@ namespace Model
      * <p>A unique identifier in the format REGION:GUID.</p>
      */
     inline const Aws::String& GetIdentityId() const{ return m_identityId; }
+
+    /**
+     * <p>A unique identifier in the format REGION:GUID.</p>
+     */
+    inline bool IdentityIdHasBeenSet() const { return m_identityIdHasBeenSet; }
 
     /**
      * <p>A unique identifier in the format REGION:GUID.</p>
@@ -90,6 +95,12 @@ namespace Model
      * tokens.</p>
      */
     inline const Aws::Map<Aws::String, Aws::String>& GetLogins() const{ return m_logins; }
+
+    /**
+     * <p>A set of optional name-value pairs that map provider names to provider
+     * tokens.</p>
+     */
+    inline bool LoginsHasBeenSet() const { return m_loginsHasBeenSet; }
 
     /**
      * <p>A set of optional name-value pairs that map provider names to provider
@@ -162,6 +173,11 @@ namespace Model
      * <p>Provider names to unlink from this identity.</p>
      */
     inline const Aws::Vector<Aws::String>& GetLoginsToRemove() const{ return m_loginsToRemove; }
+
+    /**
+     * <p>Provider names to unlink from this identity.</p>
+     */
+    inline bool LoginsToRemoveHasBeenSet() const { return m_loginsToRemoveHasBeenSet; }
 
     /**
      * <p>Provider names to unlink from this identity.</p>

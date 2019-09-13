@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -35,10 +36,13 @@ namespace Model
 
   /**
    * <p>A range of IP addresses and port settings that allow inbound traffic to
-   * connect to server processes on Amazon GameLift. Each game session hosted on a
-   * fleet is assigned a unique combination of IP address and port number, which must
-   * fall into the fleet's allowed ranges. This combination is included in the
-   * <a>GameSession</a> object. </p><p><h3>See Also:</h3>   <a
+   * connect to server processes on an Amazon GameLift. New game sessions that are
+   * started on the fleet are assigned an IP address/port number combination, which
+   * must fall into the fleet's allowed ranges. For fleets created with a custom game
+   * server, the ranges reflect the server's game session assignments. For Realtime
+   * Servers fleets, Amazon GameLift automatically opens two port ranges, one for TCP
+   * messaging and one for UDP for use by the Realtime servers.</p><p><h3>See
+   * Also:</h3>   <a
    * href="http://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/IpPermission">AWS
    * API Reference</a></p>
    */
@@ -46,8 +50,8 @@ namespace Model
   {
   public:
     IpPermission();
-    IpPermission(const Aws::Utils::Json::JsonValue& jsonValue);
-    IpPermission& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    IpPermission(Aws::Utils::Json::JsonView jsonValue);
+    IpPermission& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -55,6 +59,11 @@ namespace Model
      * <p>Starting value for a range of allowed port numbers.</p>
      */
     inline int GetFromPort() const{ return m_fromPort; }
+
+    /**
+     * <p>Starting value for a range of allowed port numbers.</p>
+     */
+    inline bool FromPortHasBeenSet() const { return m_fromPortHasBeenSet; }
 
     /**
      * <p>Starting value for a range of allowed port numbers.</p>
@@ -77,6 +86,12 @@ namespace Model
      * <p>Ending value for a range of allowed port numbers. Port numbers are
      * end-inclusive. This value must be higher than <code>FromPort</code>.</p>
      */
+    inline bool ToPortHasBeenSet() const { return m_toPortHasBeenSet; }
+
+    /**
+     * <p>Ending value for a range of allowed port numbers. Port numbers are
+     * end-inclusive. This value must be higher than <code>FromPort</code>.</p>
+     */
     inline void SetToPort(int value) { m_toPortHasBeenSet = true; m_toPort = value; }
 
     /**
@@ -92,6 +107,13 @@ namespace Model
      * shortened version "<code>0.0.0.0/[subnet mask]</code>".</p>
      */
     inline const Aws::String& GetIpRange() const{ return m_ipRange; }
+
+    /**
+     * <p>Range of allowed IP addresses. This value must be expressed in CIDR notation.
+     * Example: "<code>000.000.000.000/[subnet mask]</code>" or optionally the
+     * shortened version "<code>0.0.0.0/[subnet mask]</code>".</p>
+     */
+    inline bool IpRangeHasBeenSet() const { return m_ipRangeHasBeenSet; }
 
     /**
      * <p>Range of allowed IP addresses. This value must be expressed in CIDR notation.
@@ -140,6 +162,11 @@ namespace Model
      * <p>Network communication protocol used by the fleet.</p>
      */
     inline const IpProtocol& GetProtocol() const{ return m_protocol; }
+
+    /**
+     * <p>Network communication protocol used by the fleet.</p>
+     */
+    inline bool ProtocolHasBeenSet() const { return m_protocolHasBeenSet; }
 
     /**
      * <p>Network communication protocol used by the fleet.</p>

@@ -77,11 +77,20 @@ namespace Aws
             */
             static Aws::String URLDecode(const char* safe);
 
+            /**
+             * @brief Splits a string on a delimiter (empty items are excluded).
+             * @param toSplit, the original string to split
+             * @param splitOn, the delemiter you want to use.
+             */
+            static Aws::Vector<Aws::String> Split(const Aws::String& toSplit, char splitOn);
 
             /**
-            * Splits a string on a delimiter (empty items are excluded).
-            */
-            static Aws::Vector<Aws::String> Split(const Aws::String& toSplit, char splitOn);
+             * @brief Splits a string on a delimiter (empty items are excluded).
+             * @param toSplit, the original string to split
+             * @param splitOn, the delemiter you want to use.
+             * @param numOfTargetParts, how many target parts you want to get, if it is 0, as many as possible.
+             */
+            static Aws::Vector<Aws::String> Split(const Aws::String& toSplit, char splitOn, size_t numOfTargetParts);
 
 
             /**
@@ -154,6 +163,37 @@ namespace Aws
                 return os.str();
             }
 
+            /**
+             * locale agnostic implementation of std::isalnum
+             */
+            static bool IsAlnum(char c)
+            {
+                return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+            }
+
+            /**
+             * Convert an unsigned integer to its hex string in upper case.
+             */
+            template<typename T, class = typename std::enable_if<std::is_unsigned<T>::value>::type>
+            static Aws::String ToHexString(T value)
+            {
+                if (value == 0)
+                {
+                    return "0";
+                }
+
+                Aws::String s;
+                s.reserve(sizeof(value) * 2);
+                T r = value;
+                while (r > 0)
+                {
+                    s += "0123456789ABCDEF"[r & 0xf];
+                    r >>= 4;
+                }
+
+                std::reverse(s.begin(), s.end());
+                return s;
+            }
         };
 
 

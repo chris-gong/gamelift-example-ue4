@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     ListFleetsRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -53,6 +53,13 @@ namespace Model
      * parameter empty.</p>
      */
     inline const Aws::String& GetBuildId() const{ return m_buildId; }
+
+    /**
+     * <p>Unique identifier for a build to return fleets for. Use this parameter to
+     * return only fleets using the specified build. To retrieve all fleets, leave this
+     * parameter empty.</p>
+     */
+    inline bool BuildIdHasBeenSet() const { return m_buildIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a build to return fleets for. Use this parameter to
@@ -98,10 +105,73 @@ namespace Model
 
 
     /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline const Aws::String& GetScriptId() const{ return m_scriptId; }
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline bool ScriptIdHasBeenSet() const { return m_scriptIdHasBeenSet; }
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline void SetScriptId(const Aws::String& value) { m_scriptIdHasBeenSet = true; m_scriptId = value; }
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline void SetScriptId(Aws::String&& value) { m_scriptIdHasBeenSet = true; m_scriptId = std::move(value); }
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline void SetScriptId(const char* value) { m_scriptIdHasBeenSet = true; m_scriptId.assign(value); }
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline ListFleetsRequest& WithScriptId(const Aws::String& value) { SetScriptId(value); return *this;}
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline ListFleetsRequest& WithScriptId(Aws::String&& value) { SetScriptId(std::move(value)); return *this;}
+
+    /**
+     * <p>Unique identifier for a Realtime script to return fleets for. Use this
+     * parameter to return only fleets using the specified script. To retrieve all
+     * fleets, leave this parameter empty.</p>
+     */
+    inline ListFleetsRequest& WithScriptId(const char* value) { SetScriptId(value); return *this;}
+
+
+    /**
      * <p>Maximum number of results to return. Use this parameter with
      * <code>NextToken</code> to get results as a set of sequential pages.</p>
      */
     inline int GetLimit() const{ return m_limit; }
+
+    /**
+     * <p>Maximum number of results to return. Use this parameter with
+     * <code>NextToken</code> to get results as a set of sequential pages.</p>
+     */
+    inline bool LimitHasBeenSet() const { return m_limitHasBeenSet; }
 
     /**
      * <p>Maximum number of results to return. Use this parameter with
@@ -122,6 +192,13 @@ namespace Model
      * beginning of the result set, do not specify a value.</p>
      */
     inline const Aws::String& GetNextToken() const{ return m_nextToken; }
+
+    /**
+     * <p>Token that indicates the start of the next sequential page of results. Use
+     * the token that is returned with a previous call to this action. To start at the
+     * beginning of the result set, do not specify a value.</p>
+     */
+    inline bool NextTokenHasBeenSet() const { return m_nextTokenHasBeenSet; }
 
     /**
      * <p>Token that indicates the start of the next sequential page of results. Use
@@ -169,6 +246,9 @@ namespace Model
 
     Aws::String m_buildId;
     bool m_buildIdHasBeenSet;
+
+    Aws::String m_scriptId;
+    bool m_scriptIdHasBeenSet;
 
     int m_limit;
     bool m_limitHasBeenSet;

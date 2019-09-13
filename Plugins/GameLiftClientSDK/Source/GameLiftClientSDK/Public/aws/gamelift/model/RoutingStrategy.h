@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -34,24 +35,11 @@ namespace Model
 {
 
   /**
-   * <p>Routing configuration for a fleet alias.</p> <p>Fleet-related operations
-   * include:</p> <ul> <li> <p> <a>CreateFleet</a> </p> </li> <li> <p>
-   * <a>ListFleets</a> </p> </li> <li> <p>Describe fleets:</p> <ul> <li> <p>
-   * <a>DescribeFleetAttributes</a> </p> </li> <li> <p>
-   * <a>DescribeFleetPortSettings</a> </p> </li> <li> <p>
-   * <a>DescribeFleetUtilization</a> </p> </li> <li> <p>
-   * <a>DescribeRuntimeConfiguration</a> </p> </li> <li> <p>
-   * <a>DescribeFleetEvents</a> </p> </li> </ul> </li> <li> <p>Update fleets:</p>
-   * <ul> <li> <p> <a>UpdateFleetAttributes</a> </p> </li> <li> <p>
-   * <a>UpdateFleetCapacity</a> </p> </li> <li> <p> <a>UpdateFleetPortSettings</a>
-   * </p> </li> <li> <p> <a>UpdateRuntimeConfiguration</a> </p> </li> </ul> </li>
-   * <li> <p>Manage fleet capacity:</p> <ul> <li> <p> <a>DescribeFleetCapacity</a>
-   * </p> </li> <li> <p> <a>UpdateFleetCapacity</a> </p> </li> <li> <p>
-   * <a>PutScalingPolicy</a> (automatic scaling)</p> </li> <li> <p>
-   * <a>DescribeScalingPolicies</a> (automatic scaling)</p> </li> <li> <p>
-   * <a>DeleteScalingPolicy</a> (automatic scaling)</p> </li> <li> <p>
-   * <a>DescribeEC2InstanceLimits</a> </p> </li> </ul> </li> <li> <p>
-   * <a>DeleteFleet</a> </p> </li> </ul><p><h3>See Also:</h3>   <a
+   * <p>Routing configuration for a fleet alias.</p> <ul> <li> <p> <a>CreateAlias</a>
+   * </p> </li> <li> <p> <a>ListAliases</a> </p> </li> <li> <p> <a>DescribeAlias</a>
+   * </p> </li> <li> <p> <a>UpdateAlias</a> </p> </li> <li> <p> <a>DeleteAlias</a>
+   * </p> </li> <li> <p> <a>ResolveAlias</a> </p> </li> </ul><p><h3>See Also:</h3>  
+   * <a
    * href="http://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/RoutingStrategy">AWS
    * API Reference</a></p>
    */
@@ -59,8 +47,8 @@ namespace Model
   {
   public:
     RoutingStrategy();
-    RoutingStrategy(const Aws::Utils::Json::JsonValue& jsonValue);
-    RoutingStrategy& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    RoutingStrategy(Aws::Utils::Json::JsonView jsonValue);
+    RoutingStrategy& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -74,6 +62,17 @@ namespace Model
      * embedded.</p> </li> </ul>
      */
     inline const RoutingStrategyType& GetType() const{ return m_type; }
+
+    /**
+     * <p>Type of routing strategy.</p> <p>Possible routing types include the
+     * following:</p> <ul> <li> <p> <b>SIMPLE</b> -- The alias resolves to one specific
+     * fleet. Use this type when routing to active fleets.</p> </li> <li> <p>
+     * <b>TERMINAL</b> -- The alias does not resolve to a fleet but instead can be used
+     * to display a message to the user. A terminal alias throws a
+     * TerminalRoutingStrategyException with the <a>RoutingStrategy</a> message
+     * embedded.</p> </li> </ul>
+     */
+    inline bool TypeHasBeenSet() const { return m_typeHasBeenSet; }
 
     /**
      * <p>Type of routing strategy.</p> <p>Possible routing types include the
@@ -128,6 +127,11 @@ namespace Model
     /**
      * <p>Unique identifier for a fleet that the alias points to.</p>
      */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
+
+    /**
+     * <p>Unique identifier for a fleet that the alias points to.</p>
+     */
     inline void SetFleetId(const Aws::String& value) { m_fleetIdHasBeenSet = true; m_fleetId = value; }
 
     /**
@@ -160,6 +164,11 @@ namespace Model
      * <p>Message text to be used with a terminal routing strategy.</p>
      */
     inline const Aws::String& GetMessage() const{ return m_message; }
+
+    /**
+     * <p>Message text to be used with a terminal routing strategy.</p>
+     */
+    inline bool MessageHasBeenSet() const { return m_messageHasBeenSet; }
 
     /**
      * <p>Message text to be used with a terminal routing strategy.</p>

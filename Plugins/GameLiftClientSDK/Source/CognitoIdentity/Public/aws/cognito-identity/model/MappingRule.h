@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     MappingRule();
-    MappingRule(const Aws::Utils::Json::JsonValue& jsonValue);
-    MappingRule& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    MappingRule(Aws::Utils::Json::JsonView jsonValue);
+    MappingRule& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -53,6 +54,12 @@ namespace Model
      * "paid".</p>
      */
     inline const Aws::String& GetClaim() const{ return m_claim; }
+
+    /**
+     * <p>The claim name that must be present in the token, for example, "isAdmin" or
+     * "paid".</p>
+     */
+    inline bool ClaimHasBeenSet() const { return m_claimHasBeenSet; }
 
     /**
      * <p>The claim name that must be present in the token, for example, "isAdmin" or
@@ -101,6 +108,12 @@ namespace Model
      * <p>The match condition that specifies how closely the claim value in the IdP
      * token must match <code>Value</code>.</p>
      */
+    inline bool MatchTypeHasBeenSet() const { return m_matchTypeHasBeenSet; }
+
+    /**
+     * <p>The match condition that specifies how closely the claim value in the IdP
+     * token must match <code>Value</code>.</p>
+     */
     inline void SetMatchType(const MappingRuleMatchType& value) { m_matchTypeHasBeenSet = true; m_matchType = value; }
 
     /**
@@ -126,6 +139,11 @@ namespace Model
      * <p>A brief string that the claim must match, for example, "paid" or "yes".</p>
      */
     inline const Aws::String& GetValue() const{ return m_value; }
+
+    /**
+     * <p>A brief string that the claim must match, for example, "paid" or "yes".</p>
+     */
+    inline bool ValueHasBeenSet() const { return m_valueHasBeenSet; }
 
     /**
      * <p>A brief string that the claim must match, for example, "paid" or "yes".</p>
@@ -162,6 +180,11 @@ namespace Model
      * <p>The role ARN.</p>
      */
     inline const Aws::String& GetRoleARN() const{ return m_roleARN; }
+
+    /**
+     * <p>The role ARN.</p>
+     */
+    inline bool RoleARNHasBeenSet() const { return m_roleARNHasBeenSet; }
 
     /**
      * <p>The role ARN.</p>

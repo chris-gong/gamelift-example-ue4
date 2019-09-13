@@ -27,6 +27,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     RoleMapping();
-    RoleMapping(const Aws::Utils::Json::JsonValue& jsonValue);
-    RoleMapping& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    RoleMapping(Aws::Utils::Json::JsonView jsonValue);
+    RoleMapping& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -55,6 +56,14 @@ namespace Model
      * to map to a role.</p>
      */
     inline const RoleMappingType& GetType() const{ return m_type; }
+
+    /**
+     * <p>The role mapping type. Token will use <code>cognito:roles</code> and
+     * <code>cognito:preferred_role</code> claims from the Cognito identity provider
+     * token to map groups to roles. Rules will attempt to match claims from the token
+     * to map to a role.</p>
+     */
+    inline bool TypeHasBeenSet() const { return m_typeHasBeenSet; }
 
     /**
      * <p>The role mapping type. Token will use <code>cognito:roles</code> and
@@ -105,6 +114,15 @@ namespace Model
      * type, or there is no <code>cognito:preferred_role</code> claim and there are
      * multiple <code>cognito:roles</code> matches for the <code>Token</code> type.</p>
      */
+    inline bool AmbiguousRoleResolutionHasBeenSet() const { return m_ambiguousRoleResolutionHasBeenSet; }
+
+    /**
+     * <p>If you specify Token or Rules as the <code>Type</code>,
+     * <code>AmbiguousRoleResolution</code> is required.</p> <p>Specifies the action to
+     * be taken if either no rules match the claim value for the <code>Rules</code>
+     * type, or there is no <code>cognito:preferred_role</code> claim and there are
+     * multiple <code>cognito:roles</code> matches for the <code>Token</code> type.</p>
+     */
     inline void SetAmbiguousRoleResolution(const AmbiguousRoleResolutionType& value) { m_ambiguousRoleResolutionHasBeenSet = true; m_ambiguousRoleResolution = value; }
 
     /**
@@ -140,6 +158,12 @@ namespace Model
      * as the role mapping type, <code>RulesConfiguration</code> is required.</p>
      */
     inline const RulesConfigurationType& GetRulesConfiguration() const{ return m_rulesConfiguration; }
+
+    /**
+     * <p>The rules to be used for mapping users to roles.</p> <p>If you specify Rules
+     * as the role mapping type, <code>RulesConfiguration</code> is required.</p>
+     */
+    inline bool RulesConfigurationHasBeenSet() const { return m_rulesConfigurationHasBeenSet; }
 
     /**
      * <p>The rules to be used for mapping users to roles.</p> <p>If you specify Rules

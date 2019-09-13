@@ -18,6 +18,7 @@
 #include <aws/core/utils/memory/stl/AWSString.h>
 #include <aws/core/utils/memory/stl/AWSVector.h>
 #include <aws/core/utils/DateTime.h>
+#include <aws/gamelift/model/BackfillMode.h>
 #include <aws/gamelift/model/GameProperty.h>
 #include <utility>
 
@@ -28,6 +29,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -46,8 +48,8 @@ namespace Model
   {
   public:
     MatchmakingConfiguration();
-    MatchmakingConfiguration(const Aws::Utils::Json::JsonValue& jsonValue);
-    MatchmakingConfiguration& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    MatchmakingConfiguration(Aws::Utils::Json::JsonView jsonValue);
+    MatchmakingConfiguration& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -56,6 +58,12 @@ namespace Model
      * identify the configuration associated with a matchmaking request or ticket.</p>
      */
     inline const Aws::String& GetName() const{ return m_name; }
+
+    /**
+     * <p>Unique identifier for a matchmaking configuration. This name is used to
+     * identify the configuration associated with a matchmaking request or ticket.</p>
+     */
+    inline bool NameHasBeenSet() const { return m_nameHasBeenSet; }
 
     /**
      * <p>Unique identifier for a matchmaking configuration. This name is used to
@@ -102,6 +110,11 @@ namespace Model
     /**
      * <p>Descriptive label that is associated with matchmaking configuration.</p>
      */
+    inline bool DescriptionHasBeenSet() const { return m_descriptionHasBeenSet; }
+
+    /**
+     * <p>Descriptive label that is associated with matchmaking configuration.</p>
+     */
     inline void SetDescription(const Aws::String& value) { m_descriptionHasBeenSet = true; m_description = value; }
 
     /**
@@ -132,100 +145,129 @@ namespace Model
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline const Aws::Vector<Aws::String>& GetGameSessionQueueArns() const{ return m_gameSessionQueueArns; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
+     */
+    inline bool GameSessionQueueArnsHasBeenSet() const { return m_gameSessionQueueArnsHasBeenSet; }
+
+    /**
+     * <p>Amazon Resource Name (<a
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * that is assigned to a game session queue and uniquely identifies it. Format is
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline void SetGameSessionQueueArns(const Aws::Vector<Aws::String>& value) { m_gameSessionQueueArnsHasBeenSet = true; m_gameSessionQueueArns = value; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline void SetGameSessionQueueArns(Aws::Vector<Aws::String>&& value) { m_gameSessionQueueArnsHasBeenSet = true; m_gameSessionQueueArns = std::move(value); }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline MatchmakingConfiguration& WithGameSessionQueueArns(const Aws::Vector<Aws::String>& value) { SetGameSessionQueueArns(value); return *this;}
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline MatchmakingConfiguration& WithGameSessionQueueArns(Aws::Vector<Aws::String>&& value) { SetGameSessionQueueArns(std::move(value)); return *this;}
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline MatchmakingConfiguration& AddGameSessionQueueArns(const Aws::String& value) { m_gameSessionQueueArnsHasBeenSet = true; m_gameSessionQueueArns.push_back(value); return *this; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline MatchmakingConfiguration& AddGameSessionQueueArns(Aws::String&& value) { m_gameSessionQueueArnsHasBeenSet = true; m_gameSessionQueueArns.push_back(std::move(value)); return *this; }
 
     /**
      * <p>Amazon Resource Name (<a
-     * href="http://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
+     * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html">ARN</a>)
      * that is assigned to a game session queue and uniquely identifies it. Format is
-     * <code>arn:aws:gamelift:&lt;region&gt;::fleet/fleet-a1234567-b8c9-0d1e-2fa3-b45c6d7e8912</code>.
-     * These queues are used when placing game sessions for matches that are created
-     * with this matchmaking configuration. Queues can be located in any region.</p>
+     * <code>arn:aws:gamelift:&lt;region&gt;:&lt;aws
+     * account&gt;:gamesessionqueue/&lt;queue name&gt;</code>. These queues are used
+     * when placing game sessions for matches that are created with this matchmaking
+     * configuration. Queues can be located in any region.</p>
      */
     inline MatchmakingConfiguration& AddGameSessionQueueArns(const char* value) { m_gameSessionQueueArnsHasBeenSet = true; m_gameSessionQueueArns.push_back(value); return *this; }
 
 
     /**
      * <p>Maximum duration, in seconds, that a matchmaking ticket can remain in process
-     * before timing out. Requests that time out can be resubmitted as needed.</p>
+     * before timing out. Requests that fail due to timing out can be resubmitted as
+     * needed.</p>
      */
     inline int GetRequestTimeoutSeconds() const{ return m_requestTimeoutSeconds; }
 
     /**
      * <p>Maximum duration, in seconds, that a matchmaking ticket can remain in process
-     * before timing out. Requests that time out can be resubmitted as needed.</p>
+     * before timing out. Requests that fail due to timing out can be resubmitted as
+     * needed.</p>
+     */
+    inline bool RequestTimeoutSecondsHasBeenSet() const { return m_requestTimeoutSecondsHasBeenSet; }
+
+    /**
+     * <p>Maximum duration, in seconds, that a matchmaking ticket can remain in process
+     * before timing out. Requests that fail due to timing out can be resubmitted as
+     * needed.</p>
      */
     inline void SetRequestTimeoutSeconds(int value) { m_requestTimeoutSecondsHasBeenSet = true; m_requestTimeoutSeconds = value; }
 
     /**
      * <p>Maximum duration, in seconds, that a matchmaking ticket can remain in process
-     * before timing out. Requests that time out can be resubmitted as needed.</p>
+     * before timing out. Requests that fail due to timing out can be resubmitted as
+     * needed.</p>
      */
     inline MatchmakingConfiguration& WithRequestTimeoutSeconds(int value) { SetRequestTimeoutSeconds(value); return *this;}
 
@@ -236,6 +278,13 @@ namespace Model
      * ticket continues to look for an acceptable match.</p>
      */
     inline int GetAcceptanceTimeoutSeconds() const{ return m_acceptanceTimeoutSeconds; }
+
+    /**
+     * <p>Length of time (in seconds) to wait for players to accept a proposed match.
+     * If any player rejects the match or fails to accept before the timeout, the
+     * ticket continues to look for an acceptable match.</p>
+     */
+    inline bool AcceptanceTimeoutSecondsHasBeenSet() const { return m_acceptanceTimeoutSecondsHasBeenSet; }
 
     /**
      * <p>Length of time (in seconds) to wait for players to accept a proposed match.
@@ -253,23 +302,26 @@ namespace Model
 
 
     /**
-     * <p>Flag that determines whether or not a match that was created with this
-     * configuration must be accepted by the matched players. To require acceptance,
-     * set to TRUE.</p>
+     * <p>Flag that determines whether a match that was created with this configuration
+     * must be accepted by the matched players. To require acceptance, set to TRUE.</p>
      */
     inline bool GetAcceptanceRequired() const{ return m_acceptanceRequired; }
 
     /**
-     * <p>Flag that determines whether or not a match that was created with this
-     * configuration must be accepted by the matched players. To require acceptance,
-     * set to TRUE.</p>
+     * <p>Flag that determines whether a match that was created with this configuration
+     * must be accepted by the matched players. To require acceptance, set to TRUE.</p>
+     */
+    inline bool AcceptanceRequiredHasBeenSet() const { return m_acceptanceRequiredHasBeenSet; }
+
+    /**
+     * <p>Flag that determines whether a match that was created with this configuration
+     * must be accepted by the matched players. To require acceptance, set to TRUE.</p>
      */
     inline void SetAcceptanceRequired(bool value) { m_acceptanceRequiredHasBeenSet = true; m_acceptanceRequired = value; }
 
     /**
-     * <p>Flag that determines whether or not a match that was created with this
-     * configuration must be accepted by the matched players. To require acceptance,
-     * set to TRUE.</p>
+     * <p>Flag that determines whether a match that was created with this configuration
+     * must be accepted by the matched players. To require acceptance, set to TRUE.</p>
      */
     inline MatchmakingConfiguration& WithAcceptanceRequired(bool value) { SetAcceptanceRequired(value); return *this;}
 
@@ -280,6 +332,13 @@ namespace Model
      * region.</p>
      */
     inline const Aws::String& GetRuleSetName() const{ return m_ruleSetName; }
+
+    /**
+     * <p>Unique identifier for a matchmaking rule set to use with this configuration.
+     * A matchmaking configuration can only use rule sets that are defined in the same
+     * region.</p>
+     */
+    inline bool RuleSetNameHasBeenSet() const { return m_ruleSetNameHasBeenSet; }
 
     /**
      * <p>Unique identifier for a matchmaking rule set to use with this configuration.
@@ -332,6 +391,11 @@ namespace Model
     /**
      * <p>SNS topic ARN that is set up to receive matchmaking notifications.</p>
      */
+    inline bool NotificationTargetHasBeenSet() const { return m_notificationTargetHasBeenSet; }
+
+    /**
+     * <p>SNS topic ARN that is set up to receive matchmaking notifications.</p>
+     */
     inline void SetNotificationTarget(const Aws::String& value) { m_notificationTargetHasBeenSet = true; m_notificationTarget = value; }
 
     /**
@@ -374,6 +438,14 @@ namespace Model
      * 12-person team, and the additional player count is set to 2, only 10 players are
      * selected for the match.</p>
      */
+    inline bool AdditionalPlayerCountHasBeenSet() const { return m_additionalPlayerCountHasBeenSet; }
+
+    /**
+     * <p>Number of player slots in a match to keep open for future players. For
+     * example, if the configuration's rule set specifies a match for a single
+     * 12-person team, and the additional player count is set to 2, only 10 players are
+     * selected for the match.</p>
+     */
     inline void SetAdditionalPlayerCount(int value) { m_additionalPlayerCountHasBeenSet = true; m_additionalPlayerCount = value; }
 
     /**
@@ -386,44 +458,50 @@ namespace Model
 
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline const Aws::String& GetCustomEventData() const{ return m_customEventData; }
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
+     */
+    inline bool CustomEventDataHasBeenSet() const { return m_customEventDataHasBeenSet; }
+
+    /**
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline void SetCustomEventData(const Aws::String& value) { m_customEventDataHasBeenSet = true; m_customEventData = value; }
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline void SetCustomEventData(Aws::String&& value) { m_customEventDataHasBeenSet = true; m_customEventData = std::move(value); }
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline void SetCustomEventData(const char* value) { m_customEventDataHasBeenSet = true; m_customEventData.assign(value); }
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline MatchmakingConfiguration& WithCustomEventData(const Aws::String& value) { SetCustomEventData(value); return *this;}
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline MatchmakingConfiguration& WithCustomEventData(Aws::String&& value) { SetCustomEventData(std::move(value)); return *this;}
 
     /**
-     * <p>Information to attached to all events related to the matchmaking
-     * configuration. </p>
+     * <p>Information to attach to all events related to the matchmaking configuration.
+     * </p>
      */
     inline MatchmakingConfiguration& WithCustomEventData(const char* value) { SetCustomEventData(value); return *this;}
 
@@ -433,6 +511,12 @@ namespace Model
      * expressed in Unix time as milliseconds (for example "1469498468.057").</p>
      */
     inline const Aws::Utils::DateTime& GetCreationTime() const{ return m_creationTime; }
+
+    /**
+     * <p>Time stamp indicating when this data object was created. Format is a number
+     * expressed in Unix time as milliseconds (for example "1469498468.057").</p>
+     */
+    inline bool CreationTimeHasBeenSet() const { return m_creationTimeHasBeenSet; }
 
     /**
      * <p>Time stamp indicating when this data object was created. Format is a number
@@ -460,77 +544,80 @@ namespace Model
 
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline const Aws::Vector<GameProperty>& GetGameProperties() const{ return m_gameProperties; }
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * a Game Session</a>). This information is added to the new <a>GameSession</a>
+     * object that is created for a successful match. </p>
+     */
+    inline bool GamePropertiesHasBeenSet() const { return m_gamePropertiesHasBeenSet; }
+
+    /**
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline void SetGameProperties(const Aws::Vector<GameProperty>& value) { m_gamePropertiesHasBeenSet = true; m_gameProperties = value; }
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline void SetGameProperties(Aws::Vector<GameProperty>&& value) { m_gamePropertiesHasBeenSet = true; m_gameProperties = std::move(value); }
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& WithGameProperties(const Aws::Vector<GameProperty>& value) { SetGameProperties(value); return *this;}
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& WithGameProperties(Aws::Vector<GameProperty>&& value) { SetGameProperties(std::move(value)); return *this;}
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& AddGameProperties(const GameProperty& value) { m_gamePropertiesHasBeenSet = true; m_gameProperties.push_back(value); return *this; }
 
     /**
-     * <p>Set of developer-defined properties for a game session, formatted as a set of
-     * type:value pairs. These properties are included in the <a>GameSession</a>
-     * object, which is passed to the game server with a request to start a new game
-     * session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom properties for a game session, formatted as key:value pairs.
+     * These properties are passed to a game server process in the <a>GameSession</a>
+     * object with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
@@ -538,74 +625,151 @@ namespace Model
 
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline const Aws::String& GetGameSessionData() const{ return m_gameSessionData; }
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * a Game Session</a>). This information is added to the new <a>GameSession</a>
+     * object that is created for a successful match. </p>
+     */
+    inline bool GameSessionDataHasBeenSet() const { return m_gameSessionDataHasBeenSet; }
+
+    /**
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline void SetGameSessionData(const Aws::String& value) { m_gameSessionDataHasBeenSet = true; m_gameSessionData = value; }
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline void SetGameSessionData(Aws::String&& value) { m_gameSessionDataHasBeenSet = true; m_gameSessionData = std::move(value); }
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline void SetGameSessionData(const char* value) { m_gameSessionDataHasBeenSet = true; m_gameSessionData.assign(value); }
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& WithGameSessionData(const Aws::String& value) { SetGameSessionData(value); return *this;}
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& WithGameSessionData(Aws::String&& value) { SetGameSessionData(std::move(value)); return *this;}
 
     /**
-     * <p>Set of developer-defined game session properties, formatted as a single
-     * string value. This data is included in the <a>GameSession</a> object, which is
-     * passed to the game server with a request to start a new game session (see <a
-     * href="http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
+     * <p>Set of custom game session properties, formatted as a single string value.
+     * This data is passed to a game server process in the <a>GameSession</a> object
+     * with a request to start a new game session (see <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-sdk-server-api.html#gamelift-sdk-server-startsession">Start
      * a Game Session</a>). This information is added to the new <a>GameSession</a>
      * object that is created for a successful match. </p>
      */
     inline MatchmakingConfiguration& WithGameSessionData(const char* value) { SetGameSessionData(value); return *this;}
+
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline const BackfillMode& GetBackfillMode() const{ return m_backfillMode; }
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline bool BackfillModeHasBeenSet() const { return m_backfillModeHasBeenSet; }
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline void SetBackfillMode(const BackfillMode& value) { m_backfillModeHasBeenSet = true; m_backfillMode = value; }
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline void SetBackfillMode(BackfillMode&& value) { m_backfillModeHasBeenSet = true; m_backfillMode = std::move(value); }
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline MatchmakingConfiguration& WithBackfillMode(const BackfillMode& value) { SetBackfillMode(value); return *this;}
+
+    /**
+     * <p>Method used to backfill game sessions created with this matchmaking
+     * configuration. MANUAL indicates that the game makes backfill requests or does
+     * not use the match backfill feature. AUTOMATIC indicates that GameLift creates
+     * <a>StartMatchBackfill</a> requests whenever a game session has one or more open
+     * slots. Learn more about manual and automatic backfill in <a
+     * href="https://docs.aws.amazon.com/gamelift/latest/developerguide/match-backfill.html">Backfill
+     * Existing Games with FlexMatch</a>.</p>
+     */
+    inline MatchmakingConfiguration& WithBackfillMode(BackfillMode&& value) { SetBackfillMode(std::move(value)); return *this;}
 
   private:
 
@@ -647,6 +811,9 @@ namespace Model
 
     Aws::String m_gameSessionData;
     bool m_gameSessionDataHasBeenSet;
+
+    BackfillMode m_backfillMode;
+    bool m_backfillModeHasBeenSet;
   };
 
 } // namespace Model

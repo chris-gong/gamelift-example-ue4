@@ -36,7 +36,7 @@ namespace Model
   {
   public:
     DescribeIdentityRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -52,6 +52,11 @@ namespace Model
      * <p>A unique identifier in the format REGION:GUID.</p>
      */
     inline const Aws::String& GetIdentityId() const{ return m_identityId; }
+
+    /**
+     * <p>A unique identifier in the format REGION:GUID.</p>
+     */
+    inline bool IdentityIdHasBeenSet() const { return m_identityIdHasBeenSet; }
 
     /**
      * <p>A unique identifier in the format REGION:GUID.</p>

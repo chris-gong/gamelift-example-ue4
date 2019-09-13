@@ -25,7 +25,6 @@ namespace Aws
     namespace Client
     {
         enum class CoreErrors;
-
         /**
          * Container for Error enumerations with additional exception information. Name, message, retryable etc....
          */
@@ -36,24 +35,31 @@ namespace Aws
             /**
              * Initializes AWSError object as empty with the error not being retryable.
              */
-            AWSError() : m_isRetryable(false) {}
+            AWSError() : m_responseCode(Aws::Http::HttpResponseCode::REQUEST_NOT_MADE), m_isRetryable(false) {}
             /**
              * Initializes AWSError object with errorType, exceptionName, message, and retryable flag.
              */
             AWSError(ERROR_TYPE errorType, Aws::String exceptionName, const Aws::String message, bool isRetryable) :
-                m_errorType(errorType), m_exceptionName(exceptionName), m_message(message), m_isRetryable(isRetryable) {}
+                m_errorType(errorType), m_exceptionName(exceptionName), m_message(message),
+                m_responseCode(Aws::Http::HttpResponseCode::REQUEST_NOT_MADE), m_isRetryable(isRetryable) {}
             /**
              * Initializes AWSError object with errorType and retryable flag. ExceptionName and message are empty.
              */
             AWSError(ERROR_TYPE errorType, bool isRetryable) :
-                m_errorType(errorType), m_isRetryable(isRetryable) {}
+                m_errorType(errorType), m_responseCode(Aws::Http::HttpResponseCode::REQUEST_NOT_MADE),
+                m_isRetryable(isRetryable) {}
 
             //by policy we enforce all clients to contain a CoreErrors alignment for their Errors.
             AWSError(const AWSError<CoreErrors>& rhs) :
                 m_errorType(static_cast<ERROR_TYPE>(rhs.GetErrorType())), m_exceptionName(rhs.GetExceptionName()), 
                 m_message(rhs.GetMessage()), m_responseHeaders(rhs.GetResponseHeaders()), 
                 m_responseCode(rhs.GetResponseCode()), m_isRetryable(rhs.ShouldRetry())
-            {}          
+            {}
+
+            /**
+             * Copy assignment operator
+             */
+            AWSError& operator=(const AWSError<ERROR_TYPE>&) = default;
 
             /**
              * Gets underlying errorType.
@@ -108,6 +114,21 @@ namespace Aws
             Aws::Http::HttpResponseCode m_responseCode;
             bool m_isRetryable;
         };
+
+        template<typename T>
+        Aws::OStream& operator << (Aws::OStream& s, const AWSError<T>& e)
+        {
+            s << "HTTP response code: " << static_cast<int>(e.GetResponseCode()) << "\n"
+              << "Exception name: " << e.GetExceptionName() << "\n"
+              << "Error message: " << e.GetMessage() << "\n"
+              << e.GetResponseHeaders().size() << " response headers:";
+
+            for (auto&& header : e.GetResponseHeaders())
+            {
+                s << "\n" << header.first << " : " << header.second;
+            }
+            return s;
+        }
 
     } // namespace Client
 } // namespace Aws

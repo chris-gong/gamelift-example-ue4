@@ -22,8 +22,11 @@
 #include <aws/core/utils/memory/AWSMemory.h>
 #include <aws/core/utils/memory/stl/AWSStreamFwd.h>
 #include <aws/core/utils/stream/ResponseStream.h>
+#include <aws/core/monitoring/HttpClientMetrics.h>
 #include <memory>
 #include <functional>
+
+using namespace Aws::Monitoring;
 
 namespace Aws
 {
@@ -40,12 +43,15 @@ namespace Aws
         extern AWS_CORE_API const char* COOKIE_HEADER;
         extern AWS_CORE_API const char* CONTENT_LENGTH_HEADER;
         extern AWS_CORE_API const char* CONTENT_TYPE_HEADER;
+        extern AWS_CORE_API const char* TRANSFER_ENCODING_HEADER;
         extern AWS_CORE_API const char* USER_AGENT_HEADER;
         extern AWS_CORE_API const char* VIA_HEADER;
         extern AWS_CORE_API const char* HOST_HEADER;
         extern AWS_CORE_API const char* AMZ_TARGET_HEADER;
         extern AWS_CORE_API const char* X_AMZ_EXPIRES_HEADER;
         extern AWS_CORE_API const char* CONTENT_MD5_HEADER;
+        extern AWS_CORE_API const char* API_VERSION_HEADER;
+        extern AWS_CORE_API const char* CHUNKED_VALUE;
 
         class HttpRequest;
         class HttpResponse;
@@ -83,7 +89,7 @@ namespace Aws
              */
             virtual HeaderValueCollection GetHeaders() const = 0;
             /**
-             * Get the value for a Header based on its name.
+             * Get the value for a Header based on its name. (in default StandardHttpRequest implementation, an empty string will be returned if headerName dosen't exist)
              */
             virtual const Aws::String& GetHeaderValue(const char* headerName) const = 0;
             /**
@@ -177,6 +183,10 @@ namespace Aws
                 m_uri.AddQueryStringParameter(key, value);
             }
 
+            inline bool HasDate() const 
+            {
+                return HasHeader(DATE_HEADER);
+            }
             /**
              * Gets date header.
              */
@@ -190,6 +200,11 @@ namespace Aws
             inline void SetDate(const Aws::String& value)
             {
                 SetHeaderValue(DATE_HEADER, value);
+            }
+
+            inline bool HasAccept() const
+            {
+                return HasHeader(ACCEPT_HEADER);
             }
             /**
              * Gets accept header.
@@ -205,6 +220,11 @@ namespace Aws
             {
                 SetHeaderValue(ACCEPT_HEADER, value);
             }
+
+            inline bool HasAcceptCharSet() const
+            {
+                return HasHeader(ACCEPT_CHAR_SET_HEADER);
+            }
             /**
              * Gets Accept CharSet header.
              */
@@ -218,6 +238,11 @@ namespace Aws
             inline void SetAcceptCharSet(const Aws::String& value)
             {
                 SetHeaderValue(ACCEPT_CHAR_SET_HEADER, value);
+            }
+
+            inline bool HasAcceptEncoding() const
+            {
+                return HasHeader(ACCEPT_ENCODING_HEADER);
             }
             /**
              * Gets accept encoding header.
@@ -233,6 +258,11 @@ namespace Aws
             {
                 SetHeaderValue(ACCEPT_ENCODING_HEADER, value);
             }
+
+            inline bool HasAuthorization() const
+            {
+                return HasHeader(AUTHORIZATION_HEADER);
+            }
             /**
              * Gets authorization encoding header.
              */
@@ -246,6 +276,11 @@ namespace Aws
             inline void SetAuthorization(const Aws::String& value)
             {
                 SetHeaderValue(AUTHORIZATION_HEADER, value);
+            }
+
+            inline bool HasAwsAuthorization() const
+            {
+                return HasHeader(AWS_AUTHORIZATION_HEADER);
             }
             /**
              * Gets aws authorization header.
@@ -261,6 +296,11 @@ namespace Aws
             {
                 SetHeaderValue(AWS_AUTHORIZATION_HEADER, value);
             }
+
+            inline bool HasAwsSessionToken() const
+            {
+                return HasHeader(AWS_SECURITY_TOKEN);
+            }
             /**
             * Gets session token header.
             */
@@ -274,6 +314,11 @@ namespace Aws
             inline void SetAwsSessionToken(const Aws::String& value)
             {
                 SetHeaderValue(AWS_SECURITY_TOKEN, value);
+            }
+
+            inline bool HasCookie() const
+            {
+                return HasHeader(COOKIE_HEADER);
             }
             /**
             * Gets cookie header.
@@ -289,6 +334,11 @@ namespace Aws
             {
                 SetHeaderValue(COOKIE_HEADER, value);
             }
+
+            inline bool HasContentLength() const
+            {
+                return HasHeader(CONTENT_LENGTH_HEADER);
+            }
             /**
             * Gets content-length header.
             */
@@ -302,6 +352,11 @@ namespace Aws
             inline void SetContentLength(const Aws::String& value)
             {
                 SetHeaderValue(CONTENT_LENGTH_HEADER, value);
+            }
+
+            inline bool HasContentType() const
+            {
+                return HasHeader(CONTENT_TYPE_HEADER);
             }
             /**
             * Gets content-type header.
@@ -317,6 +372,30 @@ namespace Aws
             {
                 SetHeaderValue(CONTENT_TYPE_HEADER, value);
             }
+
+            inline bool HasTransferEncoding() const
+            {
+                return HasHeader(TRANSFER_ENCODING_HEADER);
+            }
+            /**
+             * Gets transfer-encoding header.
+             */
+            inline const Aws::String& GetTransferEncoding() const
+            {
+                return GetHeaderValue(TRANSFER_ENCODING_HEADER);
+            }
+            /**
+             * Sets transfer-encoding header.
+             */
+            inline void SetTransferEncoding(const Aws::String& value)
+            {
+                SetHeaderValue(TRANSFER_ENCODING_HEADER, value);
+            }
+
+            inline bool HasUserAgent() const
+            {
+                return HasHeader(USER_AGENT_HEADER);
+            }
             /**
             * Gets User Agent header.
             */
@@ -330,6 +409,11 @@ namespace Aws
             inline void SetUserAgent(const Aws::String& value)
             {
                 SetHeaderValue(USER_AGENT_HEADER, value);
+            }
+
+            inline bool HasVia() const
+            {
+                return HasHeader(VIA_HEADER);
             }
             /**
             * Gets via header header.
@@ -345,6 +429,30 @@ namespace Aws
             {
                 SetHeaderValue(VIA_HEADER, value);
             }
+
+            /**
+             * Has Api version header x-amz-api-version
+             */
+            inline bool HasApiVersion() const
+            {
+                return HasHeader(API_VERSION_HEADER);
+            }
+
+            /**
+            * Gets Api version header x-amz-api-version.
+            */
+            inline const Aws::String& GetApiVersion() const
+            {
+                return GetHeaderValue(API_VERSION_HEADER);
+            }
+            /**
+             * Sets Api version header x-amz-api-version.
+             */
+            inline void SetApiVersion(const Aws::String& value)
+            {
+                SetHeaderValue(API_VERSION_HEADER, value);
+            }
+
             /**
              * Sets the closure for receiving events when data is received from the server.
              */
@@ -380,12 +488,61 @@ namespace Aws
             inline const DataSentEventHandler& GetDataSentEventHandler() const { return m_onDataSent; }
 
             inline const ContinueRequestHandler& GetContinueRequestHandler() const { return m_continueRequest; }
+
+            /**
+             * Gets the AWS Access Key if this HttpRequest is signed with Aws Access Key
+             */
+            inline const Aws::String& GetSigningAccessKey() const { return m_signingAccessKey; }
+            /**
+             * Sets the Aws Access Key if this HttpRequest is signed with Aws Access Key
+             */
+            inline void SetSigningAccessKey(const Aws::String& accessKey) { m_signingAccessKey = accessKey; }
+
+            /**
+            * Gets the signing region if this request is signed.
+            */
+            inline const Aws::String& GetSigningRegion() const { return m_signingRegion; }
+            /**
+            * Sets the signing region if this request is signed.
+            */
+            inline void SetSigningRegion(const Aws::String& region) { m_signingRegion = region; }
+
+            /**
+             * Add a request metric
+             * @param key, HttpClientMetricsKey defined in HttpClientMetrics.cpp
+             * @param value, the corresponding value of this key measured during http request.
+             */
+            virtual void AddRequestMetric(const Aws::String& key, int64_t value) { m_httpRequestMetrics.emplace(key, value); }
+
+            /**
+            * Sets the request metrics
+            */
+            virtual void SetRequestMetrics(const HttpClientMetricsCollection& collection) { m_httpRequestMetrics = collection; }
+
+            /**
+            * Gets the request metrics
+            */
+            virtual const HttpClientMetricsCollection& GetRequestMetrics() const { return m_httpRequestMetrics; }
+
+            /**
+             * Returns the IP address of the remote host the request was made out to.
+             * This value is populated after the request is made and when the HTTP client supports retrieving such
+             * information.
+             * If the information is not available, an empty string is returned.
+             */
+            Aws::String GetResolvedRemoteHost() const { return m_resolvedRemoteHost; }
+            void SetResolvedRemoteHost(const Aws::String& ip) { m_resolvedRemoteHost = ip; }
+
         private:
             URI m_uri;
             HttpMethod m_method;
             DataReceivedEventHandler m_onDataReceived;
             DataSentEventHandler m_onDataSent;
             ContinueRequestHandler m_continueRequest;
+            Aws::String m_signingRegion;
+            Aws::String m_signingAccessKey;
+            Aws::String m_resolvedRemoteHost;
+            HttpClientMetricsCollection m_httpRequestMetrics;
         };
 
     } // namespace Http

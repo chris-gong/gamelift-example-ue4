@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     InstanceCredentials();
-    InstanceCredentials(const Aws::Utils::Json::JsonValue& jsonValue);
-    InstanceCredentials& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    InstanceCredentials(Aws::Utils::Json::JsonView jsonValue);
+    InstanceCredentials& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -52,6 +53,11 @@ namespace Model
      * <p>User login string.</p>
      */
     inline const Aws::String& GetUserName() const{ return m_userName; }
+
+    /**
+     * <p>User login string.</p>
+     */
+    inline bool UserNameHasBeenSet() const { return m_userNameHasBeenSet; }
 
     /**
      * <p>User login string.</p>
@@ -90,6 +96,13 @@ namespace Model
      * saved as a <code>.pem</code> file) for use with SSH.</p>
      */
     inline const Aws::String& GetSecret() const{ return m_secret; }
+
+    /**
+     * <p>Secret string. For Windows instances, the secret is a password for use with
+     * Windows Remote Desktop. For Linux instances, it is a private key (which must be
+     * saved as a <code>.pem</code> file) for use with SSH.</p>
+     */
+    inline bool SecretHasBeenSet() const { return m_secretHasBeenSet; }
 
     /**
      * <p>Secret string. For Windows instances, the secret is a password for use with

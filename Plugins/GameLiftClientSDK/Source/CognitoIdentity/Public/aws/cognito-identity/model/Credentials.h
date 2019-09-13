@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -42,8 +43,8 @@ namespace Model
   {
   public:
     Credentials();
-    Credentials(const Aws::Utils::Json::JsonValue& jsonValue);
-    Credentials& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    Credentials(Aws::Utils::Json::JsonView jsonValue);
+    Credentials& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -51,6 +52,11 @@ namespace Model
      * <p>The Access Key portion of the credentials.</p>
      */
     inline const Aws::String& GetAccessKeyId() const{ return m_accessKeyId; }
+
+    /**
+     * <p>The Access Key portion of the credentials.</p>
+     */
+    inline bool AccessKeyIdHasBeenSet() const { return m_accessKeyIdHasBeenSet; }
 
     /**
      * <p>The Access Key portion of the credentials.</p>
@@ -91,6 +97,11 @@ namespace Model
     /**
      * <p>The Secret Access Key portion of the credentials</p>
      */
+    inline bool SecretKeyHasBeenSet() const { return m_secretKeyHasBeenSet; }
+
+    /**
+     * <p>The Secret Access Key portion of the credentials</p>
+     */
     inline void SetSecretKey(const Aws::String& value) { m_secretKeyHasBeenSet = true; m_secretKey = value; }
 
     /**
@@ -127,6 +138,11 @@ namespace Model
     /**
      * <p>The Session Token portion of the credentials</p>
      */
+    inline bool SessionTokenHasBeenSet() const { return m_sessionTokenHasBeenSet; }
+
+    /**
+     * <p>The Session Token portion of the credentials</p>
+     */
     inline void SetSessionToken(const Aws::String& value) { m_sessionTokenHasBeenSet = true; m_sessionToken = value; }
 
     /**
@@ -159,6 +175,11 @@ namespace Model
      * <p>The date at which these credentials will expire.</p>
      */
     inline const Aws::Utils::DateTime& GetExpiration() const{ return m_expiration; }
+
+    /**
+     * <p>The date at which these credentials will expire.</p>
+     */
+    inline bool ExpirationHasBeenSet() const { return m_expirationHasBeenSet; }
 
     /**
      * <p>The date at which these credentials will expire.</p>

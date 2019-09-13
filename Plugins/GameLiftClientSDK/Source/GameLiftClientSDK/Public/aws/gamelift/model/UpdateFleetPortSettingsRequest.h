@@ -37,7 +37,7 @@ namespace Model
   {
   public:
     UpdateFleetPortSettingsRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -53,6 +53,11 @@ namespace Model
      * <p>Unique identifier for a fleet to update port settings for.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet to update port settings for.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet to update port settings for.</p>
@@ -93,6 +98,11 @@ namespace Model
     /**
      * <p>Collection of port settings to be added to the fleet record.</p>
      */
+    inline bool InboundPermissionAuthorizationsHasBeenSet() const { return m_inboundPermissionAuthorizationsHasBeenSet; }
+
+    /**
+     * <p>Collection of port settings to be added to the fleet record.</p>
+     */
     inline void SetInboundPermissionAuthorizations(const Aws::Vector<IpPermission>& value) { m_inboundPermissionAuthorizationsHasBeenSet = true; m_inboundPermissionAuthorizations = value; }
 
     /**
@@ -125,6 +135,11 @@ namespace Model
      * <p>Collection of port settings to be removed from the fleet record.</p>
      */
     inline const Aws::Vector<IpPermission>& GetInboundPermissionRevocations() const{ return m_inboundPermissionRevocations; }
+
+    /**
+     * <p>Collection of port settings to be removed from the fleet record.</p>
+     */
+    inline bool InboundPermissionRevocationsHasBeenSet() const { return m_inboundPermissionRevocationsHasBeenSet; }
 
     /**
      * <p>Collection of port settings to be removed from the fleet record.</p>

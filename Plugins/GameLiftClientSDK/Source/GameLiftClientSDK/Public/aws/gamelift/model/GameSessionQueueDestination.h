@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -35,9 +36,8 @@ namespace Model
   /**
    * <p>Fleet designated in a game session queue. Requests for new game sessions in
    * the queue are fulfilled by starting a new game session on any destination
-   * configured for a queue. </p> <p>Queue-related operations include:</p> <ul> <li>
-   * <p> <a>CreateGameSessionQueue</a> </p> </li> <li> <p>
-   * <a>DescribeGameSessionQueues</a> </p> </li> <li> <p>
+   * configured for a queue. </p> <ul> <li> <p> <a>CreateGameSessionQueue</a> </p>
+   * </li> <li> <p> <a>DescribeGameSessionQueues</a> </p> </li> <li> <p>
    * <a>UpdateGameSessionQueue</a> </p> </li> <li> <p> <a>DeleteGameSessionQueue</a>
    * </p> </li> </ul><p><h3>See Also:</h3>   <a
    * href="http://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/GameSessionQueueDestination">AWS
@@ -47,8 +47,8 @@ namespace Model
   {
   public:
     GameSessionQueueDestination();
-    GameSessionQueueDestination(const Aws::Utils::Json::JsonValue& jsonValue);
-    GameSessionQueueDestination& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    GameSessionQueueDestination(Aws::Utils::Json::JsonView jsonValue);
+    GameSessionQueueDestination& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -58,6 +58,13 @@ namespace Model
      * across all regions. </p>
      */
     inline const Aws::String& GetDestinationArn() const{ return m_destinationArn; }
+
+    /**
+     * <p>Amazon Resource Name (ARN) assigned to fleet or fleet alias. ARNs, which
+     * include a fleet ID or alias ID and a region name, provide a unique identifier
+     * across all regions. </p>
+     */
+    inline bool DestinationArnHasBeenSet() const { return m_destinationArnHasBeenSet; }
 
     /**
      * <p>Amazon Resource Name (ARN) assigned to fleet or fleet alias. ARNs, which

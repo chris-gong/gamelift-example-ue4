@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace CognitoIdentity
@@ -42,8 +43,8 @@ namespace Model
   {
   public:
     RulesConfigurationType();
-    RulesConfigurationType(const Aws::Utils::Json::JsonValue& jsonValue);
-    RulesConfigurationType& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    RulesConfigurationType(Aws::Utils::Json::JsonView jsonValue);
+    RulesConfigurationType& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -52,6 +53,12 @@ namespace Model
      * <p>Rules are evaluated in order. The first one to match specifies the role.</p>
      */
     inline const Aws::Vector<MappingRule>& GetRules() const{ return m_rules; }
+
+    /**
+     * <p>An array of rules. You can specify up to 25 rules per identity provider.</p>
+     * <p>Rules are evaluated in order. The first one to match specifies the role.</p>
+     */
+    inline bool RulesHasBeenSet() const { return m_rulesHasBeenSet; }
 
     /**
      * <p>An array of rules. You can specify up to 25 rules per identity provider.</p>

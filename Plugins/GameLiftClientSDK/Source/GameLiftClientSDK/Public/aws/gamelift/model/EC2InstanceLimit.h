@@ -25,6 +25,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     EC2InstanceLimit();
-    EC2InstanceLimit(const Aws::Utils::Json::JsonValue& jsonValue);
-    EC2InstanceLimit& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    EC2InstanceLimit(Aws::Utils::Json::JsonView jsonValue);
+    EC2InstanceLimit& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -57,6 +58,16 @@ namespace Model
      * for detailed descriptions.</p>
      */
     inline const EC2InstanceType& GetEC2InstanceType() const{ return m_eC2InstanceType; }
+
+    /**
+     * <p>Name of an EC2 instance type that is supported in Amazon GameLift. A fleet
+     * instance type determines the computing resources of each instance in the fleet,
+     * including CPU, memory, storage, and networking capacity. Amazon GameLift
+     * supports the following EC2 instance types. See <a
+     * href="http://aws.amazon.com/ec2/instance-types/">Amazon EC2 Instance Types</a>
+     * for detailed descriptions.</p>
+     */
+    inline bool EC2InstanceTypeHasBeenSet() const { return m_eC2InstanceTypeHasBeenSet; }
 
     /**
      * <p>Name of an EC2 instance type that is supported in Amazon GameLift. A fleet
@@ -109,6 +120,12 @@ namespace Model
      * <p>Number of instances of the specified type that are currently in use by this
      * AWS account.</p>
      */
+    inline bool CurrentInstancesHasBeenSet() const { return m_currentInstancesHasBeenSet; }
+
+    /**
+     * <p>Number of instances of the specified type that are currently in use by this
+     * AWS account.</p>
+     */
     inline void SetCurrentInstances(int value) { m_currentInstancesHasBeenSet = true; m_currentInstances = value; }
 
     /**
@@ -122,6 +139,11 @@ namespace Model
      * <p>Number of instances allowed.</p>
      */
     inline int GetInstanceLimit() const{ return m_instanceLimit; }
+
+    /**
+     * <p>Number of instances allowed.</p>
+     */
+    inline bool InstanceLimitHasBeenSet() const { return m_instanceLimitHasBeenSet; }
 
     /**
      * <p>Number of instances allowed.</p>

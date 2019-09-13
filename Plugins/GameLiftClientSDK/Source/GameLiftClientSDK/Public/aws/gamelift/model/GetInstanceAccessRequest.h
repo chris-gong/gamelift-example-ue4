@@ -35,7 +35,7 @@ namespace Model
   {
   public:
     GetInstanceAccessRequest();
-    
+
     // Service request name is the Operation name which will send this request out,
     // each operation should has unique request name, so that we can get operation's name from this request.
     // Note: this is not true for response, multiple operations may have the same response name,
@@ -54,6 +54,14 @@ namespace Model
      * status may be accessible for a short time before they are deleted.</p>
      */
     inline const Aws::String& GetFleetId() const{ return m_fleetId; }
+
+    /**
+     * <p>Unique identifier for a fleet that contains the instance you want access to.
+     * The fleet can be in any of the following statuses: <code>ACTIVATING</code>,
+     * <code>ACTIVE</code>, or <code>ERROR</code>. Fleets with an <code>ERROR</code>
+     * status may be accessible for a short time before they are deleted.</p>
+     */
+    inline bool FleetIdHasBeenSet() const { return m_fleetIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for a fleet that contains the instance you want access to.
@@ -109,6 +117,12 @@ namespace Model
      * an instance in any status.</p>
      */
     inline const Aws::String& GetInstanceId() const{ return m_instanceId; }
+
+    /**
+     * <p>Unique identifier for an instance you want to get access to. You can access
+     * an instance in any status.</p>
+     */
+    inline bool InstanceIdHasBeenSet() const { return m_instanceIdHasBeenSet; }
 
     /**
      * <p>Unique identifier for an instance you want to get access to. You can access

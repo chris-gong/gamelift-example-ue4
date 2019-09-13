@@ -26,6 +26,7 @@ namespace Utils
 namespace Json
 {
   class JsonValue;
+  class JsonView;
 } // namespace Json
 } // namespace Utils
 namespace GameLift
@@ -43,8 +44,8 @@ namespace Model
   {
   public:
     GameSessionDetail();
-    GameSessionDetail(const Aws::Utils::Json::JsonValue& jsonValue);
-    GameSessionDetail& operator=(const Aws::Utils::Json::JsonValue& jsonValue);
+    GameSessionDetail(Aws::Utils::Json::JsonView jsonValue);
+    GameSessionDetail& operator=(Aws::Utils::Json::JsonView jsonValue);
     Aws::Utils::Json::JsonValue Jsonize() const;
 
 
@@ -52,6 +53,11 @@ namespace Model
      * <p>Object that describes a game session.</p>
      */
     inline const GameSession& GetGameSession() const{ return m_gameSession; }
+
+    /**
+     * <p>Object that describes a game session.</p>
+     */
+    inline bool GameSessionHasBeenSet() const { return m_gameSessionHasBeenSet; }
 
     /**
      * <p>Object that describes a game session.</p>
@@ -82,6 +88,15 @@ namespace Model
      * event.</p> </li> </ul>
      */
     inline const ProtectionPolicy& GetProtectionPolicy() const{ return m_protectionPolicy; }
+
+    /**
+     * <p>Current status of protection for the game session.</p> <ul> <li> <p>
+     * <b>NoProtection</b> -- The game session can be terminated during a scale-down
+     * event.</p> </li> <li> <p> <b>FullProtection</b> -- If the game session is in an
+     * <code>ACTIVE</code> status, it cannot be terminated during a scale-down
+     * event.</p> </li> </ul>
+     */
+    inline bool ProtectionPolicyHasBeenSet() const { return m_protectionPolicyHasBeenSet; }
 
     /**
      * <p>Current status of protection for the game session.</p> <ul> <li> <p>
