@@ -3,6 +3,7 @@
 #include "MenuHUD.h"
 #include "UserWidget.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 
 AMenuHUD::AMenuHUD() {
 	static ConstructorHelpers::FClassFinder<UUserWidget> MenuObj(TEXT("/Game/UI/Widgets/UI_Menu"));
@@ -15,9 +16,6 @@ void AMenuHUD::BeginPlay() {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController != nullptr) {
 		PlayerController->bShowMouseCursor = true;
-		PlayerController->bEnableClickEvents = true;
-		PlayerController->bEnableMouseOverEvents = true;
-		PlayerController->SetInputMode(FInputModeGameAndUI());
 	}
 
 	// adding UMG widget
