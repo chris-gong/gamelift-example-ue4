@@ -2,7 +2,6 @@
 
 #include "MenuHUD.h"
 #include "UserWidget.h"
-#include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
 
 AMenuHUD::AMenuHUD() {

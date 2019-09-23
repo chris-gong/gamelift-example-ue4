@@ -7,6 +7,7 @@
 #include "MenuWidget.generated.h"
 
 class UButton;
+class UGameLiftClientObject;
 
 // This class does not need to be modified.
 UCLASS(BlueprintType)
@@ -21,6 +22,22 @@ protected:
 	virtual void NativeConstruct() override;
 
 private:
+	UPROPERTY()
 	UButton* JoinGameButton;
+
+	UPROPERTY()
+	UGameLiftClientObject* Client;
+
+	UPROPERTY()
+	FString AccessKey;
+
+	UPROPERTY()
+	FString SecretKey;
+
+	UPROPERTY()
+	FString QueueName;
+
+	UPROPERTY()
+	FString Region;
 };
 

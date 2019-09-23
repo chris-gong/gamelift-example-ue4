@@ -76,6 +76,8 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-/WindowsNoEditor
+WindowsNoEditor/
 
-/LinuxNoEditor
+LinuxNoEditor/
+
+Credentials/
