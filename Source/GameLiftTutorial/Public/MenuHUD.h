@@ -14,4 +14,13 @@ class GAMELIFTTUTORIAL_API AMenuHUD : public AHUD
 {
 	GENERATED_BODY()
 	
+public:
+	AMenuHUD();
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY()
+	TSubclassOf<UUserWidget> MenuWidgetClass;
 };

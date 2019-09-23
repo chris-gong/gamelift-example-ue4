@@ -2,12 +2,9 @@
 
 
 #include "MenuGameMode.h"
+#include "MenuHUD.h"
 
 AMenuGameMode::AMenuGameMode()
 {
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/ThirdPersonCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+	HUDClass = AMenuHUD::StaticClass();
 }

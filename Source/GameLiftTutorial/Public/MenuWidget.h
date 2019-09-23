@@ -3,23 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Interface.h"
+#include "UserWidget.h"
 #include "MenuWidget.generated.h"
 
+class UButton;
+
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
-class UMenuWidget : public UInterface
-{
-	GENERATED_BODY()
-};
-
-/**
- * 
- */
-class GAMELIFTTUTORIAL_API IMenuWidget
+UCLASS(BlueprintType)
+class UMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	UMenuWidget(const FObjectInitializer& ObjectInitializer);
+
+protected:
+	virtual void NativeConstruct() override;
+
+private:
+	UButton* JoinGameButton;
 };
+
