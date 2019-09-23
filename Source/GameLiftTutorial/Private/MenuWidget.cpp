@@ -4,6 +4,7 @@
 #include "TextReaderComponent.h"
 #include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 #include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+#include "Components/Button.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
@@ -18,4 +19,9 @@ void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
 
 	JoinGameButton = (UButton*)GetWidgetFromName(TEXT("Button_JoinGame"));
+	JoinGameButton->OnClicked.AddDynamic(this, &UMenuWidget::JoinGame);
+}
+
+void UMenuWidget::JoinGame() {
+
 }

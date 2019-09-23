@@ -39,5 +39,8 @@ private:
 
 	UPROPERTY()
 	FString Region;
+
+	UFUNCTION()
+	void JoinGame();
 };
 
