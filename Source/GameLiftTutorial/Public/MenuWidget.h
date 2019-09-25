@@ -8,6 +8,7 @@
 
 class UButton;
 class UGameLiftClientObject;
+class FEvent;
 
 // This class does not need to be modified.
 UCLASS(BlueprintType)
@@ -40,7 +41,27 @@ private:
 	UPROPERTY()
 	FString Region;
 
+	FEvent* DescribeGameSessionQueuesEvent;
+
 	UFUNCTION()
 	void JoinGame();
+
+	UFUNCTION()
+	void DescribeGameSessionQueues(const FString& QueueNameInput);
+
+	UFUNCTION()
+	void OnDescribeGameSessionQueuesSuccess(const TArray<FString>& FleetARNs);
+
+	UFUNCTION()
+	void OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage);
+
+	UFUNCTION()
+	void SearchGameSessions(const FString& FleetId);
+
+	UFUNCTION()
+	void OnSearchGameSessionsSuccess(const TArray<FString>& GameSessionIds);
+
+	UFUNCTION()
+	void OnSearchGameSessionsFailed(const FString& ErrorMessage);
 };
 

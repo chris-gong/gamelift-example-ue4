@@ -3,7 +3,7 @@
 #include "GameLiftClientApi.h"
 #include "GameLiftClientGlobals.h"
 
-#if WITH_GAMELIFTCLIENTSDK
+//#if WITH_GAMELIFTCLIENTSDK
 #include "aws/gamelift/model/DescribeGameSessionDetailsRequest.h"
 #include "aws/gamelift/GameLiftClient.h"
 #include "aws/core/utils/Outcome.h"
@@ -17,14 +17,15 @@
 #include "aws/gamelift/model/StartGameSessionPlacementRequest.h"
 #include "aws/gamelift/model/DescribeGameSessionPlacementRequest.h"
 #include <aws/core/http/HttpRequest.h>
-#endif
+//#endif
 
-UGameLiftCreateGameSession* UGameLiftCreateGameSession::CreateGameSession(FGameLiftGameSessionConfig GameSessionProperties, bool bIsGameLiftLocal)
+UGameLiftCreateGameSession* UGameLiftCreateGameSession::CreateGameSession(FString FleetId, FString AliasId, int MaxPlayerCount)
 {
 #if WITH_GAMELIFTCLIENTSDK
 	UGameLiftCreateGameSession* Proxy = NewObject<UGameLiftCreateGameSession>();
-	Proxy->SessionConfig = GameSessionProperties;
-	Proxy->bIsUsingGameLiftLocal = bIsGameLiftLocal;
+	Proxy->FleetId = FleetId;
+	Proxy->AliasId = AliasId;
+	Proxy->MaxPlayerCount = MaxPlayerCount;
 	return Proxy;
 #endif
 	return nullptr;
@@ -51,19 +52,21 @@ EActivateStatus UGameLiftCreateGameSession::Activate()
 
 		Aws::GameLift::Model::CreateGameSessionRequest GameSessionRequest;
 
-		GameSessionRequest.SetMaximumPlayerSessionCount(SessionConfig.GetMaxPlayers());
+		GameSessionRequest.SetMaximumPlayerSessionCount(MaxPlayerCount);
 		
-		if (bIsUsingGameLiftLocal)
+		if (FleetId.Len() > 0)
 		{
-			GameSessionRequest.SetFleetId(TCHAR_TO_UTF8(*SessionConfig.GetGameLiftLocalFleetID()));
+			LOG_NORMAL("Setting Fleet Id " + FleetId);
+			GameSessionRequest.SetFleetId(TCHAR_TO_UTF8(*FleetId));
 		}
-		else
+		if (AliasId.Len() > 0)
 		{
-			GameSessionRequest.SetAliasId(TCHAR_TO_UTF8(*SessionConfig.GetAliasID()));
+			LOG_NORMAL("Setting Alias Id " + AliasId);
+			GameSessionRequest.SetAliasId(TCHAR_TO_UTF8(*AliasId));
 		}
 
-		LOG_NORMAL("Setting Alias ID: " + SessionConfig.GetAliasID());
-		for (FGameLiftGameSessionServerProperties ServerSetting : SessionConfig.GetGameSessionProperties())
+		// TODO: REDO THE WAY PROPERTIES ARE ADDED BELOW
+		/*for (FGameLiftGameSessionServerProperties ServerSetting : SessionConfig.GetGameSessionProperties())
 		{
 			LOG_NORMAL("********************************************************************");
 			Aws::GameLift::Model::GameProperty MapProperty;
@@ -71,7 +74,8 @@ EActivateStatus UGameLiftCreateGameSession::Activate()
 			MapProperty.SetValue(TCHAR_TO_UTF8(*ServerSetting.Value));
 			GameSessionRequest.AddGameProperties(MapProperty);
 			LOG_NORMAL(FString::Printf(TEXT("New GameProperty added. Key: (%s) Value: (%s)"), *ServerSetting.Key, *ServerSetting.Value));
-		}
+		}*/
+		// TODO: FIND A BETTER WAY TO PARAMETERIZE GAMELIFT LOCAL
 
 		Aws::GameLift::CreateGameSessionResponseReceivedHandler Handler;
 		Handler = std::bind(&UGameLiftCreateGameSession::OnCreateGameSession, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
@@ -91,8 +95,11 @@ void UGameLiftCreateGameSession::OnCreateGameSession(const Aws::GameLift::GameLi
 	if (Outcome.IsSuccess())
 	{
 		LOG_NORMAL("Received OnCreateGameSession with Success outcome.");
-		const FString GameSessionID = FString(Outcome.GetResult().GetGameSession().GetGameSessionId().c_str());
-		OnCreateGameSessionSuccess.Broadcast(GameSessionID);
+		const FString GameSessionID = Outcome.GetResult().GetGameSession().GetGameSessionId().c_str();
+		Aws::GameLift::Model::GameSessionStatus Status = Outcome.GetResult().GetGameSession().GetStatus();
+		const FString GameSessionStatus = Aws::GameLift::Model::GameSessionStatusMapper::GetNameForGameSessionStatus(Status).c_str();
+
+		OnCreateGameSessionSuccess.Broadcast(GameSessionID, GameSessionStatus);
 	}
 	else
 	{
@@ -103,40 +110,43 @@ void UGameLiftCreateGameSession::OnCreateGameSession(const Aws::GameLift::GameLi
 #endif
 }
 
-UGameLiftDescribeGameSession* UGameLiftDescribeGameSession::DescribeGameSession(FString GameSessionID)
+UGameLiftDescribeGameSessionDetails* UGameLiftDescribeGameSessionDetails::DescribeGameSessionDetails(FString GameSessionID)
 {
 #if WITH_GAMELIFTCLIENTSDK
-	UGameLiftDescribeGameSession* Proxy = NewObject<UGameLiftDescribeGameSession>();
+	UGameLiftDescribeGameSessionDetails* Proxy = NewObject<UGameLiftDescribeGameSessionDetails>();
 	Proxy->SessionID = GameSessionID;
 	return Proxy;
 #endif
 	return nullptr;
 }
 
-EActivateStatus UGameLiftDescribeGameSession::Activate()
+EActivateStatus UGameLiftDescribeGameSessionDetails::Activate()
 {
 #if WITH_GAMELIFTCLIENTSDK
 	if (GameLiftClient)
 	{
 		LOG_NORMAL("Preparing to describe game session...");
 
-		if (OnDescribeGameSessionStateSuccess.IsBound() == false)
+		if (OnDescribeGameSessionDetailsSuccess.IsBound() == false)
 		{
-			LOG_ERROR("No functions were bound to OnDescribeGameSessionStateSuccess multi-cast delegate! Aborting Activate.");
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionDetailsSuccess multi-cast delegate! Aborting Activate.");
 			return EActivateStatus::ACTIVATE_NoSuccessCallback;
 		}
 
-		if (OnDescribeGameSessionStateFailed.IsBound() == false)
+		if (OnDescribeGameSessionDetailsFailed.IsBound() == false)
 		{
-			LOG_ERROR("No functions were bound to OnDescribeGameSessionStateFailed multi-cast delegate! Aborting Activate.");
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionDetailsFailed multi-cast delegate! Aborting Activate.");
 			return EActivateStatus::ACTIVATE_NoFailCallback;
 		}
 
 		Aws::GameLift::Model::DescribeGameSessionDetailsRequest Request;
-		Request.SetGameSessionId(TCHAR_TO_UTF8(*SessionID));
+		if (GameSessionID.Len() > 0) {
+			LOG_NORMAL("Setting game session ID: " + GameSessionID);
+			Request.SetGameSessionId(TCHAR_TO_UTF8(*GameSessionID));
+		}
 
 		Aws::GameLift::DescribeGameSessionDetailsResponseReceivedHandler Handler;
-		Handler = std::bind(&UGameLiftDescribeGameSession::OnDescribeGameSessionState, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+		Handler = std::bind(&UGameLiftDescribeGameSessionDetails::OnDescribeGameSessionDetails, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
 		LOG_NORMAL("Requesting to describe game session with ID: " + SessionID);
 		GameLiftClient->DescribeGameSessionDetailsAsync(Request, Handler);
@@ -147,48 +157,29 @@ EActivateStatus UGameLiftDescribeGameSession::Activate()
 	return EActivateStatus::ACTIVATE_NoGameLift;
 }
 
-void UGameLiftDescribeGameSession::OnDescribeGameSessionState(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionDetailsRequest& Request, const Aws::GameLift::Model::DescribeGameSessionDetailsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
+void UGameLiftDescribeGameSessionDetails::OnDescribeGameSessionDetails(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionDetailsRequest& Request, const Aws::GameLift::Model::DescribeGameSessionDetailsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
 {
 #if WITH_GAMELIFTCLIENTSDK
 	if (Outcome.IsSuccess())
 	{
-		LOG_NORMAL("Received OnDescribeGameSessionState with Success outcome.");
-		const FString MySessionID = FString(Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetGameSessionId().c_str());
-		EGameLiftGameSessionStatus MySessionStatus = GetSessionState(Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetStatus());
-		OnDescribeGameSessionStateSuccess.Broadcast(MySessionID, MySessionStatus);
+		LOG_NORMAL("Received OnDescribeGameSessionDetails with Success outcome.");
+		const FString MySessionID = Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetGameSessionId().c_str();
+		Aws::GameLift::Model::GameSessionStatus Status = Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetStatus();
+		const FString MySessionStatus = Aws::GameLift::Model::GameSessionStatusMapper::GetNameForGameSessionStatus(Status).c_str();
+		const int CurrentPlayerCount = Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetCurrentPlayerSessionCount();
+		const int MaxPlayerCount = Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetMaximumPlayerSessionCount();
+		Aws::GameLift::Model::PlayerSessionCreationPolicy CreationPolicy = Outcome.GetResult().GetGameSessionDetails().data()->GetGameSession().GetPlayerSessionCreationPolicy();
+		const FString PlayerSessionCreationPolicy = Aws::GameLift::Model::PlayerSessionCreationPolicyMapper::GetNameForPlayerSessionCreationPolicy(CreationPolicy).c_str();
+
+		OnDescribeGameSessionDetailsSuccess.Broadcast(MySessionID, MySessionStatus, CurrentPlayerCount, MaxPlayerCount, PlayerSessionCreationPolicy);
 	}
 	else
 	{
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
-		LOG_ERROR("Received OnDescribeGameSessionState with failed outcome. Error: " + MyErrorMessage);
-		OnDescribeGameSessionStateFailed.Broadcast(MyErrorMessage);
+		LOG_ERROR("Received OnDescribeGameSessionDetails with failed outcome. Error: " + MyErrorMessage);
+		OnDescribeGameSessionDetailsFailed.Broadcast(MyErrorMessage);
 	}
 #endif
-}
-
-EGameLiftGameSessionStatus UGameLiftDescribeGameSession::GetSessionState(const Aws::GameLift::Model::GameSessionStatus& Status)
-{
-#if WITH_GAMELIFTCLIENTSDK
-	switch (Status)
-	{
-		case Aws::GameLift::Model::GameSessionStatus::ACTIVATING:
-			return EGameLiftGameSessionStatus::STATUS_Activating;
-		case Aws::GameLift::Model::GameSessionStatus::ACTIVE:
-			return EGameLiftGameSessionStatus::STATUS_Active;
-		case Aws::GameLift::Model::GameSessionStatus::ERROR_:
-			return EGameLiftGameSessionStatus::STATUS_Error;
-		case Aws::GameLift::Model::GameSessionStatus::NOT_SET:
-			return EGameLiftGameSessionStatus::STATUS_NotSet;
-		case Aws::GameLift::Model::GameSessionStatus::TERMINATED:
-			return EGameLiftGameSessionStatus::STATUS_Terminated;
-		case Aws::GameLift::Model::GameSessionStatus::TERMINATING:
-			return EGameLiftGameSessionStatus::STATUS_Terminating;
-		default:
-			break;
-	}
-	checkNoEntry(); // This code block should never reach!
-#endif
-	return EGameLiftGameSessionStatus::STATUS_NoStatus; // Just a dummy return
 }
 
 UGameLiftCreatePlayerSession* UGameLiftCreatePlayerSession::CreatePlayerSession(FString GameSessionID, FString UniquePlayerID)
@@ -250,24 +241,12 @@ void UGameLiftCreatePlayerSession::OnCreatePlayerSession(const Aws::GameLift::Ga
 	if (Outcome.IsSuccess())
 	{
 		LOG_NORMAL("Received OnCreatePlayerSession with Success outcome.");
-		const FString ServerIpAddress = FString(Outcome.GetResult().GetPlayerSession().GetIpAddress().c_str());
+		const FString ServerIpAddress = Outcome.GetResult().GetPlayerSession().GetIpAddress().c_str();
 		const FString ServerPort = FString::FromInt(Outcome.GetResult().GetPlayerSession().GetPort());
-		const FString MyPlayerSessionID = FString(Outcome.GetResult().GetPlayerSession().GetPlayerSessionId().c_str());
+		const FString MyPlayerSessionID = Outcome.GetResult().GetPlayerSession().GetPlayerSessionId().c_str();
 		Aws::GameLift::Model::PlayerSessionStatus Status = Outcome.GetResult().GetPlayerSession().GetStatus();
-		int PlayerSessionStatus = 0;
-		if (Status == Aws::GameLift::Model::PlayerSessionStatus::ACTIVE) {
-			PlayerSessionStatus = 2;
-		}
-		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::RESERVED) {
-			PlayerSessionStatus = 1;
-		}
-		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::COMPLETED) {
-			PlayerSessionStatus = -1;
-		}
-		else if(Status == Aws::GameLift::Model::PlayerSessionStatus::TIMEDOUT) {
-			PlayerSessionStatus = 0;
-		}
-		const int MyPlayerSessionStatus = PlayerSessionStatus;
+		const FString MyPlayerSessionStatus = Aws::GameLift::Model::PlayerSessionStatusMapper::GetNameForPlayerSessionStatus(Status).c_str();
+
 		OnCreatePlayerSessionSuccess.Broadcast(ServerIpAddress, ServerPort, MyPlayerSessionID, MyPlayerSessionStatus);
 	}
 	else
@@ -502,19 +481,9 @@ void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::
 		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
 		const FString GameSessionPlacementId = Outcome.GetResult().GetGameSessionPlacement().GetPlacementId().c_str();
 		Aws::GameLift::Model::GameSessionPlacementState Status = Outcome.GetResult().GetGameSessionPlacement().GetStatus();
-		int GameSessionPlacementStatus = 0;
-		if (Status == Aws::GameLift::Model::GameSessionPlacementState::FULFILLED) {
-			GameSessionPlacementStatus = 1;
-		}
-		else if (Status == Aws::GameLift::Model::GameSessionPlacementState::PENDING) {
-			GameSessionPlacementStatus = 0;
-		}
-		else {
-			GameSessionPlacementStatus = -1;
-		}
+		const FString GameSessionPlacementStatus = Aws::GameLift::Model::GameSessionPlacementStateMapper::GetNameForGameSessionPlacementState(Status).c_str();
 
-		const int GameSessionPlacementStatusCopy = GameSessionPlacementStatus;
-		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId, GameSessionPlacementId, GameSessionPlacementStatusCopy);
+		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId, GameSessionPlacementId, GameSessionPlacementStatus);
 	}
 	else
 	{
@@ -579,19 +548,9 @@ void UGameLiftDescribeGameSessionPlacement::OnDescribeGameSessionPlacement(const
 		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
 		const FString PlacementId = Outcome.GetResult().GetGameSessionPlacement().GetPlacementId().c_str();
 		Aws::GameLift::Model::GameSessionPlacementState Status = Outcome.GetResult().GetGameSessionPlacement().GetStatus();
-		int GameSessionPlacementStatus = 0;
-		if (Status == Aws::GameLift::Model::GameSessionPlacementState::FULFILLED) {
-			GameSessionPlacementStatus = 1;
-		}
-		else if (Status == Aws::GameLift::Model::GameSessionPlacementState::PENDING) {
-			GameSessionPlacementStatus = 0;
-		}
-		else {
-			GameSessionPlacementStatus = -1;
-		}
+		const FString GameSessionPlacementStatus = Aws::GameLift::Model::GameSessionPlacementStateMapper::GetNameForGameSessionPlacementState(Status).c_str();
 
-		const int GameSessionPlacementStatusCopy = GameSessionPlacementStatus;
-		OnDescribeGameSessionPlacementSuccess.Broadcast(GameSessionId, PlacementId, GameSessionPlacementStatusCopy);
+		OnDescribeGameSessionPlacementSuccess.Broadcast(GameSessionId, PlacementId, GameSessionPlacementStatus);
 	}
 	else
 	{
@@ -601,3 +560,4 @@ void UGameLiftDescribeGameSessionPlacement::OnDescribeGameSessionPlacement(const
 	}
 #endif
 }
+
