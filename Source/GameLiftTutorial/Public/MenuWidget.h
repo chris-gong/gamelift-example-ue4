@@ -10,6 +10,7 @@ class UButton;
 class UGameLiftClientObject;
 class FEvent;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMenu, Log, All);
 // This class does not need to be modified.
 UCLASS(BlueprintType)
 class UMenuWidget : public UUserWidget
@@ -41,7 +42,18 @@ private:
 	UPROPERTY()
 	FString Region;
 
+	UPROPERTY()
+	bool JoinedGameSuccessfully;
+
 	FEvent* DescribeGameSessionQueuesEvent;
+
+	FEvent* SearchGameSessionsEvent;
+
+	FEvent* CreatePlayerSessionEvent;
+
+	FEvent* StartGameSessionPlacementEvent;
+
+	FEvent* DescribeGameSessionPlacementEvent;
 
 	UFUNCTION()
 	void JoinGame();
@@ -63,5 +75,34 @@ private:
 
 	UFUNCTION()
 	void OnSearchGameSessionsFailed(const FString& ErrorMessage);
+
+	UFUNCTION()
+	void CreatePlayerSession(const FString& GameSessionId, const FString& PlayerSessionId);
+
+	UFUNCTION()
+	void OnCreatePlayerSessionSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const FString& PlayerSessionStatus);
+
+	UFUNCTION()
+	void OnCreatePlayerSessionFailed(const FString& ErrorMessage);
+
+	UFUNCTION()
+	void StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId);
+
+	UFUNCTION()
+	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const FString& Status);
+
+	UFUNCTION()
+	void OnStartGameSessionPlacementFailed(const FString& ErrorMessage);
+
+	UFUNCTION()
+	void DescribeGameSessionPlacement(const FString& PlacementId);
+
+	UFUNCTION()
+	void OnDescribeGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const FString& Status);
+
+	UFUNCTION()
+	void OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage);
+
+	FString GenerateRandomId();
 };
 
