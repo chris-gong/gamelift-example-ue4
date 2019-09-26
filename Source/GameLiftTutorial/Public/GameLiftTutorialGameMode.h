@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameLiftTutorialGameMode.generated.h"
 
+class FGameLiftServerSDKModule;
+
 UCLASS(minimalapi)
 class AGameLiftTutorialGameMode : public AGameModeBase
 {
@@ -13,6 +15,33 @@ class AGameLiftTutorialGameMode : public AGameModeBase
 
 public:
 	AGameLiftTutorialGameMode();
+
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+
+	virtual void Logout(AController* Exiting);
+
+protected:
+	virtual void BeginPlay() override;
+
+	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
+
+private:
+	FGameLiftServerSDKModule* gameLiftSdkModule;
+
+	UFUNCTION()
+	void CheckPlayerReadyCount();
+
+	UFUNCTION()
+	void StartGame();
+
+	UPROPERTY()
+	int ReadyTimeCount;
+	
+	UPROPERTY()
+	bool GameStarted;
+
+	UPROPERTY()
+	FTimerHandle ReadyCheckTimerHandle;
 };
 
 

@@ -17,11 +17,13 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+	ReadyTimeCount = 0;
+	GameStarted = false;
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 
 	//Getting the module first.
-	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+	gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 
 	//InitSDK establishes a local connection with GameLift's agent to enable communication.
 	gameLiftSdkModule->InitSDK();
@@ -66,5 +68,65 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 
 	//Call ProcessReady to tell GameLift this game server is ready to receive game sessions!
 	gameLiftSdkModule->ProcessReady(*params);
+#endif
+}
+
+void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+#if WITH_GAMELIFT
+	if (*Options && Options.Len() > 0) {
+		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		if (PlayerSessionId.Len() > 0) {
+			gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
+		}
+	}
+#endif
+}
+
+void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
+	Super::Logout(Exiting);
+}
+
+void AGameLiftTutorialGameMode::BeginPlay() {
+	Super::BeginPlay();
+	GetWorldTimerManager().SetTimer(ReadyCheckTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayerReadyCount, 1.0f, true);
+}
+
+FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
+	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+
+	return InitializedString;
+}
+
+void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
+	int NumPlayers = GetNumPlayers();
+	int ReadyPlayers = 0;
+
+	TArray<AActor*> Players;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameLiftTutorialCharacter::StaticClass(), Players);
+
+	for (AActor* Player : Players) {
+		AGameLiftTutorialCharacter* Character = Cast<AGameLiftTutorialCharacter>(Player);
+		if (Character->GameReady) {
+			ReadyPlayers += 1;
+		}
+	}
+
+	if ((ReadyPlayers / (NumPlayers * 1.0)) > 0.5) {
+		ReadyTimeCount += 1;
+		if (ReadyTimeCount >= 10) {
+			StartGame();
+		}
+	}
+	else {
+		ReadyTimeCount = 0;
+	}
+}
+
+void AGameLiftTutorialGameMode::StartGame() {
+	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
+	GameStarted = true;
+#if WITH_GAMELIFT
+	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
 #endif
 }

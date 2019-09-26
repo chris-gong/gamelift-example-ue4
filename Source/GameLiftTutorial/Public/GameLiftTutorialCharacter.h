@@ -29,6 +29,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY()
+	bool GameReady;
+
+	UPROPERTY()
+	FString PlayerSessionId;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
