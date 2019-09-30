@@ -112,7 +112,7 @@ void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
 		}
 	}
 
-	if ((ReadyPlayers / (NumPlayers * 1.0)) > 0.5) {
+	if ((NumPlayers >= 2) && ((ReadyPlayers / (NumPlayers * 1.0)) > 0.5)) {
 		ReadyTimeCount += 1;
 		if (ReadyTimeCount >= 10) {
 			StartGame();
@@ -124,9 +124,9 @@ void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
 }
 
 void AGameLiftTutorialGameMode::StartGame() {
+#if WITH_GAMELIFT
 	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
 	GameStarted = true;
-#if WITH_GAMELIFT
 	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
 #endif
 }
