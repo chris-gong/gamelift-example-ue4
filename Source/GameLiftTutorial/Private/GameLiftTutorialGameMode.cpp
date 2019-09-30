@@ -94,7 +94,18 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
-
+	if (*Options && Options.Len() > 0) {
+		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		if (PlayerSessionId.Len() > 0) {
+			APawn* PlayerPawn = NewPlayerController->GetPawn();
+			if (PlayerPawn != nullptr) {
+				AGameLiftTutorialCharacter* PlayerCharacter = Cast<AGameLiftTutorialCharacter>(PlayerPawn);
+				if (PlayerCharacter != nullptr) {
+					PlayerCharacter->PlayerSessionId = PlayerSessionId;
+				}
+			}
+		}
+	}
 	return InitializedString;
 }
 
