@@ -89,9 +89,9 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
 #if WITH_GAMELIFT
-	AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(NewPlayerController);
+	AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(Exiting);
 	if (PlayerController != nullptr) {
-		gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+		gameLiftSdkModule->RemovePlayerSession(PlayerController->PlayerSessionId);
 	}	
 #endif
 }
