@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Engine/Engine.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
@@ -75,6 +76,8 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AGameLiftTutorialCharacter::OnResetVR);
+
+	PlayerInputComponent->BindAction("ReadyUp", IE_Pressed, this, &AGameLiftTutorialCharacter::ChangeReadyStatus);
 }
 
 
@@ -131,5 +134,15 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void AGameLiftTutorialCharacter::ChangeReadyStatus() {
+	GameReady = !GameReady;
+	if (GameReady) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Player is ready");
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Player is not ready");
 	}
 }
