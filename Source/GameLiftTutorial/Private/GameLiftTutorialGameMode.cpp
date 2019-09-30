@@ -20,7 +20,6 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 		PlayerControllerClass = AGameLiftTutorialPlayerController::StaticClass();
 	}
 	ReadyTimeCount = 0;
-	GameStarted = false;
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 
@@ -151,7 +150,6 @@ void AGameLiftTutorialGameMode::CheckPlayersLeft() {
 
 void AGameLiftTutorialGameMode::StartGame() {
 	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
-	GameStarted = true;
 	GetWorldTimerManager().SetTimer(PlayersLeftTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayersLeft, 1.0f, true);
 #if WITH_GAMELIFT
 	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);

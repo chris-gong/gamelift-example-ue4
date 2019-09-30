@@ -42,9 +42,6 @@ private:
 
 	UPROPERTY()
 	int ReadyTimeCount;
-	
-	UPROPERTY()
-	bool GameStarted;
 
 	UPROPERTY()
 	FTimerHandle ReadyCheckTimerHandle;
