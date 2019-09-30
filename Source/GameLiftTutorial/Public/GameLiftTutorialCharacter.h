@@ -32,9 +32,6 @@ public:
 	UPROPERTY()
 	bool GameReady;
 
-	UPROPERTY()
-	FString PlayerSessionId;
-
 protected:
 
 	/** Resets HMD orientation in VR. */

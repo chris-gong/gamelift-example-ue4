@@ -32,7 +32,13 @@ private:
 	void CheckPlayerReadyCount();
 
 	UFUNCTION()
+	void CheckPlayersLeft();
+
+	UFUNCTION()
 	void StartGame();
+
+	UFUNCTION()
+	void EndGame();
 
 	UPROPERTY()
 	int ReadyTimeCount;
@@ -42,6 +48,9 @@ private:
 
 	UPROPERTY()
 	FTimerHandle ReadyCheckTimerHandle;
+
+	UPROPERTY()
+	FTimerHandle PlayersLeftTimerHandle;
 };
 
 

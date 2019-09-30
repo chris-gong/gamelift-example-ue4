@@ -5,6 +5,7 @@
 #include "Engine.h"
 #include "EngineGlobals.h"
 #include "GameLiftTutorialCharacter.h"
+#include "GameLiftTutorialPlayerController.h"
 #include "GameLiftServerSDK.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -16,6 +17,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+		PlayerControllerClass = AGameLiftTutorialPlayerController::StaticClass();
 	}
 	ReadyTimeCount = 0;
 	GameStarted = false;
@@ -85,6 +87,12 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
+#if WITH_GAMELIFT
+	AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(NewPlayerController);
+	if (PlayerController != nullptr) {
+		gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+	}	
+#endif
 }
 
 void AGameLiftTutorialGameMode::BeginPlay() {
@@ -97,12 +105,9 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		if (PlayerSessionId.Len() > 0) {
-			APawn* PlayerPawn = NewPlayerController->GetPawn();
-			if (PlayerPawn != nullptr) {
-				AGameLiftTutorialCharacter* PlayerCharacter = Cast<AGameLiftTutorialCharacter>(PlayerPawn);
-				if (PlayerCharacter != nullptr) {
-					PlayerCharacter->PlayerSessionId = PlayerSessionId;
-				}
+			AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(NewPlayerController);
+			if (PlayerController != nullptr) {
+				PlayerController->PlayerSessionId = PlayerSessionId;
 			}
 		}
 	}
@@ -134,10 +139,32 @@ void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
 	}
 }
 
+
+void AGameLiftTutorialGameMode::CheckPlayersLeft() {
+	int NumPlayers = GetNumPlayers();
+	if (NumPlayers <= 1) {
+		GetWorldTimerManager().ClearTimer(PlayersLeftTimerHandle);
+		FTimerHandle GameOverTimerHandle;
+		GetWorldTimerManager().SetTimer(GameOverTimerHandle, this, &AGameLiftTutorialGameMode::EndGame, 10.0f, false);
+	}
+}
+
 void AGameLiftTutorialGameMode::StartGame() {
-#if WITH_GAMELIFT
 	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
 	GameStarted = true;
+	GetWorldTimerManager().SetTimer(PlayersLeftTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayersLeft, 1.0f, true);
+#if WITH_GAMELIFT
 	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
+#endif
+}
+
+void AGameLiftTutorialGameMode::EndGame() {
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+#if WITH_GAMELIFT
+	FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
+	if (outcome.IsSuccess())
+	{
+		FGenericPlatformMisc::RequestExit(false);
+	}
 #endif
 }
