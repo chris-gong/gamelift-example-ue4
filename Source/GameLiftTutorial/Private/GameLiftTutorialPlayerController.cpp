@@ -6,3 +6,7 @@
 AGameLiftTutorialPlayerController::AGameLiftTutorialPlayerController() {
 	PlayerSessionId = "";
 }
+
+void AGameLiftTutorialPlayerController::BeginPlay() {
+	bShowMouseCursor = false;
+}

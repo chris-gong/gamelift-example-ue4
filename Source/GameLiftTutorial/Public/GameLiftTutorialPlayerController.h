@@ -19,4 +19,7 @@ public:
 
 	UPROPERTY()
 	FString	PlayerSessionId;
+
+protected:
+	virtual void BeginPlay() override;
 };
