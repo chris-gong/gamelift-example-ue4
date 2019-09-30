@@ -2,12 +2,12 @@
 
 #include "GameLiftTutorialGameMode.h"
 #include "GameLiftTutorial.h"
-#include "Engine.h"
-#include "EngineGlobals.h"
+#include "Engine/Engine.h"
 #include "GameLiftTutorialCharacter.h"
 #include "GameLiftTutorialPlayerController.h"
 #include "GameLiftServerSDK.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	: Super()
@@ -20,6 +20,8 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 		PlayerControllerClass = AGameLiftTutorialPlayerController::StaticClass();
 	}
 	ReadyTimeCount = 0;
+	GameOverTimeCount = 0;
+	GameStarted = false;
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 
@@ -97,6 +99,7 @@ void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
 	GetWorldTimerManager().SetTimer(ReadyCheckTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayerReadyCount, 1.0f, true);
+	GetWorldTimerManager().SetTimer(PlayersLeftTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayersLeft, 1.0f, true);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
@@ -141,23 +144,35 @@ void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
 
 void AGameLiftTutorialGameMode::CheckPlayersLeft() {
 	int NumPlayers = GetNumPlayers();
-	if (NumPlayers <= 1) {
-		GetWorldTimerManager().ClearTimer(PlayersLeftTimerHandle);
-		FTimerHandle GameOverTimerHandle;
-		GetWorldTimerManager().SetTimer(GameOverTimerHandle, this, &AGameLiftTutorialGameMode::EndGame, 10.0f, false);
+	if (GameStarted) {
+		if (NumPlayers <= 1) {
+			EndGame();
+		}
+	}
+	else {
+		if (NumPlayers <= 0) {
+			GameOverTimeCount += 1;
+			if (GameOverTimeCount >= 10) {
+				EndGame();
+			}
+		}
+		else {
+			GameOverTimeCount = 0;
+		}
 	}
 }
 
 void AGameLiftTutorialGameMode::StartGame() {
 	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
-	GetWorldTimerManager().SetTimer(PlayersLeftTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayersLeft, 1.0f, true);
+	GameStarted = true;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "The game has started");
 #if WITH_GAMELIFT
 	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
 #endif
 }
 
 void AGameLiftTutorialGameMode::EndGame() {
-	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	GetWorldTimerManager().ClearTimer(PlayersLeftTimerHandle);
 #if WITH_GAMELIFT
 	FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
 	if (outcome.IsSuccess())

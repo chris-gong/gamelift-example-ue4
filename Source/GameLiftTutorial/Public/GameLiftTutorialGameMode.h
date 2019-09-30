@@ -42,6 +42,12 @@ private:
 
 	UPROPERTY()
 	int ReadyTimeCount;
+	
+	UPROPERTY()
+	int GameOverTimeCount;
+
+	UPROPERTY()
+	bool GameStarted;
 
 	UPROPERTY()
 	FTimerHandle ReadyCheckTimerHandle;
