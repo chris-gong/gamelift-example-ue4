@@ -80,7 +80,7 @@ public:
 
 private:
 	Aws::GameLift::GameLiftClient* GameLiftClient;
-	FString SessionID;
+	FString GameSessionID;
 
 	static UGameLiftDescribeGameSessionDetails* DescribeGameSessionDetails(FString GameSessionID);
 

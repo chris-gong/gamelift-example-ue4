@@ -114,7 +114,7 @@ UGameLiftDescribeGameSessionDetails* UGameLiftDescribeGameSessionDetails::Descri
 {
 #if WITH_GAMELIFTCLIENTSDK
 	UGameLiftDescribeGameSessionDetails* Proxy = NewObject<UGameLiftDescribeGameSessionDetails>();
-	Proxy->SessionID = GameSessionID;
+	Proxy->GameSessionID = GameSessionID;
 	return Proxy;
 #endif
 	return nullptr;
@@ -148,7 +148,7 @@ EActivateStatus UGameLiftDescribeGameSessionDetails::Activate()
 		Aws::GameLift::DescribeGameSessionDetailsResponseReceivedHandler Handler;
 		Handler = std::bind(&UGameLiftDescribeGameSessionDetails::OnDescribeGameSessionDetails, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
-		LOG_NORMAL("Requesting to describe game session with ID: " + SessionID);
+		LOG_NORMAL("Requesting to describe game session with ID: " + GameSessionID);
 		GameLiftClient->DescribeGameSessionDetailsAsync(Request, Handler);
 		return EActivateStatus::ACTIVATE_Success;
 	}
