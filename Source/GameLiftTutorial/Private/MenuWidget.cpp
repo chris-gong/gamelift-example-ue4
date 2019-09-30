@@ -49,7 +49,7 @@ void UMenuWidget::JoinGame() {
 	}
 
 	const FString& PlacementId = GenerateRandomId();
-	StartGameSessionPlacement(QueueName, 100, PlacementId);
+	StartGameSessionPlacement(QueueName, 4, PlacementId);
 	StartGameSessionPlacementEvent->Wait();
 	
 	if (!JoinedGameSuccessfully) {
