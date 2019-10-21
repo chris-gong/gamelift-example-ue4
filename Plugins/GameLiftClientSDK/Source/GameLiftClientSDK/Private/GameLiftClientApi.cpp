@@ -3,7 +3,7 @@
 #include "GameLiftClientApi.h"
 #include "GameLiftClientGlobals.h"
 
-//#if WITH_GAMELIFTCLIENTSDK
+#if WITH_GAMELIFTCLIENTSDK
 #include "aws/gamelift/model/DescribeGameSessionDetailsRequest.h"
 #include "aws/gamelift/GameLiftClient.h"
 #include "aws/core/utils/Outcome.h"
@@ -16,8 +16,11 @@
 #include "aws/gamelift/model/SearchGameSessionsRequest.h"
 #include "aws/gamelift/model/StartGameSessionPlacementRequest.h"
 #include "aws/gamelift/model/DescribeGameSessionPlacementRequest.h"
+#include "aws/gamelift/model/PlayerSessionStatus.h"
+#include "aws/gamelift/model/GameSessionStatus.h"
+#include "aws/gamelift/model/GameSessionPlacementState.h"
 #include <aws/core/http/HttpRequest.h>
-//#endif
+#endif
 
 UGameLiftCreateGameSession* UGameLiftCreateGameSession::CreateGameSession(FString FleetId, FString AliasId, int MaxPlayerCount)
 {

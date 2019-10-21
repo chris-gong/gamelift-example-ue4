@@ -37,7 +37,6 @@ void UMenuWidget::NativeConstruct() {
 
 void UMenuWidget::JoinGame() {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("button pressed"));
 	JoinGameButton->SetIsEnabled(false);
 	JoinedGameSuccessfully = false;
 
@@ -61,7 +60,6 @@ void UMenuWidget::JoinGame() {
 
 void UMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("describegamesessionqueues"));
 	UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueuesRequest = Client->DescribeGameSessionQueues(QueueNameInput);
 	DescribeGameSessionQueuesRequest->OnDescribeGameSessionQueuesSuccess.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionQueuesSuccess);
 	DescribeGameSessionQueuesRequest->OnDescribeGameSessionQueuesFailed.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionQueuesFailed);
@@ -71,7 +69,6 @@ void UMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
 
 void UMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& FleetARNs) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("on describegamesessionqueues sucess"));
 	for (int i = 0; i < FleetARNs.Num(); i++) {
 		FString FleetArn = FleetARNs[i];
 		TArray<FString> FleetArnParsedOnce;
@@ -93,7 +90,6 @@ void UMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& Flee
 
 void UMenuWidget::OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("on describegamesessionqueues failed"));
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
 	DescribeGameSessionQueuesEvent->Trigger();
 #endif
@@ -166,7 +162,6 @@ void UMenuWidget::OnCreatePlayerSessionFailed(const FString& ErrorMessage) {
 
 void UMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("startgamesessionplacement"));
 	UGameLiftStartGameSessionPlacement* StartGameSessionPlacementRequest = Client->StartGameSessionPlacement(QueueNameInput, MaxPlayerCount, PlacementId);
 	StartGameSessionPlacementRequest->OnStartGameSessionPlacementSuccess.AddDynamic(this, &UMenuWidget::OnStartGameSessionPlacementSuccess);
 	StartGameSessionPlacementRequest->OnStartGameSessionPlacementFailed.AddDynamic(this, &UMenuWidget::OnStartGameSessionPlacementFailed);
@@ -176,7 +171,6 @@ void UMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, const
 
 void UMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const FString& Status) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("on startgamesessionplacement success"));
 	if (Status.Equals("PENDING", ESearchCase::IgnoreCase)) {
 		for (int i = 0; i < 10; i++) {
 			StartGameSessionPlacementEvent->Wait(500);
@@ -198,7 +192,6 @@ void UMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionI
 
 void UMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	UE_LOG(LogMenu, Log, TEXT("on startgamesessionplacement failed"));
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
 	StartGameSessionPlacementEvent->Trigger();
 #endif

@@ -23,22 +23,19 @@ namespace GameLift
 {
 namespace Model
 {
-  enum class GameSessionPlacementState
+  enum class CertificateType
   {
     NOT_SET,
-    PENDING,
-    FULFILLED,
-    CANCELLED,
-    TIMED_OUT,
-    FAILED
+    DISABLED,
+    GENERATED
   };
 
-namespace GameSessionPlacementStateMapper
+namespace CertificateTypeMapper
 {
-AWS_GAMELIFT_API GameSessionPlacementState GetGameSessionPlacementStateForName(const Aws::String& name);
+AWS_GAMELIFT_API CertificateType GetCertificateTypeForName(const Aws::String& name);
 
-AWS_GAMELIFT_API Aws::String GetNameForGameSessionPlacementState(GameSessionPlacementState value);
-} // namespace GameSessionPlacementStateMapper
+AWS_GAMELIFT_API Aws::String GetNameForCertificateType(CertificateType value);
+} // namespace CertificateTypeMapper
 } // namespace Model
 } // namespace GameLift
 } // namespace Aws

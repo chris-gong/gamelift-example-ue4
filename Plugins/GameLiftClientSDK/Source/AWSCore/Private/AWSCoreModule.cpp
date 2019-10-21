@@ -12,7 +12,7 @@ void* FAWSCoreModule::AWSChecksumsLibraryHandle = nullptr;
 
 void FAWSCoreModule::StartupModule()
 {
-#if PLATFORM_WINDOWS && PLATFORM_64BITS
+#if PLATFORM_WINDOWS && PLATFORM_64BITS && WITH_AWSCORE
 	LOG_NORMAL("Starting AWSCore Module...");
 
 	const FString BaseDir = IPluginManager::Get().FindPlugin("GameLiftClientSDK")->GetBaseDir();
@@ -78,6 +78,7 @@ void FAWSCoreModule::StartupModule()
 
 void FAWSCoreModule::ShutdownModule()
 {
+#if WITH_AWSCORE
 	Aws::ShutdownAPI(options);
 	LOG_NORMAL("Aws::ShutdownAPI called.");
 	FreeDependency(AWSCoreLibraryHandle);
@@ -85,6 +86,7 @@ void FAWSCoreModule::ShutdownModule()
 	FreeDependency(AWSEventStreamLibraryHandle);
 	FreeDependency(AWSChecksumsLibraryHandle);
 	LOG_NORMAL("Shutting down AWSCore Module...");
+#endif
 }
 
 bool FAWSCoreModule::LoadDependency(const FString& Dir, const FString& Name, void*& Handle)

@@ -20,7 +20,7 @@
 
 namespace Aws
 {
-namespace AwsTime
+namespace Time
 {
 
     /*
