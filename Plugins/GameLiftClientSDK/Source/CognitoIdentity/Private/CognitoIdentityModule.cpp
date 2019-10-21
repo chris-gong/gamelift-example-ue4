@@ -9,7 +9,7 @@ void* FCognitoIdentityModule::CognitoIdentityLibraryHandle = nullptr;
 
 void FCognitoIdentityModule::StartupModule()
 {
-#if PLATFORM_WINDOWS && PLATFORM_64BITS
+#if PLATFORM_WINDOWS && PLATFORM_64BITS && WITH_COGNITOIDENTITY
 	LOG_NORMAL("Starting CognitoIdentity Module...");
 
 	const FString BaseDir = IPluginManager::Get().FindPlugin("GameLiftClientSDK")->GetBaseDir();

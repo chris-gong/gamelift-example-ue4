@@ -21,6 +21,7 @@ public class CognitoIdentity : ModuleRules
 		{
             if (Target.Type == TargetRules.TargetType.Client)
             {
+                PublicDefinitions.Add("WITH_COGNITOIDENTITY=1");
                 PublicLibraryPaths.Add(ThirdPartyPath);
 
                 if (Target.Platform == UnrealTargetPlatform.Linux)
@@ -62,6 +63,14 @@ public class CognitoIdentity : ModuleRules
                     }
                 }
             }
+            else
+            {
+                PublicDefinitions.Add("WITH_COGNITOIDENTITY=0");
+            }
+        }
+        else
+        {
+            PublicDefinitions.Add("WITH_COGNITOIDENTITY=0");
         }
 	}
 }
