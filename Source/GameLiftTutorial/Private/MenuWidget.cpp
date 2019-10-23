@@ -17,8 +17,6 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	QueueName = TextReader->ReadFile("Credentials/AWS_QueueName.txt");
 	Region = TextReader->ReadFile("Credentials/AWS_Region.txt");
 
-	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, Region);
-
 	DescribeGameSessionQueuesEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
 	SearchGameSessionsEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
 	CreatePlayerSessionEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
@@ -30,6 +28,8 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
+
+	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, Region);
 
 	JoinGameButton = (UButton*)GetWidgetFromName(TEXT("Button_JoinGame"));
 	JoinGameButton->OnClicked.AddDynamic(this, &UMenuWidget::JoinGame);
