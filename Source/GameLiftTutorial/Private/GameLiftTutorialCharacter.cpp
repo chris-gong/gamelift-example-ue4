@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Engine.h"
+#include "UnrealNetwork.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
@@ -80,6 +81,12 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAction("ReadyUp", IE_Pressed, this, &AGameLiftTutorialCharacter::ChangeReadyStatus);
 }
 
+void AGameLiftTutorialCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGameLiftTutorialCharacter, GameReady);
+
+}
 
 void AGameLiftTutorialCharacter::OnResetVR()
 {
