@@ -85,7 +85,6 @@ void AGameLiftTutorialCharacter::GetLifetimeReplicatedProps(TArray< FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AGameLiftTutorialCharacter, GameReady);
-
 }
 
 void AGameLiftTutorialCharacter::OnResetVR()
@@ -145,7 +144,17 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 }
 
 void AGameLiftTutorialCharacter::ChangeReadyStatus() {
-	GameReady = !GameReady;
+	ServerSetReadyStatus(!GameReady);
+}
+
+bool AGameLiftTutorialCharacter::ServerSetReadyStatus_Validate(bool Status)
+{
+	return true;
+}
+
+void AGameLiftTutorialCharacter::ServerSetReadyStatus_Implementation(bool Status)
+{
+	GameReady = Status;
 	if (GameReady) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Player is ready");
 	}

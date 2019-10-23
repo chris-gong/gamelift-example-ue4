@@ -75,5 +75,8 @@ public:
 private:
 	UFUNCTION()
 	void ChangeReadyStatus();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetReadyStatus(bool Status);
 };
 
