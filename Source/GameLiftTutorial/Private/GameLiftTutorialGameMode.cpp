@@ -61,7 +61,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	//from a range, such as:
 	//const int32 port = FURL::UrlConfig.DefaultPort;
 	//params->port;
-	params->port = 7777;
+	params->port = FURL::UrlConfig.DefaultPort;
 
 	//Here, the game server tells GameLift what set of files to upload when the game session 
 	//ends. GameLift uploads everything specified here for the developers to fetch later.

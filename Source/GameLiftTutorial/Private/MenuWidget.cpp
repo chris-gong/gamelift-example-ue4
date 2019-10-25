@@ -9,7 +9,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
-DEFINE_LOG_CATEGORY(LogMenu);
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	AccessKey = TextReader->ReadFile("Credentials/AWS_AccessKey.txt");
@@ -90,7 +89,7 @@ void UMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& Flee
 
 void UMenuWidget::OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Describe Game Session Queues Failed: ") + ErrorMessage);
 	DescribeGameSessionQueuesEvent->Trigger();
 #endif
 }
@@ -124,7 +123,7 @@ void UMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSession
 
 void UMenuWidget::OnSearchGameSessionsFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Search Game Sessions Failed: ") + ErrorMessage);
 	SearchGameSessionsEvent->Trigger();
 #endif
 }
@@ -155,7 +154,7 @@ void UMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, const F
 
 void UMenuWidget::OnCreatePlayerSessionFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Create Player Session Failed: ") + ErrorMessage);
 	CreatePlayerSessionEvent->Trigger();
 #endif
 }
@@ -192,7 +191,7 @@ void UMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionI
 
 void UMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Start Game Session Placement Failed: ") + ErrorMessage);
 	StartGameSessionPlacementEvent->Trigger();
 #endif
 }
@@ -219,7 +218,7 @@ void UMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameSessi
 
 void UMenuWidget::OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage) {
 #if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Describe Game Session Placement Failed: ") + ErrorMessage);
 	DescribeGameSessionPlacementEvent->Trigger();
 #endif
 }

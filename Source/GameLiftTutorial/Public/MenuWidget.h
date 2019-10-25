@@ -10,7 +10,6 @@ class UButton;
 class UGameLiftClientObject;
 class FEvent;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogMenu, Log, All);
 // This class does not need to be modified.
 UCLASS(BlueprintType)
 class UMenuWidget : public UUserWidget

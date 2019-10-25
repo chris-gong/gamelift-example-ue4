@@ -144,6 +144,12 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 }
 
 void AGameLiftTutorialCharacter::ChangeReadyStatus() {
+	if (GameReady) {
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, "Player is not ready");
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, "Player is ready");
+	}
 	ServerSetReadyStatus(!GameReady);
 }
 
@@ -155,10 +161,4 @@ bool AGameLiftTutorialCharacter::ServerSetReadyStatus_Validate(bool Status)
 void AGameLiftTutorialCharacter::ServerSetReadyStatus_Implementation(bool Status)
 {
 	GameReady = Status;
-	if (GameReady) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Player is ready");
-	}
-	else {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Player is not ready");
-	}
 }
