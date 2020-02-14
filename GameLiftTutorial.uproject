@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{973276C3-4043-0D92-F7FB-CDA7CEE66BB6}",
+	"EngineAssociation": "{7ACF0227-41BA-3469-23E4-FB91058CE99E}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -19,7 +19,7 @@
 			"Enabled": true
 		},
 		{
-			"Name": "GameLiftClientSDK",
+			"Name": "WebBrowserWidget",
 			"Enabled": true
 		}
 	]

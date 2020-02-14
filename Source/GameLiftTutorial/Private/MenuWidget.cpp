@@ -2,233 +2,103 @@
 
 #include "MenuWidget.h"
 #include "TextReaderComponent.h"
-#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
-#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 #include "Components/Button.h"
+#include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
 #include "Engine/Engine.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
+#include "Json.h"
+#include "JsonUtilities.h"
+#include "Math/UnrealMathUtility.h"
+#include "WebBrowser.h"
+#include "IWebBrowserCookieManager.h"
+#include "WebBrowserModule.h"
+#include "Misc/Base64.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
-	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
-	AccessKey = TextReader->ReadFile("Credentials/AWS_AccessKey.txt");
-	SecretKey = TextReader->ReadFile("Credentials/AWS_SecretKey.txt");
-	QueueName = TextReader->ReadFile("Credentials/AWS_QueueName.txt");
-	Region = TextReader->ReadFile("Credentials/AWS_Region.txt");
-
-	DescribeGameSessionQueuesEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
-	SearchGameSessionsEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
-	CreatePlayerSessionEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
-	StartGameSessionPlacementEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
-	DescribeGameSessionPlacementEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
-
-	JoinedGameSuccessfully = false;
+	RedirectUri = "https://cwz3ysqb50.execute-api.us-east-1.amazonaws.com/GoogleSignInSuccess";
+	AwsCredsUrl = "https://5s45no77o5.execute-api.us-east-1.amazonaws.com/GetAwsCredentials";
+	TestAuthUrl = "https://4pxv1tot0d.execute-api.us-east-1.amazonaws.com/test";
+	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
+	HttpModule = &FHttpModule::Get();
 }
 
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
+	WebBrowser = (UWebBrowser*)GetWidgetFromName(TEXT("WebBrowser_Login"));
 
-	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, Region);
-
-	JoinGameButton = (UButton*)GetWidgetFromName(TEXT("Button_JoinGame"));
-	JoinGameButton->OnClicked.AddDynamic(this, &UMenuWidget::JoinGame);
+	FScriptDelegate LoginDelegate;
+	LoginDelegate.BindUFunction(this, "CheckIfLoginSuccessful");
+	WebBrowser->OnUrlChanged.Add(LoginDelegate);
 }
 
-void UMenuWidget::JoinGame() {
-#if WITH_GAMELIFTCLIENTSDK
-	JoinGameButton->SetIsEnabled(false);
-	JoinedGameSuccessfully = false;
+void UMenuWidget::CheckIfLoginSuccessful() {
+	FString BrowserUrl = WebBrowser->GetUrl();
+	FString Url;
+	FString QueryParameters;
 
-	DescribeGameSessionQueues(QueueName);
-	DescribeGameSessionQueuesEvent->Wait();
+	if (BrowserUrl.Split("?", &Url, &QueryParameters)) {
+		if (Url.Equals(RedirectUri)) {
+			FString ParameterName;
+			FString ParameterValue;
+			if (QueryParameters.Split("=", &ParameterName, &ParameterValue)) {
+				TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+				RequestObj->SetStringField(ParameterName, ParameterValue);
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("code: ") + ParameterValue);
+				
+				//UE_LOG(LogTemp, Warning, TEXT("code: %s"), *ParameterValue);
+				FString RequestBody;
+				TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 
-	if (JoinedGameSuccessfully) {
-		return;
-	}
-
-	const FString& PlacementId = GenerateRandomId();
-	StartGameSessionPlacement(QueueName, 4, PlacementId);
-	StartGameSessionPlacementEvent->Wait();
-	
-	if (!JoinedGameSuccessfully) {
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("No game sessions available currently"));
-		JoinGameButton->SetIsEnabled(true);
-	}
-#endif
-}
-
-void UMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
-#if WITH_GAMELIFTCLIENTSDK
-	UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueuesRequest = Client->DescribeGameSessionQueues(QueueNameInput);
-	DescribeGameSessionQueuesRequest->OnDescribeGameSessionQueuesSuccess.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionQueuesSuccess);
-	DescribeGameSessionQueuesRequest->OnDescribeGameSessionQueuesFailed.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionQueuesFailed);
-	DescribeGameSessionQueuesRequest->Activate();
-#endif
-}
-
-void UMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& FleetARNs) {
-#if WITH_GAMELIFTCLIENTSDK
-	for (int i = 0; i < FleetARNs.Num(); i++) {
-		FString FleetArn = FleetARNs[i];
-		TArray<FString> FleetArnParsedOnce;
-		FleetArn.ParseIntoArray(FleetArnParsedOnce, TEXT("arn:aws:gamelift:"), true);
-		TArray<FString> FleetArnParsedAgain;
-		FleetArnParsedOnce[0].ParseIntoArray(FleetArnParsedAgain, TEXT("::fleet/"), true);
-
-		const FString& FleetId = FleetArnParsedAgain[1];
-		SearchGameSessions(FleetId);
-		SearchGameSessionsEvent->Wait();
-		
-		if (JoinedGameSuccessfully) {
-			break;
-		}
-	}
-	DescribeGameSessionQueuesEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage) {
-#if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Describe Game Session Queues Failed: ") + ErrorMessage);
-	DescribeGameSessionQueuesEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::SearchGameSessions(const FString& FleetId) {
-#if WITH_GAMELIFTCLIENTSDK
-	UGameLiftSearchGameSessions* SearchGameSessionsRequest = Client->SearchGameSessions(FleetId, "", "", ""); // TODO: Have to handle other parameters
-	SearchGameSessionsRequest->OnSearchGameSessionsSuccess.AddDynamic(this, &UMenuWidget::OnSearchGameSessionsSuccess);
-	SearchGameSessionsRequest->OnSearchGameSessionsFailed.AddDynamic(this, &UMenuWidget::OnSearchGameSessionsFailed);
-	SearchGameSessionsRequest->Activate();
-#endif
-}
-
-void UMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSessionIds) {
-#if WITH_GAMELIFTCLIENTSDK
-	for (int i = 0; i < GameSessionIds.Num(); i++) {
-		const FString& GameSessionId = GameSessionIds[i];
-		const FString& PlayerSessionId = GenerateRandomId();
-
-		CreatePlayerSession(GameSessionId, PlayerSessionId);
-		CreatePlayerSessionEvent->Wait();
-
-		if (JoinedGameSuccessfully) {
-			break;
-		}
-	}
-
-	SearchGameSessionsEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::OnSearchGameSessionsFailed(const FString& ErrorMessage) {
-#if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Search Game Sessions Failed: ") + ErrorMessage);
-	SearchGameSessionsEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::CreatePlayerSession(const FString& GameSessionId, const FString& PlayerSessionId) {
-#if WITH_GAMELIFTCLIENTSDK
-	UGameLiftCreatePlayerSession* CreatePlayerSessionRequest = Client->CreatePlayerSession(GameSessionId, PlayerSessionId);
-	CreatePlayerSessionRequest->OnCreatePlayerSessionSuccess.AddDynamic(this, &UMenuWidget::OnCreatePlayerSessionSuccess);
-	CreatePlayerSessionRequest->OnCreatePlayerSessionFailed.AddDynamic(this, &UMenuWidget::OnCreatePlayerSessionFailed);
-	CreatePlayerSessionRequest->Activate();
-#endif
-}
-
-void UMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const FString& PlayerSessionStatus) {
-#if WITH_GAMELIFTCLIENTSDK
-	if (PlayerSessionStatus.Equals("RESERVED", ESearchCase::IgnoreCase)) {
-		FString LevelName = IPAddress + FString(":") + Port;
-		const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionID;
-
-		UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
-
-		JoinedGameSuccessfully = true;
-	}
-
-	CreatePlayerSessionEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::OnCreatePlayerSessionFailed(const FString& ErrorMessage) {
-#if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Create Player Session Failed: ") + ErrorMessage);
-	CreatePlayerSessionEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId) {
-#if WITH_GAMELIFTCLIENTSDK
-	UGameLiftStartGameSessionPlacement* StartGameSessionPlacementRequest = Client->StartGameSessionPlacement(QueueNameInput, MaxPlayerCount, PlacementId);
-	StartGameSessionPlacementRequest->OnStartGameSessionPlacementSuccess.AddDynamic(this, &UMenuWidget::OnStartGameSessionPlacementSuccess);
-	StartGameSessionPlacementRequest->OnStartGameSessionPlacementFailed.AddDynamic(this, &UMenuWidget::OnStartGameSessionPlacementFailed);
-	StartGameSessionPlacementRequest->Activate();
-#endif
-}
-
-void UMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const FString& Status) {
-#if WITH_GAMELIFTCLIENTSDK
-	if (Status.Equals("PENDING", ESearchCase::IgnoreCase)) {
-		for (int i = 0; i < 10; i++) {
-			StartGameSessionPlacementEvent->Wait(500);
-			DescribeGameSessionPlacement(PlacementId);
-			DescribeGameSessionPlacementEvent->Wait();
-			if (JoinedGameSuccessfully) {
-				break;
+				if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+					// send a get request to google discovery document to retrieve endpoints
+					TSharedRef<IHttpRequest> TokenRequest = HttpModule->CreateRequest();
+					TokenRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnAwsTokenResponseReceived);
+					TokenRequest->SetURL(AwsCredsUrl);
+					TokenRequest->SetVerb("POST");
+					TokenRequest->SetHeader("Content-Type", "application/json");
+					TokenRequest->SetContentAsString(RequestBody);
+					TokenRequest->ProcessRequest();
+				}
 			}
 		}
 	}
-	else if (Status.Equals("FULFILLED", ESearchCase::IgnoreCase)) {
-		const FString& PlayerSessionId = GenerateRandomId();
-		CreatePlayerSession(GameSessionId, PlayerSessionId);
-		CreatePlayerSessionEvent->Wait();
+}
+
+void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful) {
+		//Create a pointer to hold the json serialized data
+		TSharedPtr<FJsonObject> JsonObject;
+		
+		//Create a reader pointer to read the json data
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+		
+		//Deserialize the json data given Reader and the actual object to deserialize
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
+			//UE_LOG(LogTemp, Warning, TEXT("response: %s"), *(Response->GetContentAsString()));
+			IdToken = JsonObject->GetStringField("id_token");
+			AccessToken = JsonObject->GetStringField("access_token");
+			RefreshToken = JsonObject->GetStringField("refresh_token");
+
+			TSharedRef<IHttpRequest> TestAuthRequest = HttpModule->CreateRequest();
+			TestAuthRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnTestAuthResponseReceived);
+			TestAuthRequest->SetURL(TestAuthUrl);
+			TestAuthRequest->SetVerb("POST");
+			TestAuthRequest->SetHeader("Authorization", AccessToken);
+			TestAuthRequest->ProcessRequest();
+		}
+		else {
+		
+		}
 	}
-	StartGameSessionPlacementEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
-#if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Start Game Session Placement Failed: ") + ErrorMessage);
-	StartGameSessionPlacementEvent->Trigger();
-#endif
-}
-
-void UMenuWidget::DescribeGameSessionPlacement(const FString& PlacementId) {
-#if WITH_GAMELIFTCLIENTSDK
-	UGameLiftDescribeGameSessionPlacement* DescribeGameSessionPlacementRequest = Client->DescribeGameSessionPlacement(PlacementId);
-	DescribeGameSessionPlacementRequest->OnDescribeGameSessionPlacementSuccess.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionPlacementSuccess);
-	DescribeGameSessionPlacementRequest->OnDescribeGameSessionPlacementFailed.AddDynamic(this, &UMenuWidget::OnDescribeGameSessionPlacementFailed);
-	DescribeGameSessionPlacementRequest->Activate();
-#endif
-}
-
-void UMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const FString& Status) {
-#if WITH_GAMELIFTCLIENTSDK
-	if (Status.Equals("FULFILLED", ESearchCase::IgnoreCase)) {
-		const FString& PlayerSessionId = GenerateRandomId();
-		CreatePlayerSession(GameSessionId, PlayerSessionId);
-		CreatePlayerSessionEvent->Wait();
+	else {
+		
 	}
-	DescribeGameSessionPlacementEvent->Trigger();
-#endif
 }
 
-void UMenuWidget::OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage) {
-#if WITH_GAMELIFTCLIENTSDK
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("On Describe Game Session Placement Failed: ") + ErrorMessage);
-	DescribeGameSessionPlacementEvent->Trigger();
-#endif
-}
-
-FString UMenuWidget::GenerateRandomId() {
-	int RandOne = FMath::RandRange(0, 200000);
-	int RandTwo = FMath::RandRange(0, 200000);
-	int RandThree = FMath::RandRange(0, 200000);
-
-	FString Id = FString::FromInt(RandOne) + FString("-") + FString::FromInt(RandTwo) + FString("-") + FString::FromInt(RandThree);
-
-	return Id;
+void UMenuWidget::OnTestAuthResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Response from Authorized Lambda API: ") + Response->GetContentAsString());
 }

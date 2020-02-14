@@ -4,7 +4,7 @@
 #include "GameLiftTutorial.h"
 #include "Engine/Engine.h"
 #include "GameLiftTutorialCharacter.h"
-#include "GameLiftTutorialPlayerController.h"
+#include "GameLiftTutorialPlayerState.h"
 #include "GameLiftServerSDK.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
@@ -17,11 +17,9 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
-		PlayerControllerClass = AGameLiftTutorialPlayerController::StaticClass();
+		PlayerStateClass = AGameLiftTutorialPlayerState::StaticClass();
 	}
-	ReadyTimeCount = 0;
-	GameOverTimeCount = 0;
-	GameStarted = false;
+
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 
@@ -88,18 +86,10 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
-#if WITH_GAMELIFT
-	AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(Exiting);
-	if (PlayerController != nullptr) {
-		gameLiftSdkModule->RemovePlayerSession(PlayerController->PlayerSessionId);
-	}	
-#endif
 }
 
 void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
-	GetWorldTimerManager().SetTimer(ReadyCheckTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayerReadyCount, 1.0f, true);
-	GetWorldTimerManager().SetTimer(PlayersLeftTimerHandle, this, &AGameLiftTutorialGameMode::CheckPlayersLeft, 1.0f, true);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
@@ -107,77 +97,13 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		if (PlayerSessionId.Len() > 0) {
-			AGameLiftTutorialPlayerController* PlayerController = Cast<AGameLiftTutorialPlayerController>(NewPlayerController);
-			if (PlayerController != nullptr) {
-				PlayerController->PlayerSessionId = PlayerSessionId;
+			APlayerState* State = NewPlayerController->PlayerState;
+			if (State != nullptr) {
+				AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
+				PlayerState->PlayerSessionId = *PlayerSessionId;
+				//PlayerState->Team = ?
 			}
 		}
 	}
 	return InitializedString;
-}
-
-void AGameLiftTutorialGameMode::CheckPlayerReadyCount() {
-	int NumPlayers = GetNumPlayers();
-	int ReadyPlayers = 0;
-
-	TArray<AActor*> Players;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameLiftTutorialCharacter::StaticClass(), Players);
-
-	for (AActor* Player : Players) {
-		AGameLiftTutorialCharacter* Character = Cast<AGameLiftTutorialCharacter>(Player);
-		if (Character->GameReady) {
-			ReadyPlayers += 1;
-		}
-	}
-
-	if ((NumPlayers >= 2) && ((ReadyPlayers / (NumPlayers * 1.0)) > 0.5)) {
-		ReadyTimeCount += 1;
-		if (ReadyTimeCount >= 10) {
-			StartGame();
-		}
-	}
-	else {
-		ReadyTimeCount = 0;
-	}
-}
-
-
-void AGameLiftTutorialGameMode::CheckPlayersLeft() {
-	int NumPlayers = GetNumPlayers();
-	if (GameStarted) {
-		if (NumPlayers <= 1) {
-			EndGame();
-		}
-	}
-	else {
-		if (NumPlayers <= 0) {
-			GameOverTimeCount += 1;
-			if (GameOverTimeCount >= 10) {
-				EndGame();
-			}
-		}
-		else {
-			GameOverTimeCount = 0;
-		}
-	}
-}
-
-void AGameLiftTutorialGameMode::StartGame() {
-	GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
-	GameStarted = true;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "The game has started");
-#if WITH_GAMELIFT
-	gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
-#endif
-}
-
-void AGameLiftTutorialGameMode::EndGame() {
-	GetWorldTimerManager().ClearTimer(PlayersLeftTimerHandle);
-#if WITH_GAMELIFT
-	FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
-	if (outcome.IsSuccess())
-	{
-		FGenericPlatformMisc::RequestExit(false);
-	}
-#endif
 }

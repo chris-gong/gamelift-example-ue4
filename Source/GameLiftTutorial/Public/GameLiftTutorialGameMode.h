@@ -27,33 +27,6 @@ protected:
 
 private:
 	FGameLiftServerSDKModule* gameLiftSdkModule;
-
-	UFUNCTION()
-	void CheckPlayerReadyCount();
-
-	UFUNCTION()
-	void CheckPlayersLeft();
-
-	UFUNCTION()
-	void StartGame();
-
-	UFUNCTION()
-	void EndGame();
-
-	UPROPERTY()
-	int ReadyTimeCount;
-	
-	UPROPERTY()
-	int GameOverTimeCount;
-
-	UPROPERTY()
-	bool GameStarted;
-
-	UPROPERTY()
-	FTimerHandle ReadyCheckTimerHandle;
-
-	UPROPERTY()
-	FTimerHandle PlayersLeftTimerHandle;
 };
 
 

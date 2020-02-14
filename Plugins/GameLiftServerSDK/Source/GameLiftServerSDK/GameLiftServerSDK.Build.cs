@@ -13,14 +13,13 @@
 */
 
 using UnrealBuildTool;
-using System.IO;
 
 public class GameLiftServerSDK : ModuleRules
 {
     public GameLiftServerSDK(ReadOnlyTargetRules Target) : base (Target)
     {
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
-        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
+        PublicIncludePaths.Add(System.IO.Path.Combine(ModuleDirectory, "Public"));
+        PrivateIncludePaths.Add(System.IO.Path.Combine(ModuleDirectory, "Private"));
 
         PublicDependencyModuleNames.AddRange(
             new string[]
@@ -64,13 +63,13 @@ public class GameLiftServerSDK : ModuleRules
                     SDKDirectory = System.IO.Path.Combine(SDKDirectory, "x86_64-unknown-linux-gnu");
                     string SDKLib = System.IO.Path.Combine(SDKDirectory, "libaws-cpp-sdk-gamelift-server.so");
                 
-                    PublicLibraryPaths.Add(SDKDirectory);
+                    //PublicAdditionalLibraries.Add(SDKDirectory);
                     PublicAdditionalLibraries.Add(SDKLib);    
                     RuntimeDependencies.Add(SDKLib);
                 }
                 else if (Target.Platform == UnrealTargetPlatform.Win64)
                 {
-                    PublicLibraryPaths.Add(SDKDirectory);
+                    //PublicAdditionalLibraries.Add(SDKDirectory);
                     PublicAdditionalLibraries.Add(System.IO.Path.Combine(SDKDirectory, "aws-cpp-sdk-gamelift-server.lib"));
                     PublicDelayLoadDLLs.Add("aws-cpp-sdk-gamelift-server.dll");
                     string SDKLibWindows = System.IO.Path.Combine(SDKDirectory, "aws-cpp-sdk-gamelift-server.dll");
