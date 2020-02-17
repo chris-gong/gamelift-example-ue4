@@ -41,10 +41,13 @@ void UMenuWidget::CheckIfLoginSuccessful() {
 			FString ParameterName;
 			FString ParameterValue;
 			if (QueryParameters.Split("=", &ParameterName, &ParameterValue)) {
+				// # is not part of the code and usually appened to the end of query parameter
+				ParameterValue = ParameterValue.Replace(*FString("#"), *FString("")); 
 				TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
 				RequestObj->SetStringField(ParameterName, ParameterValue);
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("code: ") + ParameterValue);
-				
+				//UE_LOG(LogTemp, Warning, TEXT("url query parameters after signin: %s"), *QueryParameters);
+
 				//UE_LOG(LogTemp, Warning, TEXT("code: %s"), *ParameterValue);
 				FString RequestBody;
 				TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
@@ -100,5 +103,5 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 
 void UMenuWidget::OnTestAuthResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Response from Authorized Lambda API: ") + Response->GetContentAsString());
+	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Response from Authorized Lambda API: ") + Response->GetContentAsString());
 }
