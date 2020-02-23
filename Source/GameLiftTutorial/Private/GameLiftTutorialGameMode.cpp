@@ -74,18 +74,32 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 
 void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-#if WITH_GAMELIFT
+
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		if (PlayerSessionId.Len() > 0) {
+#if WITH_GAMELIFT
 			gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
+#endif
 		}
 	}
-#endif
+
 }
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
+	APlayerState* State = Exiting->PlayerState;
+	if (State != nullptr) {
+		AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
+		const FString& PlayerSessionId = PlayerState->PlayerSessionId;
+		if (PlayerSessionId.Len() > 0) {
+#if WITH_GAMELIFT
+			gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+#endif
+		}
+	}
+	
+
 }
 
 void AGameLiftTutorialGameMode::BeginPlay() {

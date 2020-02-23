@@ -78,7 +78,7 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AGameLiftTutorialCharacter::OnResetVR);
 
-	PlayerInputComponent->BindAction("ReadyUp", IE_Pressed, this, &AGameLiftTutorialCharacter::ChangeReadyStatus);
+	//PlayerInputComponent->BindAction("ReadyUp", IE_Pressed, this, &AGameLiftTutorialCharacter::ChangeReadyStatus);
 }
 
 void AGameLiftTutorialCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
@@ -143,7 +143,7 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 	}
 }
 
-void AGameLiftTutorialCharacter::ChangeReadyStatus() {
+/*void AGameLiftTutorialCharacter::ChangeReadyStatus() {
 	if (GameReady) {
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, "Player is not ready");
 	}
@@ -161,4 +161,4 @@ bool AGameLiftTutorialCharacter::ServerSetReadyStatus_Validate(bool Status)
 void AGameLiftTutorialCharacter::ServerSetReadyStatus_Implementation(bool Status)
 {
 	GameReady = Status;
-}
+}*/

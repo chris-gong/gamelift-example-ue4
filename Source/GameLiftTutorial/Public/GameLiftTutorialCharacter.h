@@ -73,10 +73,10 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 private:
-	UFUNCTION()
+	/*UFUNCTION()
 	void ChangeReadyStatus();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetReadyStatus(bool Status);
+	void ServerSetReadyStatus(bool Status);*/
 };
 
