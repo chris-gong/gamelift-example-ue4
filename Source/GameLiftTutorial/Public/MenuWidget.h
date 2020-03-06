@@ -29,7 +29,7 @@ private:
 
 	FString RedirectUri;
 	FString AwsCredsUrl;
-	FString TestAuthUrl;
+	FString RetrievePlayerDataUrl;
 
 	UWebBrowser* WebBrowser;
 
@@ -41,5 +41,5 @@ private:
 	void CheckIfLoginSuccessful();
 
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void OnTestAuthResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

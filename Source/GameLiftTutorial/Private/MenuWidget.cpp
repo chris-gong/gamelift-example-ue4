@@ -17,7 +17,7 @@
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	RedirectUri = "https://cwz3ysqb50.execute-api.us-east-1.amazonaws.com/GoogleSignInSuccess";
 	AwsCredsUrl = "https://5s45no77o5.execute-api.us-east-1.amazonaws.com/GetAwsCredentials";
-	TestAuthUrl = "https://4pxv1tot0d.execute-api.us-east-1.amazonaws.com/test";
+	RetrievePlayerDataUrl = "https://ayjbcdcx4i.execute-api.us-east-1.amazonaws.com/test";
 	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	HttpModule = &FHttpModule::Get();
 }
@@ -84,13 +84,14 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 			IdToken = JsonObject->GetStringField("id_token");
 			AccessToken = JsonObject->GetStringField("access_token");
 			RefreshToken = JsonObject->GetStringField("refresh_token");
+			UE_LOG(LogTemp, Warning, TEXT("AccessToken: %s"), *(AccessToken));
 
-			TSharedRef<IHttpRequest> TestAuthRequest = HttpModule->CreateRequest();
-			TestAuthRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnTestAuthResponseReceived);
-			TestAuthRequest->SetURL(TestAuthUrl);
-			TestAuthRequest->SetVerb("POST");
-			TestAuthRequest->SetHeader("Authorization", AccessToken);
-			TestAuthRequest->ProcessRequest();
+			TSharedRef<IHttpRequest> RetrievePlayerDataRequest = HttpModule->CreateRequest();
+			RetrievePlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnRetrievePlayerDataResponseReceived);
+			RetrievePlayerDataRequest->SetURL(RetrievePlayerDataUrl);
+			RetrievePlayerDataRequest->SetVerb("GET");
+			RetrievePlayerDataRequest->SetHeader("Authorization", AccessToken);
+			RetrievePlayerDataRequest->ProcessRequest();
 		}
 		else {
 		
@@ -101,7 +102,7 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 	}
 }
 
-void UMenuWidget::OnTestAuthResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Response from Authorized Lambda API: ") + Response->GetContentAsString());
+	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Response from Retrieve Player Data API: ") + Response->GetContentAsString());
 }
