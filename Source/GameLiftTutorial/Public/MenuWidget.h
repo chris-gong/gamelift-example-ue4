@@ -8,7 +8,6 @@
 #include "MenuWidget.generated.h"
 
 class UButton;
-class UEditableTextBox;
 class UTextBlock;
 class UWebBrowser;
 
@@ -27,19 +26,39 @@ protected:
 private:
 	FHttpModule* HttpModule;
 
+	// Lambda APIs
 	FString RedirectUri;
 	FString AwsCredsUrl;
 	FString RetrievePlayerDataUrl;
 
+	// Widgets
 	UWebBrowser* WebBrowser;
+	UButton* MatchmakingButton;
+	UTextBlock* WinsTextBlock;
+	UTextBlock* LossesTextBlock;
 
+	bool SearchingForGame;
+
+	// AWS Stuff
 	FString IdToken;
 	FString AccessToken;
 	FString RefreshToken;
 
+	// GameLift Stuff
+	FString TicketId;
+
+	// Player Info, make this a struct or class or something later
+	FString Wins;
+	FString Losses;
+
+	// Delegate Functions
 	UFUNCTION()
 	void CheckIfLoginSuccessful();
 
+	UFUNCTION()
+	void OnMatchmakingButtonClicked();
+
+	// OnResponse Received Functions
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

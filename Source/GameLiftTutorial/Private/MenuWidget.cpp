@@ -3,7 +3,6 @@
 #include "MenuWidget.h"
 #include "TextReaderComponent.h"
 #include "Components/Button.h"
-#include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
 #include "Engine/Engine.h"
 #include "Json.h"
@@ -15,11 +14,13 @@
 #include "Misc/Base64.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
+	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
 	RedirectUri = "https://cwz3ysqb50.execute-api.us-east-1.amazonaws.com/GoogleSignInSuccess";
 	AwsCredsUrl = "https://5s45no77o5.execute-api.us-east-1.amazonaws.com/GetAwsCredentials";
 	RetrievePlayerDataUrl = "https://ayjbcdcx4i.execute-api.us-east-1.amazonaws.com/test";
 	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	HttpModule = &FHttpModule::Get();
+	SearchingForGame = false;
 }
 
 void UMenuWidget::NativeConstruct() {
@@ -29,6 +30,15 @@ void UMenuWidget::NativeConstruct() {
 	FScriptDelegate LoginDelegate;
 	LoginDelegate.BindUFunction(this, "CheckIfLoginSuccessful");
 	WebBrowser->OnUrlChanged.Add(LoginDelegate);
+
+	MatchmakingButton = (UButton*)GetWidgetFromName(TEXT("Button_Matchmaking"));
+
+	FScriptDelegate MatchmakingDelegate;
+	MatchmakingDelegate.BindUFunction(this, "OnMatchmakingButtonClicked");
+	MatchmakingButton->OnClicked.Add(MatchmakingDelegate);
+
+	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
+	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
 }
 
 void UMenuWidget::CheckIfLoginSuccessful() {
@@ -67,6 +77,24 @@ void UMenuWidget::CheckIfLoginSuccessful() {
 	}
 }
 
+void UMenuWidget::OnMatchmakingButtonClicked() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Matchmaking Button Clicked"));
+	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+
+	if (SearchingForGame) {
+		// cancel matchmaking request
+
+		ButtonText->SetText(FText::FromString("Join Game"));
+	}
+	else {
+		// initiate matchmaking request
+
+		ButtonText->SetText(FText::FromString("Cancel"));
+	}
+
+	SearchingForGame = !SearchingForGame;
+}
+
 void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (bWasSuccessful) {
@@ -84,7 +112,7 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 			IdToken = JsonObject->GetStringField("id_token");
 			AccessToken = JsonObject->GetStringField("access_token");
 			RefreshToken = JsonObject->GetStringField("refresh_token");
-			UE_LOG(LogTemp, Warning, TEXT("AccessToken: %s"), *(AccessToken));
+			//UE_LOG(LogTemp, Warning, TEXT("AccessToken: %s"), *(AccessToken));
 
 			TSharedRef<IHttpRequest> RetrievePlayerDataRequest = HttpModule->CreateRequest();
 			RetrievePlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnRetrievePlayerDataResponseReceived);
@@ -104,5 +132,36 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 
 void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Response from Retrieve Player Data API: ") + Response->GetContentAsString());
+	if(bWasSuccessful) {
+		//Create a pointer to hold the json serialized data
+		TSharedPtr<FJsonObject> JsonObject;
+
+		//Create a reader pointer to read the json data
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		//Deserialize the json data given Reader and the actual object to deserialize
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			TSharedPtr<FJsonObject> PlayerData = JsonObject->GetObjectField("playerData");
+			TSharedPtr<FJsonObject> WinsObject = PlayerData->GetObjectField("Wins");
+			TSharedPtr<FJsonObject> LossesObject = PlayerData->GetObjectField("Losses");
+
+			Wins = WinsObject->GetStringField("N");
+			Losses = LossesObject->GetStringField("N");
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Wins: ") + Wins + FString(" Losses: ") + Losses);
+			WebBrowser->SetVisibility(ESlateVisibility::Hidden);
+			MatchmakingButton->SetVisibility(ESlateVisibility::Visible);
+			WinsTextBlock->SetVisibility(ESlateVisibility::Visible);
+			LossesTextBlock->SetVisibility(ESlateVisibility::Visible);
+
+			WinsTextBlock->SetText(FText::FromString("Wins: " + Wins));
+			LossesTextBlock->SetText(FText::FromString("Losses: " + Losses));
+		}
+		else {
+
+		}
+	}
+	else {
+
+	}
 }
