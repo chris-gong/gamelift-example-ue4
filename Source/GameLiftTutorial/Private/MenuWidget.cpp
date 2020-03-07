@@ -16,8 +16,11 @@
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
 	RedirectUri = "https://cwz3ysqb50.execute-api.us-east-1.amazonaws.com/GoogleSignInSuccess";
+	ApiUrl = "https://yjqjoq12ti.execute-api.us-east-1.amazonaws.com/test";
 	AwsCredsUrl = "https://5s45no77o5.execute-api.us-east-1.amazonaws.com/GetAwsCredentials";
-	RetrievePlayerDataUrl = "https://ayjbcdcx4i.execute-api.us-east-1.amazonaws.com/test";
+	RetrievePlayerDataUrl = ApiUrl + "/retrieveplayerdata";
+	LookForMatchUrl = ApiUrl + "/lookformatch";
+	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
 	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	HttpModule = &FHttpModule::Get();
 	SearchingForGame = false;
@@ -39,6 +42,7 @@ void UMenuWidget::NativeConstruct() {
 
 	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
 	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
+	LookingForMatchTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_LookingForMatch"));
 }
 
 void UMenuWidget::CheckIfLoginSuccessful() {
@@ -79,20 +83,39 @@ void UMenuWidget::CheckIfLoginSuccessful() {
 
 void UMenuWidget::OnMatchmakingButtonClicked() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Matchmaking Button Clicked"));
-	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
-
+	MatchmakingButton->SetIsEnabled(false);
 	if (SearchingForGame) {
 		// cancel matchmaking request
+		TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+		RequestObj->SetStringField("ticketId", MatchmakingTicketId);
 
-		ButtonText->SetText(FText::FromString("Join Game"));
+		FString RequestBody;
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
+
+		if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+			// send a get request to google discovery document to retrieve endpoints
+			TSharedRef<IHttpRequest> CancelMatchLookupRequest = HttpModule->CreateRequest();
+			CancelMatchLookupRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnEndMatchmakingResponseReceived);
+			CancelMatchLookupRequest->SetURL(CancelMatchLookupUrl);
+			CancelMatchLookupRequest->SetVerb("POST");
+			CancelMatchLookupRequest->SetHeader("Content-Type", "application/json");
+			CancelMatchLookupRequest->SetHeader("Authorization", AccessToken);
+			CancelMatchLookupRequest->SetContentAsString(RequestBody);
+			CancelMatchLookupRequest->ProcessRequest();
+		}
+		else {
+			MatchmakingButton->SetIsEnabled(true);
+		}
 	}
 	else {
 		// initiate matchmaking request
-
-		ButtonText->SetText(FText::FromString("Cancel"));
+		TSharedRef<IHttpRequest> InitiateMatchmakingRequest = HttpModule->CreateRequest();
+		InitiateMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnInitiateMatchmakingResponseReceived);
+		InitiateMatchmakingRequest->SetURL(LookForMatchUrl);
+		InitiateMatchmakingRequest->SetVerb("GET");
+		InitiateMatchmakingRequest->SetHeader("Authorization", AccessToken);
+		InitiateMatchmakingRequest->ProcessRequest();
 	}
-
-	SearchingForGame = !SearchingForGame;
 }
 
 void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -164,4 +187,69 @@ void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, 
 	else {
 
 	}
+}
+
+
+void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	if (bWasSuccessful) {
+		//Create a pointer to hold the json serialized data
+		TSharedPtr<FJsonObject> JsonObject;
+
+		//Create a reader pointer to read the json data
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		//Deserialize the json data given Reader and the actual object to deserialize
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
+
+			MatchmakingTicketId = JsonObject->GetStringField("ticketId");
+		}
+		else {
+
+		}
+	}
+	else {
+
+	}
+	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+	ButtonText->SetText(FText::FromString("Cancel"));
+	LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Visible);
+
+	SearchingForGame = !SearchingForGame;
+
+	MatchmakingButton->SetIsEnabled(true);
+}
+
+
+void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	if (bWasSuccessful) {
+		//Create a pointer to hold the json serialized data
+		TSharedPtr<FJsonObject> JsonObject;
+
+		//Create a reader pointer to read the json data
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		//Deserialize the json data given Reader and the actual object to deserialize
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
+
+			//TSharedPtr<FJsonObject> PlayerData = JsonObject->GetObjectField("playerData");
+
+		}
+		else {
+
+		}
+	}
+	else {
+
+	}
+	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+	ButtonText->SetText(FText::FromString("Join Game"));
+	LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+
+	SearchingForGame = !SearchingForGame;
+
+	MatchmakingButton->SetIsEnabled(true);
 }

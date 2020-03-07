@@ -28,14 +28,18 @@ private:
 
 	// Lambda APIs
 	FString RedirectUri;
+	FString ApiUrl;
 	FString AwsCredsUrl;
 	FString RetrievePlayerDataUrl;
+	FString LookForMatchUrl;
+	FString CancelMatchLookupUrl;
 
 	// Widgets
 	UWebBrowser* WebBrowser;
 	UButton* MatchmakingButton;
 	UTextBlock* WinsTextBlock;
 	UTextBlock* LossesTextBlock;
+	UTextBlock* LookingForMatchTextBlock;
 
 	bool SearchingForGame;
 
@@ -45,7 +49,7 @@ private:
 	FString RefreshToken;
 
 	// GameLift Stuff
-	FString TicketId;
+	FString MatchmakingTicketId;
 
 	// Player Info, make this a struct or class or something later
 	FString Wins;
@@ -61,4 +65,6 @@ private:
 	// OnResponse Received Functions
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };
