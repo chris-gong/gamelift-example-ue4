@@ -20,55 +20,79 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 		PlayerStateClass = AGameLiftTutorialPlayerState::StaticClass();
 	}
 
+	StartGameSessionState = new FStartGameSessionState();
+	UpdateGameSessionState = new FUpdateGameSessionState();
+	ProcessTerminateState = new FProcessTerminateState();
+	HealthCheckState = new FHealthCheckState();
+
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 
-	//Getting the module first.
-	gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+	auto InitSDKOutcome = Aws::GameLift::Server::InitSDK();
 
-	//InitSDK establishes a local connection with GameLift's agent to enable communication.
-	gameLiftSdkModule->InitSDK();
+	if (InitSDKOutcome.IsSuccess()) {
+		Aws::GameLift::Server::StartGameSessionFn OnStartGameSession = [](Aws::GameLift::Server::Model::GameSession GameSessionObj, void* Params)
+		{
+			FStartGameSessionState* State = (FStartGameSessionState*) Params;
 
-	//Respond to new game session activation request. GameLift sends activation request 
-	//to the game server along with a game session object containing game properties 
-	//and other settings. Once the game server is ready to receive player connections, 
-	//invoke GameLiftServerAPI.ActivateGameSession()
-	auto onGameSession = [=](Aws::GameLift::Server::Model::GameSession gameSession)
-	{
-		gameLiftSdkModule->ActivateGameSession();
-	};
+			State->Status = Aws::GameLift::Server::ActivateGameSession().IsSuccess();
+		};
 
-	FProcessParameters* params = new FProcessParameters();
-	params->OnStartGameSession.BindLambda(onGameSession);
+		Aws::GameLift::Server::UpdateGameSessionFn OnUpdateGameSession = [](Aws::GameLift::Server::Model::UpdateGameSession UpdateGameSessionObj, void* Params)
+		{
+			FUpdateGameSessionState* State = (FUpdateGameSessionState*) Params;
 
-	//OnProcessTerminate callback. GameLift invokes this before shutting down the instance 
-	//that is hosting this game server to give it time to gracefully shut down on its own. 
-	//In this example, we simply tell GameLift we are indeed going to shut down.
-	params->OnTerminate.BindLambda([=]() {gameLiftSdkModule->ProcessEnding(); });
+			State->LatestBackfillTicketId = UpdateGameSessionObj.GetBackfillTicketId();
+		};
 
-	//HealthCheck callback. GameLift invokes this callback about every 60 seconds. By default, 
-	//GameLift API automatically responds 'true'. A game can optionally perform checks on 
-	//dependencies and such and report status based on this info. If no response is received  
-	//within 60 seconds, health status is recorded as 'false'. 
-	//In this example, we're always healthy!
-	params->OnHealthCheck.BindLambda([]() {return true; });
+		Aws::GameLift::Server::ProcessTerminateFn OnProcessTerminate = [](void* Params)
+		{
+			FProcessTerminateState* State = (FProcessTerminateState*)Params;
 
-	//Here, the game server tells GameLift what port it is listening on for incoming player 
-	//connections. In this example, the port is hardcoded for simplicity. Since active game
-	//that are on the same instance must have unique ports, you may want to assign port values
-	//from a range, such as:
-	//const int32 port = FURL::UrlConfig.DefaultPort;
-	//params->port;
-	params->port = FURL::UrlConfig.DefaultPort;
+			State->Status = true;
+		};
 
-	//Here, the game server tells GameLift what set of files to upload when the game session 
-	//ends. GameLift uploads everything specified here for the developers to fetch later.
-	TArray<FString> logfiles;
-	logfiles.Add(TEXT("aLogFile.txt"));
-	params->logParameters = logfiles;
+		Aws::GameLift::Server::HealthCheckFn OnHealthCheck = [](void* Params)
+		{
+			FHealthCheckState* State = (FHealthCheckState*)Params;
+			State->Status = true;
 
-	//Call ProcessReady to tell GameLift this game server is ready to receive game sessions!
-	gameLiftSdkModule->ProcessReady(*params);
+			return State->Status;
+		};
+
+		int Port = FURL::UrlConfig.DefaultPort; // may have to extract this from command line arguments but we'll see
+
+		
+		const char* LogFile = "aLogFile.txt";
+		const char** LogFiles = &LogFile;
+		const Aws::GameLift::Server::LogParameters* LogParams = new Aws::GameLift::Server::LogParameters(LogFiles, 1);
+
+		const Aws::GameLift::Server::ProcessParameters* Params = 
+			new Aws::GameLift::Server::ProcessParameters(
+				OnStartGameSession,
+				StartGameSessionState,
+				OnUpdateGameSession,
+				UpdateGameSessionState,
+				OnProcessTerminate,
+				ProcessTerminateState,
+				OnHealthCheck,
+				HealthCheckState,
+				Port, 
+				*LogParams
+			);
+
+		auto ProcessReadyOutcome = Aws::GameLift::Server::ProcessReady(*Params);
+
+		if (ProcessReadyOutcome.IsSuccess()) {
+
+		}
+		else {
+
+		}
+	}
+	else {
+
+	}
 #endif
 }
 
@@ -79,7 +103,7 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
-			gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
+			Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
 #endif
 		}
 	}
@@ -94,7 +118,7 @@ void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 		const FString& PlayerSessionId = PlayerState->PlayerSessionId;
 		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
-			gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+			Aws::GameLift::Server::RemovePlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
 #endif
 		}
 	}
@@ -104,21 +128,63 @@ void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 
 void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
+
+	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 5.0f, true, 5.0f);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
-		const FString& Team = UGameplayStatics::ParseOption(Options, "Team");
-		if (PlayerSessionId.Len() > 0 && Team.Len() > 0) {
+		if (PlayerSessionId.Len() > 0) {
 			APlayerState* State = NewPlayerController->PlayerState;
 			if (State != nullptr) {
 				AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
 				PlayerState->PlayerSessionId = *PlayerSessionId;
-				PlayerState->Team = *Team;
+#if WITH_GAMELIFT
+				Aws::GameLift::Server::Model::DescribePlayerSessionsRequest Request;
+				Request.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
+
+				// Call DescribePlayerSessions
+				Aws::GameLift::DescribePlayerSessionsOutcome Outcome = Aws::GameLift::Server::DescribePlayerSessions(Request);
+
+				if (Outcome.IsSuccess()) {
+					Aws::GameLift::Server::Model::DescribePlayerSessionsResult Result = Outcome.GetResult();
+					int SessionCount = 1;
+					const Aws::GameLift::Server::Model::PlayerSession* PlayerSession = Result.GetPlayerSessions(SessionCount);
+
+					const FString& PlayerData = PlayerSession->GetPlayerData();
+					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString("Player data looks like: ") + PlayerData);
+
+					// parse the player data object and set the team value in the player state
+				}
+#endif
 			}
 		}
 	}
 	return InitializedString;
+}
+
+void AGameLiftTutorialGameMode::CheckPlayerCount() {
+	int NumPlayers = GetNumPlayers();
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString("Number of players in the game: ") + FString::FromInt(NumPlayers));
+	if (NumPlayers >= 8) {
+		// "start" the game
+		GetWorldTimerManager().SetTimer(StopBackfillHandle, this, &AGameLiftTutorialGameMode::StopBackfill, 1.0f, false, 15.0f);
+		GetWorldTimerManager().SetTimer(EndGameHandle, this, &AGameLiftTutorialGameMode::EndGame, 1.0f, false, 30.0f);
+
+		GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
+	}
+}
+
+void AGameLiftTutorialGameMode::StopBackfill() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Backfill stopped"));
+
+	GetWorldTimerManager().ClearTimer(StopBackfillHandle);
+}
+
+void AGameLiftTutorialGameMode::EndGame() {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Game Over"));
+
+	GetWorldTimerManager().ClearTimer(EndGameHandle);
 }

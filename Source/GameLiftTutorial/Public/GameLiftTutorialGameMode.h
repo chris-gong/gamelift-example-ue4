@@ -8,6 +8,26 @@
 
 class FGameLiftServerSDKModule;
 
+struct FStartGameSessionState
+{
+	bool Status;
+};
+
+struct FUpdateGameSessionState
+{
+	FString LatestBackfillTicketId;
+};
+
+struct FProcessTerminateState
+{
+	bool Status;
+};
+
+struct FHealthCheckState
+{
+	bool Status;
+};
+
 UCLASS(minimalapi)
 class AGameLiftTutorialGameMode : public AGameModeBase
 {
@@ -26,8 +46,19 @@ protected:
 	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
 
 private:
-	FGameLiftServerSDKModule* gameLiftSdkModule;
+	FStartGameSessionState* StartGameSessionState;
+	FUpdateGameSessionState* UpdateGameSessionState;
+	FProcessTerminateState* ProcessTerminateState;
+	FHealthCheckState* HealthCheckState;
+	
+	FTimerHandle CheckPlayerCountHandle;
+	FTimerHandle StopBackfillHandle;
+	FTimerHandle EndGameHandle;
+
+	void CheckPlayerCount();
+	void StopBackfill();
+	void EndGame();
+
+
 };
-
-
 
