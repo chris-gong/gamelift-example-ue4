@@ -29,9 +29,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(Replicated)
-	bool GameReady;
-
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -71,12 +68,5 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-private:
-	/*UFUNCTION()
-	void ChangeReadyStatus();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetReadyStatus(bool Status);*/
 };
 

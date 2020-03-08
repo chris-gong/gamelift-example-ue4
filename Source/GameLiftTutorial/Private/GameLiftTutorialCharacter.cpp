@@ -45,7 +45,6 @@ AGameLiftTutorialCharacter::AGameLiftTutorialCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	GameReady = false;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -77,14 +76,6 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AGameLiftTutorialCharacter::OnResetVR);
-
-	//PlayerInputComponent->BindAction("ReadyUp", IE_Pressed, this, &AGameLiftTutorialCharacter::ChangeReadyStatus);
-}
-
-void AGameLiftTutorialCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AGameLiftTutorialCharacter, GameReady);
 }
 
 void AGameLiftTutorialCharacter::OnResetVR()
@@ -142,23 +133,3 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
-
-/*void AGameLiftTutorialCharacter::ChangeReadyStatus() {
-	if (GameReady) {
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, "Player is not ready");
-	}
-	else {
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, "Player is ready");
-	}
-	ServerSetReadyStatus(!GameReady);
-}
-
-bool AGameLiftTutorialCharacter::ServerSetReadyStatus_Validate(bool Status)
-{
-	return true;
-}
-
-void AGameLiftTutorialCharacter::ServerSetReadyStatus_Implementation(bool Status)
-{
-	GameReady = Status;
-}*/

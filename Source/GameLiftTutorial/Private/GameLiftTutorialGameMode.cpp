@@ -110,12 +110,13 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
-		if (PlayerSessionId.Len() > 0) {
+		const FString& Team = UGameplayStatics::ParseOption(Options, "Team");
+		if (PlayerSessionId.Len() > 0 && Team.Len() > 0) {
 			APlayerState* State = NewPlayerController->PlayerState;
 			if (State != nullptr) {
 				AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
 				PlayerState->PlayerSessionId = *PlayerSessionId;
-				//PlayerState->Team = ?
+				PlayerState->Team = *Team;
 			}
 		}
 	}
