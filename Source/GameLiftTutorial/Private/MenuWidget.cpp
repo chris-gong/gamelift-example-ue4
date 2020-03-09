@@ -130,6 +130,26 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 void UMenuWidget::PollMatchmaking() {
 	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
 
+	// poll for matchmaking status
+	/*TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+	RequestObj->SetStringField("ticketId", MatchmakingTicketId);
+
+	FString RequestBody;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
+
+	if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+		// send a get request to google discovery document to retrieve endpoints
+		TSharedRef<IHttpRequest> CancelMatchLookupRequest = HttpModule->CreateRequest();
+		CancelMatchLookupRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnEndMatchmakingResponseReceived);
+		CancelMatchLookupRequest->SetURL(CancelMatchLookupUrl);
+		CancelMatchLookupRequest->SetVerb("POST");
+		CancelMatchLookupRequest->SetHeader("Content-Type", "application/json");
+		CancelMatchLookupRequest->SetHeader("Authorization", AccessToken);
+		CancelMatchLookupRequest->SetContentAsString(RequestBody);
+		CancelMatchLookupRequest->ProcessRequest();
+	}
+	else {
+	}*/
 	GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 }
 
