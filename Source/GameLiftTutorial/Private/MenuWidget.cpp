@@ -12,6 +12,7 @@
 #include "IWebBrowserCookieManager.h"
 #include "WebBrowserModule.h"
 #include "Misc/Base64.h"
+#include "TimerManager.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
@@ -85,6 +86,8 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Matchmaking Button Clicked"));
 	MatchmakingButton->SetIsEnabled(false);
 	if (SearchingForGame) {
+		GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle); // stop searching for a match
+
 		// cancel matchmaking request
 		TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
 		RequestObj->SetStringField("ticketId", MatchmakingTicketId);
@@ -104,6 +107,12 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 			CancelMatchLookupRequest->ProcessRequest();
 		}
 		else {
+			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+			ButtonText->SetText(FText::FromString("Join Game"));
+			LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+
+			SearchingForGame = !SearchingForGame;
+
 			MatchmakingButton->SetIsEnabled(true);
 		}
 	}
@@ -116,6 +125,12 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 		InitiateMatchmakingRequest->SetHeader("Authorization", AccessToken);
 		InitiateMatchmakingRequest->ProcessRequest();
 	}
+}
+
+void UMenuWidget::PollMatchmaking() {
+	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
+
+	GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 }
 
 void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -204,20 +219,16 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
 
 			MatchmakingTicketId = JsonObject->GetStringField("ticketId");
-		}
-		else {
 
+			GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+
+			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+			ButtonText->SetText(FText::FromString("Cancel"));
+			LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Visible);
+
+			SearchingForGame = !SearchingForGame;
 		}
 	}
-	else {
-
-	}
-	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
-	ButtonText->SetText(FText::FromString("Cancel"));
-	LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Visible);
-
-	SearchingForGame = !SearchingForGame;
-
 	MatchmakingButton->SetIsEnabled(true);
 }
 

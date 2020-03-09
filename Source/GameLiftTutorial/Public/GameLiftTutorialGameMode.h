@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Runtime/Online/HTTP/Public/Http.h"
 #include "GameLiftTutorialGameMode.generated.h"
 
 class FGameLiftServerSDKModule;
@@ -46,6 +47,10 @@ protected:
 	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
 
 private:
+	FHttpModule* HttpModule;
+
+	FString AssignMatchResultsUrl;
+
 	FStartGameSessionState* StartGameSessionState;
 	FUpdateGameSessionState* UpdateGameSessionState;
 	FProcessTerminateState* ProcessTerminateState;
@@ -59,6 +64,6 @@ private:
 	void StopBackfill();
 	void EndGame();
 
-
+	void OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };
 

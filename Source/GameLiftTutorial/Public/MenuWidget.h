@@ -55,6 +55,11 @@ private:
 	FString Wins;
 	FString Losses;
 
+	// Stuff for polling DynamoDb about ticket updates
+	FTimerHandle PollMatchmakingHandle;
+
+	void PollMatchmaking();
+
 	// Delegate Functions
 	UFUNCTION()
 	void CheckIfLoginSuccessful();
