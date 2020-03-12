@@ -70,6 +70,8 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 private:
-	virtual void BeginPlay() override;
+	virtual void OnRep_PlayerState() override;
+
+	bool TeamColorSet;
 };
 
