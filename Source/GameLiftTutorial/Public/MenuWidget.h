@@ -33,6 +33,7 @@ private:
 	FString RetrievePlayerDataUrl;
 	FString LookForMatchUrl;
 	FString CancelMatchLookupUrl;
+	FString PollMatchmakingUrl;
 
 	// Widgets
 	UWebBrowser* WebBrowser;
@@ -72,4 +73,5 @@ private:
 	void OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "GameLiftTutorialCharacter.h"
 #include "GameLiftTutorialPlayerState.h"
+#include "GameLiftTutorialHUD.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Json.h"
@@ -22,6 +23,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 		PlayerStateClass = AGameLiftTutorialPlayerState::StaticClass();
+		HUDClass = AGameLiftTutorialHUD::StaticClass();
 	}
 
 	StartGameSessionState = new FStartGameSessionState();

@@ -1,6 +1,7 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "GameLiftTutorialCharacter.h"
+#include "GameLiftTutorialPlayerState.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -47,6 +48,30 @@ AGameLiftTutorialCharacter::AGameLiftTutorialCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+void AGameLiftTutorialCharacter::BeginPlay() {
+	Super::BeginPlay();
+	APlayerState* AState = GetPlayerState();
+	if (AState != nullptr) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("player state is not null"));
+
+		AGameLiftTutorialPlayerState* State = Cast<AGameLiftTutorialPlayerState>(AState);
+		if (State != nullptr) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Setting color"));
+
+			FString Team = State->Team;
+			UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+			PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Yellow);
+			GetMesh()->SetMaterial(0, PlayerMaterial);
+			if (Team.Compare("cowboys") == 0) {
+				//UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+			}
+			else if (Team.Compare("aliens") == 0) {
+
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,3 +158,4 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+

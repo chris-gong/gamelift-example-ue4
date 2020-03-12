@@ -4,25 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "MenuHUD.generated.h"
+#include "GameLiftTutorialHUD.generated.h"
 
 class UUserWidget;
-
 /**
  * 
  */
 UCLASS()
-class GAMELIFTTUTORIAL_API AMenuHUD : public AHUD
+class GAMELIFTTUTORIAL_API AGameLiftTutorialHUD : public AHUD
 {
 	GENERATED_BODY()
-	
+
 public:
-	AMenuHUD();
+	AGameLiftTutorialHUD();
 
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY()
-	TSubclassOf<UUserWidget> MenuWidgetClass;
+	TSubclassOf<UUserWidget> TeamWidgetClass;
 };

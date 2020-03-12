@@ -11,8 +11,8 @@
 #include "WebBrowser.h"
 #include "IWebBrowserCookieManager.h"
 #include "WebBrowserModule.h"
-#include "Misc/Base64.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
@@ -22,6 +22,7 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	RetrievePlayerDataUrl = ApiUrl + "/retrieveplayerdata";
 	LookForMatchUrl = ApiUrl + "/lookformatch";
 	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
+	PollMatchmakingUrl = ApiUrl + "/pollmatchmaking";
 	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	HttpModule = &FHttpModule::Get();
 	SearchingForGame = false;
@@ -129,9 +130,9 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 
 void UMenuWidget::PollMatchmaking() {
 	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
-
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Polling Matchmaking");
 	// poll for matchmaking status
-	/*TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+	TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
 	RequestObj->SetStringField("ticketId", MatchmakingTicketId);
 
 	FString RequestBody;
@@ -139,18 +140,19 @@ void UMenuWidget::PollMatchmaking() {
 
 	if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
 		// send a get request to google discovery document to retrieve endpoints
-		TSharedRef<IHttpRequest> CancelMatchLookupRequest = HttpModule->CreateRequest();
-		CancelMatchLookupRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnEndMatchmakingResponseReceived);
-		CancelMatchLookupRequest->SetURL(CancelMatchLookupUrl);
-		CancelMatchLookupRequest->SetVerb("POST");
-		CancelMatchLookupRequest->SetHeader("Content-Type", "application/json");
-		CancelMatchLookupRequest->SetHeader("Authorization", AccessToken);
-		CancelMatchLookupRequest->SetContentAsString(RequestBody);
-		CancelMatchLookupRequest->ProcessRequest();
+		TSharedRef<IHttpRequest> PollMatchmakingRequest = HttpModule->CreateRequest();
+		PollMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnPollMatchmakingResponseReceived);
+		PollMatchmakingRequest->SetURL(PollMatchmakingUrl);
+		PollMatchmakingRequest->SetVerb("POST");
+		PollMatchmakingRequest->SetHeader("Content-Type", "application/json");
+		PollMatchmakingRequest->SetHeader("Authorization", AccessToken);
+		PollMatchmakingRequest->SetContentAsString(RequestBody);
+		PollMatchmakingRequest->ProcessRequest();
 	}
 	else {
-	}*/
-	GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+		GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+	}
+	
 }
 
 void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -283,4 +285,53 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 	SearchingForGame = !SearchingForGame;
 
 	MatchmakingButton->SetIsEnabled(true);
+}
+
+void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	if (bWasSuccessful) {
+		//Create a pointer to hold the json serialized data
+		TSharedPtr<FJsonObject> JsonObject;
+
+		//Create a reader pointer to read the json data
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		//Deserialize the json data given Reader and the actual object to deserialize
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			TSharedPtr<FJsonObject> Ticket = JsonObject->GetObjectField("ticket");
+			FString TicketStatus = Ticket->GetObjectField("Type")->GetStringField("S");
+
+			if (TicketStatus.Compare("MatchmakingSearching") == 0) {
+				// continue to poll matchmaking
+				GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+			}
+			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
+				// get the game session and player session details and connect to the server
+				TSharedPtr<FJsonObject> GameSessionInfo = JsonObject->GetObjectField("GameSessionInfo")->GetObjectField("M");
+				FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
+				FString Port = GameSessionInfo->GetObjectField("Port")->GetStringField("N");
+				FString PlayerSessionId = JsonObject->GetObjectField("PlayerSessionId")->GetStringField("S");
+				FString LevelName = IpAddress + FString(":") + Port;
+				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId;
+
+				UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
+			}
+			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
+				// stop calling the PollMatchmaking function
+				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+				ButtonText->SetText(FText::FromString("Join Game"));
+				LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+
+				SearchingForGame = !SearchingForGame;
+			}
+		}
+		else {
+			GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+		}
+	}
+	else {
+		GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+	}
+
+	
 }
