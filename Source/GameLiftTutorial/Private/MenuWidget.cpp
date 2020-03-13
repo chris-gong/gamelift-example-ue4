@@ -288,6 +288,8 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 }
 
 void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
+	UE_LOG(LogTemp, Warning, TEXT("Response from poll matchmaking: %s"), *(Response->GetContentAsString()));
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;
@@ -307,10 +309,10 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 			}
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
 				// get the game session and player session details and connect to the server
-				TSharedPtr<FJsonObject> GameSessionInfo = JsonObject->GetObjectField("GameSessionInfo")->GetObjectField("M");
+				TSharedPtr<FJsonObject> GameSessionInfo = Ticket->GetObjectField("GameSessionInfo")->GetObjectField("M");
 				FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
 				FString Port = GameSessionInfo->GetObjectField("Port")->GetStringField("N");
-				FString PlayerSessionId = JsonObject->GetObjectField("PlayerSessionId")->GetStringField("S");
+				FString PlayerSessionId = Ticket->GetObjectField("PlayerSessionId")->GetStringField("S");
 				FString LevelName = IpAddress + FString(":") + Port;
 				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId;
 

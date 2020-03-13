@@ -37,8 +37,6 @@ class AGameLiftTutorialGameMode : public AGameModeBase
 public:
 	AGameLiftTutorialGameMode();
 
-	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
-
 	virtual void Logout(AController* Exiting) override;
 
 protected:
@@ -59,6 +57,9 @@ private:
 	FTimerHandle CheckPlayerCountHandle;
 	FTimerHandle StopBackfillHandle;
 	FTimerHandle EndGameHandle;
+
+	int NumTimesFoundNoPlayers;
+	bool GameStarted;
 
 	void CheckPlayerCount();
 	void StopBackfill();

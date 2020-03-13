@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Json.h"
 #include "JsonUtilities.h"
+#include "GameFramework/GameSession.h"
 #if WITH_GAMELIFT
 #include "GameLiftServerSDK.h"
 #endif
@@ -31,22 +32,10 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	ProcessTerminateState = new FProcessTerminateState();
 	HealthCheckState = new FHealthCheckState();
 
+	NumTimesFoundNoPlayers = 0;
+	GameStarted = false;
 	HttpModule = &FHttpModule::Get();
 	AssignMatchResultsUrl = "https://yjqjoq12ti.execute-api.us-east-1.amazonaws.com/test/assignmatchresults";
-}
-
-void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
-	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-
-	if (*Options && Options.Len() > 0) {
-		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
-		if (PlayerSessionId.Len() > 0) {
-#if WITH_GAMELIFT
-			Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
-#endif
-		}
-	}
-
 }
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
@@ -102,8 +91,20 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			return State->Status;
 		};
 
-		int Port = FURL::UrlConfig.DefaultPort; // may have to extract this from command line arguments but we'll see
+		FString CommandLinePort;
+		TArray<FString> CommandLineTokens;
+		TArray<FString> CommandLineSwitches;
+		UE_LOG(LogTemp, Warning, TEXT("Command line arguments when starting the game: %s"), *(FString(FCommandLine::Get())));
+		int Port = FURL::UrlConfig.DefaultPort;
 
+		FCommandLine::Parse(FCommandLine::Get(), CommandLineTokens, CommandLineSwitches);
+		
+		for (auto& Str : CommandLineSwitches)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Attempt to extract port from command line arguments: %s"), *(Str));
+		}
+		//Port = FCString::Atoi(*CommandLinePort);
+		
 
 		const char* LogFile = "aLogFile.txt";
 		const char** LogFiles = &LogFile;
@@ -144,29 +145,39 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		if (PlayerSessionId.Len() > 0) {
-			APlayerState* State = NewPlayerController->PlayerState;
-			if (State != nullptr) {
-				AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
-				PlayerState->PlayerSessionId = *PlayerSessionId;
 #if WITH_GAMELIFT
-				Aws::GameLift::Server::Model::DescribePlayerSessionsRequest Request;
-				Request.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
+			auto AcceptPlayerSessionOutcome = Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
+			if (AcceptPlayerSessionOutcome.IsSuccess()) {
+				APlayerState* State = NewPlayerController->PlayerState;
+				if (State != nullptr) {
+					AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
+					PlayerState->PlayerSessionId = *PlayerSessionId;
+					Aws::GameLift::Server::Model::DescribePlayerSessionsRequest Request;
+					Request.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
 
-				// Call DescribePlayerSessions
-				Aws::GameLift::DescribePlayerSessionsOutcome Outcome = Aws::GameLift::Server::DescribePlayerSessions(Request);
+					// Call DescribePlayerSessions
+					Aws::GameLift::DescribePlayerSessionsOutcome Outcome = Aws::GameLift::Server::DescribePlayerSessions(Request);
 
-				if (Outcome.IsSuccess()) {
-					Aws::GameLift::Server::Model::DescribePlayerSessionsResult Result = Outcome.GetResult();
-					int SessionCount = 1;
-					const Aws::GameLift::Server::Model::PlayerSession* PlayerSession = Result.GetPlayerSessions(SessionCount);
+					if (Outcome.IsSuccess()) {
+						Aws::GameLift::Server::Model::DescribePlayerSessionsResult Result = Outcome.GetResult();
+						int SessionCount = 1;
+						const Aws::GameLift::Server::Model::PlayerSession* PlayerSession = Result.GetPlayerSessions(SessionCount);
 
-					const FString& PlayerData = PlayerSession->GetPlayerData();
-					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString("Player data looks like: ") + PlayerData);
+						const FString& PlayerData = PlayerSession->GetPlayerData();
+						//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString("Player data looks like: ") + PlayerData);
+						UE_LOG(LogTemp, Warning, TEXT("Player data from describe player sessions: %s"), *(PlayerData));
 
-					// parse the player data object and set the team value in the player state
+						// parse the player data object and set the team value in the player state
+					}
 				}
-#endif
 			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("Kicked an unauthorized player out of the game"));
+				FText KickReason = FText::FromString("Unauthorized");
+				// kick the player out because the player most likely did not pass a valid player session id
+				GameSession->KickPlayer(NewPlayerController, KickReason);
+			}
+#endif
 		}
 	}
 	return InitializedString;
@@ -175,12 +186,36 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 void AGameLiftTutorialGameMode::CheckPlayerCount() {
 	int NumPlayers = GetNumPlayers();
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString("Number of players in the game: ") + FString::FromInt(NumPlayers));
-	if (NumPlayers >= 8) {
+	if (!GameStarted && NumPlayers >= 4) {
+		NumTimesFoundNoPlayers = 0;
 		// "start" the game
 		GetWorldTimerManager().SetTimer(StopBackfillHandle, this, &AGameLiftTutorialGameMode::StopBackfill, 1.0f, false, 15.0f);
 		GetWorldTimerManager().SetTimer(EndGameHandle, this, &AGameLiftTutorialGameMode::EndGame, 1.0f, false, 30.0f);
 
-		GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
+		GameStarted = true;
+	}
+	else if (NumPlayers == 0) {
+		NumTimesFoundNoPlayers++;
+
+		if (NumTimesFoundNoPlayers == 10) {
+			GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
+			GetWorldTimerManager().ClearTimer(StopBackfillHandle);
+			GetWorldTimerManager().ClearTimer(EndGameHandle);
+			// terminate the game because there is no one left, which means there is no backfill ticket
+#if WITH_GAMELIFT
+			auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
+			if (TerminateGameSessionOutcome.IsSuccess()) {
+				auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
+				if (ProcessEndingOutcome.IsSuccess())
+				{
+					FGenericPlatformMisc::RequestExit(false);
+				}
+			}
+#endif
+		}
+	}
+	else {
+		NumTimesFoundNoPlayers = 0;
 	}
 }
 
@@ -202,7 +237,9 @@ void AGameLiftTutorialGameMode::StopBackfill() {
 }
 
 void AGameLiftTutorialGameMode::EndGame() {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Game Over"));
+	GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
+	GetWorldTimerManager().ClearTimer(EndGameHandle);
+
 	int Num = FMath::RandRange(0, 1);
 	FString WinningTeam;
 
@@ -222,6 +259,7 @@ void AGameLiftTutorialGameMode::EndGame() {
 		RequestObj->SetStringField("gameSessionId", GameSessionIdOutcome.GetResult());
 	}
 	else {
+		
 		auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
 		if (TerminateGameSessionOutcome.IsSuccess()) {
 			auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
@@ -256,7 +294,7 @@ void AGameLiftTutorialGameMode::EndGame() {
 		}
 	}
 #endif
-	GetWorldTimerManager().ClearTimer(EndGameHandle);
+	
 }
 
 void AGameLiftTutorialGameMode::OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
