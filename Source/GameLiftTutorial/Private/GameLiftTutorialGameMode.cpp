@@ -36,6 +36,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	GameStarted = false;
 	HttpModule = &FHttpModule::Get();
 	AssignMatchResultsUrl = "https://yjqjoq12ti.execute-api.us-east-1.amazonaws.com/test/assignmatchresults";
+	ServerPassword = "";
 }
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
@@ -91,20 +92,28 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			return State->Status;
 		};
 
-		FString CommandLinePort;
 		TArray<FString> CommandLineTokens;
 		TArray<FString> CommandLineSwitches;
-		UE_LOG(LogTemp, Warning, TEXT("Command line arguments when starting the game: %s"), *(FString(FCommandLine::Get())));
+		//UE_LOG(LogTemp, Warning, TEXT("Command line arguments when starting the game: %s"), *(FString(FCommandLine::Get())));
 		int Port = FURL::UrlConfig.DefaultPort;
 
 		FCommandLine::Parse(FCommandLine::Get(), CommandLineTokens, CommandLineSwitches);
 		
-		for (auto& Str : CommandLineSwitches)
+		for (FString Str : CommandLineSwitches)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Attempt to extract port from command line arguments: %s"), *(Str));
-		}
-		//Port = FCString::Atoi(*CommandLinePort);
-		
+			//UE_LOG(LogTemp, Warning, TEXT("Attempt to extract port from command line arguments: %s"), *(Str));
+			FString Name;
+			FString Value;
+
+			if (Str.Split("=", &Name, &Value)) {
+				if (Name.Equals("port")) {
+					Port = FCString::Atoi(*Value);
+				}
+				else if (Name.Equals("password")) {
+					ServerPassword = Value;
+				}
+			}
+		}	
 
 		const char* LogFile = "aLogFile.txt";
 		const char** LogFiles = &LogFile;
@@ -142,8 +151,10 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	UE_LOG(LogTemp, Warning, TEXT("inside init new player"));
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		UE_LOG(LogTemp, Warning, TEXT("Player session id in init new player: %s"), *(PlayerSessionId));
 		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
 			auto AcceptPlayerSessionOutcome = Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
@@ -154,7 +165,7 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 					PlayerState->PlayerSessionId = *PlayerSessionId;
 					Aws::GameLift::Server::Model::DescribePlayerSessionsRequest Request;
 					Request.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
-
+					UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
 					// Call DescribePlayerSessions
 					Aws::GameLift::DescribePlayerSessionsOutcome Outcome = Aws::GameLift::Server::DescribePlayerSessions(Request);
 
@@ -168,6 +179,10 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 						UE_LOG(LogTemp, Warning, TEXT("Player data from describe player sessions: %s"), *(PlayerData));
 
 						// parse the player data object and set the team value in the player state
+					}
+					else {
+						const Aws::GameLift::GameLiftError Error = Outcome.GetError();
+						UE_LOG(LogTemp, Warning, TEXT("Call to describe player sessions failed: %s"), *(Error.GetErrorMessage()));
 					}
 				}
 			}
@@ -279,7 +294,7 @@ void AGameLiftTutorialGameMode::EndGame() {
 		AssignMatchResultsRequest->OnProcessRequestComplete().BindUObject(this, &AGameLiftTutorialGameMode::OnAssignMatchResultsResponseReceived);
 		AssignMatchResultsRequest->SetURL(AssignMatchResultsUrl);
 		AssignMatchResultsRequest->SetVerb("POST");
-		AssignMatchResultsRequest->SetHeader("Authorization", "dummy");
+		AssignMatchResultsRequest->SetHeader("Authorization", ServerPassword);
 		AssignMatchResultsRequest->SetContentAsString(RequestBody);
 		AssignMatchResultsRequest->ProcessRequest();
 	}

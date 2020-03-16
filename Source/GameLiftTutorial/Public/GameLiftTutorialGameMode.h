@@ -66,5 +66,7 @@ private:
 	void EndGame();
 
 	void OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	FString ServerPassword;
 };
 
