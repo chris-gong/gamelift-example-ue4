@@ -13,6 +13,7 @@
 #include "WebBrowserModule.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "IWebBrowserSingleton.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
@@ -31,6 +32,16 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
 	WebBrowser = (UWebBrowser*)GetWidgetFromName(TEXT("WebBrowser_Login"));
+
+	// clear the webcache folder in the saved folder
+	IWebBrowserSingleton* WebBrowserSingleton = IWebBrowserModule::Get().GetSingleton();
+	if (WebBrowserSingleton)
+	{
+		TOptional<FString> DefaultContext;
+		TSharedPtr<IWebBrowserCookieManager> CookieManager = WebBrowserSingleton->GetCookieManager(DefaultContext);
+		if (CookieManager.IsValid())
+			CookieManager->DeleteCookies();
+	}
 
 	FScriptDelegate LoginDelegate;
 	LoginDelegate.BindUFunction(this, "CheckIfLoginSuccessful");
