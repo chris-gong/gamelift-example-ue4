@@ -2,6 +2,7 @@
 
 #include "GameLiftTutorialGameMode.h"
 #include "GameLiftTutorial.h"
+#include "TextReaderComponent.h"
 #include "Engine/Engine.h"
 #include "GameLiftTutorialCharacter.h"
 #include "GameLiftTutorialPlayerState.h"
@@ -32,10 +33,14 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	ProcessTerminateState = new FProcessTerminateState();
 	HealthCheckState = new FHealthCheckState();
 
+	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
+	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
+	AssignMatchResultsUrl = ApiUrl + "/assignmatchresults";
+
 	NumTimesFoundNoPlayers = 0;
 	GameStarted = false;
 	HttpModule = &FHttpModule::Get();
-	AssignMatchResultsUrl = "https://yjqjoq12ti.execute-api.us-east-1.amazonaws.com/test/assignmatchresults";
+	
 	ServerPassword = "";
 }
 

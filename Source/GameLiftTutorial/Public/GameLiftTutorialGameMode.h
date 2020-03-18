@@ -50,6 +50,7 @@ protected:
 private:
 	FHttpModule* HttpModule;
 
+	FString ApiUrl;
 	FString AssignMatchResultsUrl;
 
 	FStartGameSessionState* StartGameSessionState;
