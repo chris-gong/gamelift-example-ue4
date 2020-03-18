@@ -16,15 +16,16 @@
 #include "IWebBrowserSingleton.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
-	// TODO: These three url variables, put these into a file eventually and read from that file and gitifnore that file
-	RedirectUri = "https://cwz3ysqb50.execute-api.us-east-1.amazonaws.com/GoogleSignInSuccess";
-	ApiUrl = "https://yjqjoq12ti.execute-api.us-east-1.amazonaws.com/test";
-	AwsCredsUrl = "https://5s45no77o5.execute-api.us-east-1.amazonaws.com/GetAwsCredentials";
+	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
+
+	RedirectUri = TextReader->ReadFile("SecretUrls/RedirectUri.txt");
+	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
+	AwsCredsUrl = TextReader->ReadFile("SecretUrls/AwsCredsUrl.txt");
 	RetrievePlayerDataUrl = ApiUrl + "/retrieveplayerdata";
 	LookForMatchUrl = ApiUrl + "/lookformatch";
 	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
 	PollMatchmakingUrl = ApiUrl + "/pollmatchmaking";
-	//UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
+
 	HttpModule = &FHttpModule::Get();
 	SearchingForGame = false;
 }
@@ -324,8 +325,9 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
 				FString Port = GameSessionInfo->GetObjectField("Port")->GetStringField("N");
 				FString PlayerSessionId = Ticket->GetObjectField("PlayerSessionId")->GetStringField("S");
+				FString PlayerId = Ticket->GetObjectField("PlayerId")->GetStringField("S");
 				FString LevelName = IpAddress + FString(":") + Port;
-				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId;
+				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId + FString("?PlayerId=") + PlayerId;
 
 				UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
 			}

@@ -68,12 +68,76 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			FStartGameSessionState* State = (FStartGameSessionState*)Params;
 
 			State->Status = Aws::GameLift::Server::ActivateGameSession().IsSuccess();
+
+			//extract matchmaker data 
+			FString MatchmakerData = GameSessionObj.GetMatchmakerData();
+			UE_LOG(LogTemp, Warning, TEXT("matchmaker data in onstartgamesession: %s"), *(MatchmakerData));
+
+			// Create a pointer to hold the json serialized data
+			TSharedPtr<FJsonObject> JsonObject;
+
+			//Create a reader pointer to read the json data
+			TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(MatchmakerData);
+
+			//Deserialize the json data given Reader and the actual object to deserialize
+			if (FJsonSerializer::Deserialize(Reader, JsonObject))
+			{
+				FString LatestBackfillTicketId = JsonObject->GetStringField("autoBackfillTicketId");
+				State->LatestBackfillTicketId = LatestBackfillTicketId;
+				TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
+				for (TSharedPtr<FJsonValue> Team : Teams) {
+					TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
+					FString TeamName = TeamObj->GetStringField("name");
+					TArray<TSharedPtr<FJsonValue>> Players = TeamObj->GetArrayField("players");
+
+					for (TSharedPtr<FJsonValue> Player : Players) {
+						TSharedPtr<FJsonObject> PlayerObj = Player->AsObject();
+						FString PlayerId = PlayerObj->GetStringField("playerId");
+						State->PlayerIdToTeam.Add(PlayerId, TeamName);
+					}
+				}
+			}
 		};
 
 		Aws::GameLift::Server::UpdateGameSessionFn OnUpdateGameSession = [](Aws::GameLift::Server::Model::UpdateGameSession UpdateGameSessionObj, void* Params)
 		{
 			FUpdateGameSessionState* State = (FUpdateGameSessionState*)Params;
 
+			Aws::GameLift::Server::Model::UpdateReason Reason = UpdateGameSessionObj.GetUpdateReason();
+
+			if (Reason == Aws::GameLift::Server::Model::UpdateReason::MATCHMAKING_DATA_UPDATED) {
+				// extract matchmaker data
+				Aws::GameLift::Server::Model::GameSession GameSessionObj = UpdateGameSessionObj.GetGameSession();
+				FString MatchmakerData = GameSessionObj.GetMatchmakerData();
+				UE_LOG(LogTemp, Warning, TEXT("matchmaker data in onupdategamesession: %s"), *(MatchmakerData));
+
+				// Create a pointer to hold the json serialized data
+				TSharedPtr<FJsonObject> JsonObject;
+
+				//Create a reader pointer to read the json data
+				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(MatchmakerData);
+
+				//Deserialize the json data given Reader and the actual object to deserialize
+				if (FJsonSerializer::Deserialize(Reader, JsonObject))
+				{
+					TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
+					for (TSharedPtr<FJsonValue> Team : Teams) {
+						TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
+						FString TeamName = TeamObj->GetStringField("name");
+						TArray<TSharedPtr<FJsonValue>> Players = TeamObj->GetArrayField("players");
+
+						for (TSharedPtr<FJsonValue> Player : Players) {
+							TSharedPtr<FJsonObject> PlayerObj = Player->AsObject();
+							FString PlayerId = PlayerObj->GetStringField("playerId");
+							State->PlayerIdToTeam.Add(PlayerId, TeamName);
+						}
+					}
+				}
+			}
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_FAILED || Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_TIMED_OUT || Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_CANCELLED) {
+				// clear timer handles, and terminate the game session
+			}
+		
 			State->LatestBackfillTicketId = UpdateGameSessionObj.GetBackfillTicketId();
 		};
 
@@ -154,6 +218,7 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	UE_LOG(LogTemp, Warning, TEXT("inside init new player"));
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		const FString& PlayerId = UGameplayStatics::ParseOption(Options, "PlayerId");
 		UE_LOG(LogTemp, Warning, TEXT("Player session id in init new player: %s"), *(PlayerSessionId));
 		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
@@ -163,26 +228,23 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 				if (State != nullptr) {
 					AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
 					PlayerState->PlayerSessionId = *PlayerSessionId;
-					Aws::GameLift::Server::Model::DescribePlayerSessionsRequest Request;
-					Request.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
 					UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
-					// Call DescribePlayerSessions
-					Aws::GameLift::DescribePlayerSessionsOutcome Outcome = Aws::GameLift::Server::DescribePlayerSessions(Request);
 
-					if (Outcome.IsSuccess()) {
-						Aws::GameLift::Server::Model::DescribePlayerSessionsResult Result = Outcome.GetResult();
-						int SessionCount = 1;
-						const Aws::GameLift::Server::Model::PlayerSession* PlayerSession = Result.GetPlayerSessions(SessionCount);
-
-						const FString& PlayerData = PlayerSession->GetPlayerData();
-						//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString("Player data looks like: ") + PlayerData);
-						UE_LOG(LogTemp, Warning, TEXT("Player data from describe player sessions: %s"), *(PlayerData));
-
-						// parse the player data object and set the team value in the player state
+					// assign player's mesh color based on the player's team
+					if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToTeam.Num() > 0) {
+						UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and playeridtoteam is populated"));
+						if (UpdateGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+							FString* Team = UpdateGameSessionState->PlayerIdToTeam.Find(PlayerId);
+							PlayerState->Team = *Team;
+						}
 					}
-					else {
-						const Aws::GameLift::GameLiftError Error = Outcome.GetError();
-						UE_LOG(LogTemp, Warning, TEXT("Call to describe player sessions failed: %s"), *(Error.GetErrorMessage()));
+					else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToTeam.Num() > 0) {
+						UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and playeridtoteam is populated"));
+
+						if (StartGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+							FString* Team = StartGameSessionState->PlayerIdToTeam.Find(PlayerId);
+							PlayerState->Team = *Team;
+						}
 					}
 				}
 			}

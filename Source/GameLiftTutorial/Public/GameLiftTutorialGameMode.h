@@ -12,11 +12,14 @@ class FGameLiftServerSDKModule;
 struct FStartGameSessionState
 {
 	bool Status;
+	FString LatestBackfillTicketId;
+	TMap<FString, FString> PlayerIdToTeam;
 };
 
 struct FUpdateGameSessionState
 {
 	FString LatestBackfillTicketId;
+	TMap<FString, FString> PlayerIdToTeam;
 };
 
 struct FProcessTerminateState
@@ -60,6 +63,7 @@ private:
 
 	int NumTimesFoundNoPlayers;
 	bool GameStarted;
+	
 
 	void CheckPlayerCount();
 	void StopBackfill();

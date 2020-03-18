@@ -145,17 +145,18 @@ void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 			AGameLiftTutorialPlayerState* State = Cast<AGameLiftTutorialPlayerState>(AState);
 			if (State != nullptr) {
 				FString Team = State->Team;
+				if (Team.Len() > 0) {
+					UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+					if (Team.Compare("cowboys") == 0) {
+						PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Red);
 
-				UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
-				if (Team.Compare("cowboys") == 0) {
-					PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Red);
-					
+					}
+					else if (Team.Compare("aliens") == 0) {
+						PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Blue);
+					}
+					GetMesh()->SetMaterial(0, PlayerMaterial);
+					TeamColorSet = true;
 				}
-				else if (Team.Compare("aliens") == 0) {
-					PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Blue);
-				}
-				GetMesh()->SetMaterial(0, PlayerMaterial);
-				TeamColorSet = true;
 			}
 		}
 	}
