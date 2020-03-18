@@ -13,6 +13,7 @@ UTextReaderComponent::UTextReaderComponent()
 
 FString UTextReaderComponent::ReadFile(FString filePath)
 {
+	//FPaths::ProjectDir()
 	//Read file from [project]/Content/
 	FString directory = FPaths::ProjectContentDir();
 	FString result;
