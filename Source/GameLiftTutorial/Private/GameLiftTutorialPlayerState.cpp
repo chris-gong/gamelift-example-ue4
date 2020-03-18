@@ -2,4 +2,11 @@
 
 
 #include "GameLiftTutorialPlayerState.h"
+#include "UnrealNetwork.h"
 
+void AGameLiftTutorialPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGameLiftTutorialPlayerState, Team);
+}

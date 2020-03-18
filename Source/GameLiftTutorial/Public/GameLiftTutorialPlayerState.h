@@ -17,6 +17,11 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	FString PlayerSessionId;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(Replicated, BlueprintReadWrite)
 	FString Team;
+
+	/*virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}*/
 };

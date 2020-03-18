@@ -11,7 +11,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
-
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
 
@@ -138,6 +137,7 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 
 void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 	Super::OnRep_PlayerState();
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("OnRep_PlayerState called"));
 
 	if (!TeamColorSet) {
 		APlayerState* AState = GetPlayerState();
@@ -148,17 +148,16 @@ void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 				if (Team.Len() > 0) {
 					UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
 					if (Team.Compare("cowboys") == 0) {
-						PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Red);
-
+						PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Red);
 					}
 					else if (Team.Compare("aliens") == 0) {
-						PlayerMaterial->SetVectorParameterValue("PlayerColor", FLinearColor::Blue);
+						PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Blue);
 					}
+
 					GetMesh()->SetMaterial(0, PlayerMaterial);
 					TeamColorSet = true;
 				}
 			}
 		}
 	}
-	
 }
