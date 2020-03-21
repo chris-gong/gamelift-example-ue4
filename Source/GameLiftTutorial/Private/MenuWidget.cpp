@@ -34,6 +34,7 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
+	//TODO: check whether or not aws tokens exist, otherwise, hide the webbrowser and make the other stuff visible
 	WebBrowser = (UWebBrowser*)GetWidgetFromName(TEXT("WebBrowser_Login"));
 
 	// clear the webcache folder in the saved folder
@@ -66,6 +67,7 @@ void UMenuWidget::NativeConstruct() {
 	LookingForMatchTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_LookingForMatch"));
 }
 
+//TODO: Should this be moved to some ondestroy event in the gameinstance class
 void UMenuWidget::NativeDestruct() {
 	Super::NativeDestruct();
 	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
