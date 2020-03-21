@@ -100,7 +100,7 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 	MatchmakingButton->SetIsEnabled(false);
 	if (SearchingForGame) {
 		GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle); // stop searching for a match
-
+		UE_LOG(LogTemp, Warning, TEXT("Cancel matchmaking"));
 		// cancel matchmaking request
 		TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
 		RequestObj->SetStringField("ticketId", MatchmakingTicketId);
@@ -130,6 +130,7 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 		}
 	}
 	else {
+		UE_LOG(LogTemp, Warning, TEXT("initiate matchmaking"));
 		// initiate matchmaking request
 		TSharedRef<IHttpRequest> InitiateMatchmakingRequest = HttpModule->CreateRequest();
 		InitiateMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnInitiateMatchmakingResponseReceived);
@@ -240,6 +241,8 @@ void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, 
 
 
 void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	UE_LOG(LogTemp, Warning, TEXT("Response from initiate matchmaking %s"), *(Response->GetContentAsString()));
+
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;
@@ -268,6 +271,8 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 
 
 void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	UE_LOG(LogTemp, Warning, TEXT("Response from cancel matchmaking %s"), *(Response->GetContentAsString()));
+
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;

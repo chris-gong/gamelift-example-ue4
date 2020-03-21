@@ -64,7 +64,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
-
+	UE_LOG(LogTemp, Warning, TEXT("emilis and Khai are G's"));
 	auto InitSDKOutcome = Aws::GameLift::Server::InitSDK();
 
 	if (InitSDKOutcome.IsSuccess()) {
@@ -268,7 +268,7 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 void AGameLiftTutorialGameMode::CheckPlayerCount() {
 	int NumPlayers = GetNumPlayers();
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString("Number of players in the game: ") + FString::FromInt(NumPlayers));
-	if (!GameStarted && NumPlayers >= 4) {
+	if (!GameStarted && NumPlayers >= 2) {
 		NumTimesFoundNoPlayers = 0;
 		// "start" the game
 		GetWorldTimerManager().SetTimer(StopBackfillHandle, this, &AGameLiftTutorialGameMode::StopBackfill, 1.0f, false, 15.0f);
@@ -339,6 +339,7 @@ void AGameLiftTutorialGameMode::EndGame() {
 	auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
 	if (GameSessionIdOutcome.IsSuccess()) {
 		RequestObj->SetStringField("gameSessionId", GameSessionIdOutcome.GetResult());
+		UE_LOG(LogTemp, Warning, TEXT("gamesessionid: %s"), *(FString(GameSessionIdOutcome.GetResult())));
 	}
 	else {
 		
@@ -356,12 +357,15 @@ void AGameLiftTutorialGameMode::EndGame() {
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 
 	if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+		UE_LOG(LogTemp, Warning, TEXT("About to call assign match results api at this url: %s"), *AssignMatchResultsUrl);
+
 		// send a get request to google discovery document to retrieve endpoints
 		TSharedRef<IHttpRequest> AssignMatchResultsRequest = HttpModule->CreateRequest();
 		AssignMatchResultsRequest->OnProcessRequestComplete().BindUObject(this, &AGameLiftTutorialGameMode::OnAssignMatchResultsResponseReceived);
 		AssignMatchResultsRequest->SetURL(AssignMatchResultsUrl);
 		AssignMatchResultsRequest->SetVerb("POST");
 		AssignMatchResultsRequest->SetHeader("Authorization", ServerPassword);
+		AssignMatchResultsRequest->SetHeader("Content-Type", "application/json");
 		AssignMatchResultsRequest->SetContentAsString(RequestBody);
 		AssignMatchResultsRequest->ProcessRequest();
 	}
