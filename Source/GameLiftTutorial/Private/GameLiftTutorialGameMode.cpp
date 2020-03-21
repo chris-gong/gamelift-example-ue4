@@ -58,8 +58,6 @@ void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 #endif
 		}
 	}
-	
-
 }
 
 void AGameLiftTutorialGameMode::BeginPlay() {
@@ -298,7 +296,9 @@ void AGameLiftTutorialGameMode::CheckPlayerCount() {
 			GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
 			GetWorldTimerManager().ClearTimer(StopBackfillHandle);
 			GetWorldTimerManager().ClearTimer(EndGameHandle);
-			// terminate the game because there is no one left, which means there is no backfill ticket
+			// terminate the game because there is no one left, and cancel the backfill ticket if there is one
+			GetWorldTimerManager().ClearTimer(StopBackfillHandle);
+			StopBackfill();
 #if WITH_GAMELIFT
 			auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
 			if (TerminateGameSessionOutcome.IsSuccess()) {
@@ -321,8 +321,14 @@ void AGameLiftTutorialGameMode::StopBackfill() {
 	if (GameLiftTutorialGameState != nullptr) {
 		GameLiftTutorialGameState->LatestEvent = "BackfillEnded";
 	}
-
 	FString BackfillTicketId = UpdateGameSessionState->LatestBackfillTicketId;
+
+	if (UpdateGameSessionState != nullptr) {
+		BackfillTicketId = UpdateGameSessionState->LatestBackfillTicketId;
+	}
+	else if (StartGameSessionState != nullptr) {
+		BackfillTicketId = StartGameSessionState->LatestBackfillTicketId;
+	}
 
 	if (BackfillTicketId.Len() > 0) {
 #if WITH_GAMELIFT

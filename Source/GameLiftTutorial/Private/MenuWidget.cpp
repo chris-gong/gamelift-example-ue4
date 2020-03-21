@@ -25,6 +25,8 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	LookForMatchUrl = ApiUrl + "/lookformatch";
 	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
 	PollMatchmakingUrl = ApiUrl + "/pollmatchmaking";
+	SignOutUrl = ApiUrl + "/invalidateawscredentials";
+	GetNewTokenUrl = ApiUrl + "/refreshawscredentials";
 
 	HttpModule = &FHttpModule::Get();
 	SearchingForGame = false;
@@ -49,14 +51,48 @@ void UMenuWidget::NativeConstruct() {
 	WebBrowser->OnUrlChanged.Add(LoginDelegate);
 
 	MatchmakingButton = (UButton*)GetWidgetFromName(TEXT("Button_Matchmaking"));
+	QuitClientButton = (UButton*)GetWidgetFromName(TEXT("Button_QuitGame"));
 
 	FScriptDelegate MatchmakingDelegate;
 	MatchmakingDelegate.BindUFunction(this, "OnMatchmakingButtonClicked");
 	MatchmakingButton->OnClicked.Add(MatchmakingDelegate);
 
+	FScriptDelegate QuitClientDelegate;
+	QuitClientDelegate.BindUFunction(this, "OnQuitClientButtonClicked");
+	QuitClientButton->OnClicked.Add(QuitClientDelegate);
+
 	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
 	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
 	LookingForMatchTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_LookingForMatch"));
+}
+
+void UMenuWidget::NativeDestruct() {
+	Super::NativeDestruct();
+	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
+	UE_LOG(LogTemp, Warning, TEXT("native destruct in umenuwdiget"));
+
+	if (MatchmakingTicketId.Len() > 0) {
+		// cancel matchmaking request
+		UE_LOG(LogTemp, Warning, TEXT("Cancel matchmaking"));
+		// cancel matchmaking request
+		TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+		RequestObj->SetStringField("ticketId", MatchmakingTicketId);
+
+		FString RequestBody;
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
+
+		if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+			// send a get request to google discovery document to retrieve endpoints
+			TSharedRef<IHttpRequest> CancelMatchLookupRequest = HttpModule->CreateRequest();
+			CancelMatchLookupRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnEndMatchmakingResponseReceived);
+			CancelMatchLookupRequest->SetURL(CancelMatchLookupUrl);
+			CancelMatchLookupRequest->SetVerb("POST");
+			CancelMatchLookupRequest->SetHeader("Content-Type", "application/json");
+			CancelMatchLookupRequest->SetHeader("Authorization", AccessToken);
+			CancelMatchLookupRequest->SetContentAsString(RequestBody);
+			CancelMatchLookupRequest->ProcessRequest();
+		}
+	}
 }
 
 void UMenuWidget::CheckIfLoginSuccessful() {
@@ -139,6 +175,10 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 		InitiateMatchmakingRequest->SetHeader("Authorization", AccessToken);
 		InitiateMatchmakingRequest->ProcessRequest();
 	}
+}
+
+void UMenuWidget::OnQuitClientButtonClicked() {
+	FGenericPlatformMisc::RequestExit(false);
 }
 
 void UMenuWidget::PollMatchmaking() {
@@ -224,6 +264,7 @@ void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, 
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Wins: ") + Wins + FString(" Losses: ") + Losses);
 			WebBrowser->SetVisibility(ESlateVisibility::Hidden);
 			MatchmakingButton->SetVisibility(ESlateVisibility::Visible);
+			QuitClientButton->SetVisibility(ESlateVisibility::Visible);
 			WinsTextBlock->SetVisibility(ESlateVisibility::Visible);
 			LossesTextBlock->SetVisibility(ESlateVisibility::Visible);
 
@@ -241,7 +282,7 @@ void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, 
 
 
 void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-	UE_LOG(LogTemp, Warning, TEXT("Response from initiate matchmaking %s"), *(Response->GetContentAsString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Response from initiate matchmaking %s"), *(Response->GetContentAsString()));
 
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
@@ -352,6 +393,12 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 	else {
 		GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 	}
+}
 
-	
+void UMenuWidget::OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+
+}
+
+void UMenuWidget::OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+
 }

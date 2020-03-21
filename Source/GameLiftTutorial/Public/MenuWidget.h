@@ -22,7 +22,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
-
+	virtual void NativeDestruct() override;
 private:
 	FHttpModule* HttpModule;
 
@@ -34,10 +34,13 @@ private:
 	FString LookForMatchUrl;
 	FString CancelMatchLookupUrl;
 	FString PollMatchmakingUrl;
+	FString SignOutUrl;
+	FString GetNewTokenUrl;
 
 	// Widgets
 	UWebBrowser* WebBrowser;
 	UButton* MatchmakingButton;
+	UButton* QuitClientButton;
 	UTextBlock* WinsTextBlock;
 	UTextBlock* LossesTextBlock;
 	UTextBlock* LookingForMatchTextBlock;
@@ -68,10 +71,16 @@ private:
 	UFUNCTION()
 	void OnMatchmakingButtonClicked();
 
+	UFUNCTION()
+	void OnQuitClientButtonClicked();
+
 	// OnResponse Received Functions
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
 };

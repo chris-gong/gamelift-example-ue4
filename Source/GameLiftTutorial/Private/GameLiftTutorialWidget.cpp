@@ -96,6 +96,9 @@ void UGameLiftTutorialWidget::CheckGameEvents() {
 					EventTextBlock->SetText(FText::FromString(GameOverMessage + FString(" lost :(")));
 				}
 			}
+			GetWorld()->GetTimerManager().ClearTimer(TeammateCountHandle);
+			GetWorld()->GetTimerManager().ClearTimer(CheckGameEventsHandle);
+
 		}
 	}
 	else {

@@ -18,7 +18,6 @@ class GAMELIFTTUTORIAL_API AMenuHUD : public AHUD
 	
 public:
 	AMenuHUD();
-
 protected:
 	virtual void BeginPlay() override;
 
