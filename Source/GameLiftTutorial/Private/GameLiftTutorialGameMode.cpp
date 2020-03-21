@@ -64,7 +64,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
-	UE_LOG(LogTemp, Warning, TEXT("emilis and Khai are G's"));
+	UE_LOG(LogTemp, Warning, TEXT("khai loves pizza"));
 	auto InitSDKOutcome = Aws::GameLift::Server::InitSDK();
 
 	if (InitSDKOutcome.IsSuccess()) {
@@ -220,6 +220,12 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	// UNCOMMENT BELOW FOR TESTING LOCALLY
+	/*APlayerState* State = NewPlayerController->PlayerState;
+	if (State != nullptr) {
+		AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
+		PlayerState->Team = "cowboys";
+	}*/
 	UE_LOG(LogTemp, Warning, TEXT("inside init new player"));
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");

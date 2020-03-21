@@ -3,6 +3,7 @@
 
 #include "GameLiftTutorialHUD.h"
 #include "UserWidget.h"
+#include "GameLiftTutorialWidget.h"
 
 AGameLiftTutorialHUD::AGameLiftTutorialHUD() {
 	static ConstructorHelpers::FClassFinder<UUserWidget> TeamObj(TEXT("/Game/UI/Widgets/UI_Team"));
@@ -21,7 +22,9 @@ void AGameLiftTutorialHUD::BeginPlay() {
 	// adding UMG widget
 	if (TeamWidgetClass != nullptr)
 	{
-		UUserWidget* TeamWidget = CreateWidget<UUserWidget>(GetWorld(), TeamWidgetClass);
+		UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), TeamWidgetClass);
+
+		TeamWidget = Cast<UGameLiftTutorialWidget>(Widget);
 
 		if (TeamWidget != nullptr)
 		{
@@ -30,3 +33,8 @@ void AGameLiftTutorialHUD::BeginPlay() {
 	}
 }
 
+void AGameLiftTutorialHUD::SetTeamName(FString TeamName) {
+	if (TeamWidget != nullptr) {
+		TeamWidget->SetTeamNameText(TeamName);
+	}
+}

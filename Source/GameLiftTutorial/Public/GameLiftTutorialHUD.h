@@ -7,6 +7,7 @@
 #include "GameLiftTutorialHUD.generated.h"
 
 class UUserWidget;
+class UGameLiftTutorialWidget;
 /**
  * 
  */
@@ -18,10 +19,14 @@ class GAMELIFTTUTORIAL_API AGameLiftTutorialHUD : public AHUD
 public:
 	AGameLiftTutorialHUD();
 
+	void SetTeamName(FString TeamName);
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> TeamWidgetClass;
+
+	UGameLiftTutorialWidget* TeamWidget;
 };

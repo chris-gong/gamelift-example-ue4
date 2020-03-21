@@ -11,6 +11,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
+#include "GameFramework/HUD.h"
+#include "GameLiftTutorialHUD.h"
+
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
 
@@ -146,6 +149,7 @@ void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 			if (State != nullptr) {
 				FString Team = State->Team;
 				if (Team.Len() > 0) {
+					// set player color
 					UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
 					if (Team.Compare("cowboys") == 0) {
 						PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Red);
@@ -155,6 +159,21 @@ void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 					}
 
 					GetMesh()->SetMaterial(0, PlayerMaterial);
+
+					// set player text
+					AController* FController = GetController();
+					if (FController != nullptr) {
+						APlayerController* PlayerController = Cast<APlayerController>(FController);
+						if (PlayerController != nullptr) {
+							AHUD* HUD = PlayerController->GetHUD();
+							if (HUD != nullptr) {
+								//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("hud exists"));
+
+								AGameLiftTutorialHUD* GameLiftTutorialHUD = Cast<AGameLiftTutorialHUD>(HUD);
+								GameLiftTutorialHUD->SetTeamName(Team);
+							}
+						}
+					}
 					TeamColorSet = true;
 				}
 			}
