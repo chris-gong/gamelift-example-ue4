@@ -30,6 +30,8 @@ private:
 	UTextBlock* EventTextBlock;
 
 	FTimerHandle TeammateCountHandle;
+	FTimerHandle CheckGameEventsHandle;
 
 	void GetTeammateCount();
+	void CheckGameEvents();
 };

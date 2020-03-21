@@ -2,6 +2,7 @@
 
 #include "GameLiftTutorialGameMode.h"
 #include "GameLiftTutorial.h"
+#include "GameLiftTutorialGameState.h"
 #include "TextReaderComponent.h"
 #include "Engine/Engine.h"
 #include "GameLiftTutorialCharacter.h"
@@ -26,6 +27,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 		PlayerStateClass = AGameLiftTutorialPlayerState::StaticClass();
 		HUDClass = AGameLiftTutorialHUD::StaticClass();
+		GameStateClass = AGameLiftTutorialGameState::StaticClass();
 	}
 
 	StartGameSessionState = new FStartGameSessionState();
@@ -62,6 +64,10 @@ void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 
 void AGameLiftTutorialGameMode::BeginPlay() {
 	Super::BeginPlay();
+	AGameStateBase* FGameState = GameState;
+	if (FGameState != nullptr) {
+		GameLiftTutorialGameState = Cast<AGameLiftTutorialGameState>(FGameState);
+	}
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
 	UE_LOG(LogTemp, Warning, TEXT("khai loves pizza"));
@@ -215,7 +221,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 	}
 #endif
-	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 5.0f, true, 5.0f);
+	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 1.0f, true, 5.0f);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
@@ -274,9 +280,12 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 void AGameLiftTutorialGameMode::CheckPlayerCount() {
 	int NumPlayers = GetNumPlayers();
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString("Number of players in the game: ") + FString::FromInt(NumPlayers));
-	if (!GameStarted && NumPlayers >= 2) {
+	if (!GameStarted && NumPlayers >= 4) {
 		NumTimesFoundNoPlayers = 0;
 		// "start" the game
+		if (GameLiftTutorialGameState != nullptr) {
+			GameLiftTutorialGameState->LatestEvent = "GameStarted";
+		}
 		GetWorldTimerManager().SetTimer(StopBackfillHandle, this, &AGameLiftTutorialGameMode::StopBackfill, 1.0f, false, 15.0f);
 		GetWorldTimerManager().SetTimer(EndGameHandle, this, &AGameLiftTutorialGameMode::EndGame, 1.0f, false, 30.0f);
 
@@ -309,6 +318,9 @@ void AGameLiftTutorialGameMode::CheckPlayerCount() {
 
 void AGameLiftTutorialGameMode::StopBackfill() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("Backfill stopped"));
+	if (GameLiftTutorialGameState != nullptr) {
+		GameLiftTutorialGameState->LatestEvent = "BackfillEnded";
+	}
 
 	FString BackfillTicketId = UpdateGameSessionState->LatestBackfillTicketId;
 
@@ -338,6 +350,10 @@ void AGameLiftTutorialGameMode::EndGame() {
 	else {
 		// aliens win
 		WinningTeam = "aliens";
+	}
+	if (GameLiftTutorialGameState != nullptr) {
+		GameLiftTutorialGameState->LatestEvent = "GameEnded";
+		GameLiftTutorialGameState->WinningTeam = WinningTeam;
 	}
 #if WITH_GAMELIFT
 	TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);

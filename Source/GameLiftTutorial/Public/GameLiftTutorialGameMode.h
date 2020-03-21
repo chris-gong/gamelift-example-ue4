@@ -8,6 +8,7 @@
 #include "GameLiftTutorialGameMode.generated.h"
 
 class FGameLiftServerSDKModule;
+class AGameLiftTutorialGameState;
 
 struct FStartGameSessionState
 {
@@ -73,5 +74,7 @@ private:
 	void OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	FString ServerPassword;
+
+	AGameLiftTutorialGameState* GameLiftTutorialGameState;
 };
 
