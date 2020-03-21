@@ -332,6 +332,7 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 		else {
 
 		}
+		MatchmakingTicketId = FString("");
 	}
 	else {
 
@@ -366,6 +367,7 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 			}
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
+				MatchmakingTicketId = FString("");
 				// get the game session and player session details and connect to the server
 				TSharedPtr<FJsonObject> GameSessionInfo = Ticket->GetObjectField("GameSessionInfo")->GetObjectField("M");
 				FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
@@ -379,6 +381,7 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 			}
 			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
 				// stop calling the PollMatchmaking function
+				MatchmakingTicketId = FString("");
 				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 				ButtonText->SetText(FText::FromString("Join Game"));
 				LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
