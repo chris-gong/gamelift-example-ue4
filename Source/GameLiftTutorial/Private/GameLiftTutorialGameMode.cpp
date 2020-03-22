@@ -91,20 +91,31 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			//Deserialize the json data given Reader and the actual object to deserialize
 			if (FJsonSerializer::Deserialize(Reader, JsonObject))
 			{
+				UE_LOG(LogTemp, Warning, TEXT("deserialized json response from get matchmaker data"));
 				FString LatestBackfillTicketId = JsonObject->GetStringField("autoBackfillTicketId");
+				if (LatestBackfillTicketId.Len() > 0) {
+					UE_LOG(LogTemp, Warning, TEXT("backfill ticket id: %s"), *(LatestBackfillTicketId));
+				}
 				State->LatestBackfillTicketId = LatestBackfillTicketId;
 				TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
 				for (TSharedPtr<FJsonValue> Team : Teams) {
 					TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
 					FString TeamName = TeamObj->GetStringField("name");
+					if (TeamName.Len() > 0) {
+						UE_LOG(LogTemp, Warning, TEXT("team: %s"), *(TeamName));
+					}
 					TArray<TSharedPtr<FJsonValue>> Players = TeamObj->GetArrayField("players");
 
 					for (TSharedPtr<FJsonValue> Player : Players) {
 						TSharedPtr<FJsonObject> PlayerObj = Player->AsObject();
 						FString PlayerId = PlayerObj->GetStringField("playerId");
+						if (PlayerId.Len() > 0) {
+							UE_LOG(LogTemp, Warning, TEXT("player id: %s"), *(PlayerId));
+						}
 						State->PlayerIdToTeam.Add(PlayerId, TeamName);
 					}
 				}
+				UE_LOG(LogTemp, Warning, TEXT("processed matchmaking data for onstartgamesession"));
 			}
 		};
 
@@ -219,7 +230,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 	}
 #endif
-	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 1.0f, true, 5.0f);
+	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 0.25f, true, 5.0f);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
@@ -291,13 +302,13 @@ void AGameLiftTutorialGameMode::CheckPlayerCount() {
 	}
 	else if (NumPlayers == 0) {
 		NumTimesFoundNoPlayers++;
-
-		if (NumTimesFoundNoPlayers == 10) {
+		// after 30 seconds of no one joining the game
+		if (NumTimesFoundNoPlayers == 120) {
 			GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
 			GetWorldTimerManager().ClearTimer(StopBackfillHandle);
 			GetWorldTimerManager().ClearTimer(EndGameHandle);
+			
 			// terminate the game because there is no one left, and cancel the backfill ticket if there is one
-			GetWorldTimerManager().ClearTimer(StopBackfillHandle);
 			StopBackfill();
 #if WITH_GAMELIFT
 			auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();

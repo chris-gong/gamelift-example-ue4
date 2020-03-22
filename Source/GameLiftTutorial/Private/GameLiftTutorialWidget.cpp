@@ -34,6 +34,7 @@ void UGameLiftTutorialWidget::GetTeammateCount() {
 		AGameLiftTutorialPlayerState* OwningGameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(OwningPlayerState);
 		if (OwningGameLiftTutorialPlayerState != nullptr) {
 			OwningPlayerTeam = OwningGameLiftTutorialPlayerState->Team;
+			SetTeamNameText(OwningPlayerTeam);
 		}
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("Owning Player Team: %s"), *(OwningPlayerTeam));
