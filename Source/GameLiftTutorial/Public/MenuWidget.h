@@ -26,6 +26,8 @@ protected:
 private:
 	FHttpModule* HttpModule;
 
+	FString LoginUrl;
+
 	// Lambda APIs
 	FString RedirectUri;
 	FString ApiUrl;

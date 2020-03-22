@@ -19,6 +19,7 @@
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 
+	LoginUrl = TextReader->ReadFile("SecretUrls/LoginUrl.txt");
 	RedirectUri = TextReader->ReadFile("SecretUrls/RedirectUri.txt");
 	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
 	AwsCredsUrl = TextReader->ReadFile("SecretUrls/AwsCredsUrl.txt");
@@ -33,22 +34,7 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
-	//TODO: check whether or not aws tokens exist, otherwise, hide the webbrowser and make the other stuff visible
 	WebBrowser = (UWebBrowser*)GetWidgetFromName(TEXT("WebBrowser_Login"));
-
-	// clear the webcache folder in the saved folder
-	IWebBrowserSingleton* WebBrowserSingleton = IWebBrowserModule::Get().GetSingleton();
-	if (WebBrowserSingleton)
-	{
-		TOptional<FString> DefaultContext;
-		TSharedPtr<IWebBrowserCookieManager> CookieManager = WebBrowserSingleton->GetCookieManager(DefaultContext);
-		if (CookieManager.IsValid())
-			CookieManager->DeleteCookies();
-	}
-
-	FScriptDelegate LoginDelegate;
-	LoginDelegate.BindUFunction(this, "CheckIfLoginSuccessful");
-	WebBrowser->OnUrlChanged.Add(LoginDelegate);
 
 	MatchmakingButton = (UButton*)GetWidgetFromName(TEXT("Button_Matchmaking"));
 
@@ -59,6 +45,44 @@ void UMenuWidget::NativeConstruct() {
 	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
 	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
 	LookingForMatchTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_LookingForMatch"));
+
+	//TODO: check whether or not aws tokens exist, otherwise, hide the webbrowser and make the other stuff visible
+	FString AccessToken;
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance != nullptr) {
+		UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+		if (GameLiftTutorialGameInstance != nullptr) {
+			AccessToken = GameLiftTutorialGameInstance->AccessToken;
+		}
+	}
+
+	if (AccessToken.Len() > 0) {
+		TSharedRef<IHttpRequest> RetrievePlayerDataRequest = HttpModule->CreateRequest();
+		RetrievePlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnRetrievePlayerDataResponseReceived);
+		RetrievePlayerDataRequest->SetURL(RetrievePlayerDataUrl);
+		RetrievePlayerDataRequest->SetVerb("GET");
+		RetrievePlayerDataRequest->SetHeader("Authorization", AccessToken);
+		RetrievePlayerDataRequest->ProcessRequest();
+	}
+	else {
+		// clear the webcache folder in the saved folder
+		IWebBrowserSingleton* WebBrowserSingleton = IWebBrowserModule::Get().GetSingleton();
+		if (WebBrowserSingleton)
+		{
+			TOptional<FString> DefaultContext;
+			TSharedPtr<IWebBrowserCookieManager> CookieManager = WebBrowserSingleton->GetCookieManager(DefaultContext);
+			if (CookieManager.IsValid())
+				CookieManager->DeleteCookies();
+		}
+
+		WebBrowser->LoadURL(LoginUrl);
+
+		FScriptDelegate LoginDelegate;
+		LoginDelegate.BindUFunction(this, "CheckIfLoginSuccessful");
+		WebBrowser->OnUrlChanged.Add(LoginDelegate);
+
+		WebBrowser->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 //TODO: Should this be moved to some ondestroy event in the gameinstance class

@@ -19,8 +19,7 @@ UGameLiftTutorialGameInstance::UGameLiftTutorialGameInstance(const FObjectInitia
 
 	/*
 	TODOS
-	4) go back to the widget class to only load the web browser if there is no aws token in the game instance
-	5) update to the newest version of chrome for the web browser widget
+	1) update to the newest version of chrome for the web browser widget
 	*/
 
 }
@@ -53,7 +52,7 @@ void UGameLiftTutorialGameInstance::Shutdown() {
 	}
 
 	if (AccessToken.Len() > 0) {
-		//UE_LOG(LogTemp, Warning, TEXT("Refresh Token: %s"), *RefreshToken);
+		UE_LOG(LogTemp, Warning, TEXT("Invalidating refresh token"));
 
 		TSharedRef<IHttpRequest> SignOutRequest = HttpModule->CreateRequest();
 		SignOutRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnSignOutResponseReceived);
