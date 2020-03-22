@@ -340,7 +340,7 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 
 
 void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-	UE_LOG(LogTemp, Warning, TEXT("Response from cancel matchmaking %s"), *(Response->GetContentAsString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Response from cancel matchmaking %s"), *(Response->GetContentAsString()));
 
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
@@ -354,8 +354,17 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
 
-			//TSharedPtr<FJsonObject> PlayerData = JsonObject->GetObjectField("playerData");
-
+			bool CancellationSuccessful = JsonObject->GetBoolField("success");
+			if (CancellationSuccessful) {
+				UGameInstance* GameInstance = GetGameInstance();
+				if (GameInstance != nullptr) {
+					UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+					if (GameLiftTutorialGameInstance != nullptr) {
+						GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
+					}
+					UE_LOG(LogTemp, Warning, TEXT("Cancellation successful"));
+				}
+			}
 		}
 		else {
 
@@ -364,14 +373,7 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 	else {
 
 	}
-	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance != nullptr) {
-		UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
-		if (GameLiftTutorialGameInstance != nullptr) {
-			GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
-		}
-	}
-
+	
 	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 	ButtonText->SetText(FText::FromString("Join Game"));
 	LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
