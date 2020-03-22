@@ -115,7 +115,8 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 		UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
 		if (GameLiftTutorialGameInstance != nullptr) {
 			MatchmakingTicketId = GameLiftTutorialGameInstance->MatchmakingTicketId;
-			AccessToken = MatchmakingTicketId = GameLiftTutorialGameInstance->AccessToken;
+			AccessToken = GameLiftTutorialGameInstance->AccessToken;
+			//UE_LOG(LogTemp, Warning, TEXT("accesstoken =  %s"), *(AccessToken));
 		}
 	}
 
@@ -187,7 +188,7 @@ void UMenuWidget::PollMatchmaking() {
 		UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
 		if (GameLiftTutorialGameInstance != nullptr) {
 			MatchmakingTicketId = GameLiftTutorialGameInstance->MatchmakingTicketId;
-			AccessToken = MatchmakingTicketId = GameLiftTutorialGameInstance->AccessToken;
+			AccessToken = GameLiftTutorialGameInstance->AccessToken;
 		}
 	}
 
@@ -214,6 +215,9 @@ void UMenuWidget::PollMatchmaking() {
 			GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 		}
 	}
+	else {
+		GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+	}
 }
 
 void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -235,15 +239,17 @@ void UMenuWidget::OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpRespo
 			if (GameInstance != nullptr) {
 				UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
 				if (GameLiftTutorialGameInstance != nullptr) {
-					GameLiftTutorialGameInstance->IdToken = JsonObject->GetStringField("id_token");
-					GameLiftTutorialGameInstance->AccessToken = JsonObject->GetStringField("access_token");
-					GameLiftTutorialGameInstance->RefreshToken = JsonObject->GetStringField("refresh_token");
+					FString IdToken = JsonObject->GetStringField("id_token");
+					FString AccessToken = JsonObject->GetStringField("access_token");
+					FString RefreshToken = JsonObject->GetStringField("refresh_token");
+
+					GameLiftTutorialGameInstance->SetAwsTokens(AccessToken, IdToken, RefreshToken);
 
 					TSharedRef<IHttpRequest> RetrievePlayerDataRequest = HttpModule->CreateRequest();
 					RetrievePlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMenuWidget::OnRetrievePlayerDataResponseReceived);
 					RetrievePlayerDataRequest->SetURL(RetrievePlayerDataUrl);
 					RetrievePlayerDataRequest->SetVerb("GET");
-					RetrievePlayerDataRequest->SetHeader("Authorization", GameLiftTutorialGameInstance->AccessToken);
+					RetrievePlayerDataRequest->SetHeader("Authorization", AccessToken);
 					RetrievePlayerDataRequest->ProcessRequest();
 				}
 			}
@@ -315,6 +321,7 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 			if (GameInstance != nullptr) {
 				UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
 				if (GameLiftTutorialGameInstance != nullptr) {
+					//UE_LOG(LogTemp, Warning, TEXT("Assigning matchmaking ticket %s"), *(MatchmakingTicketId));
 					GameLiftTutorialGameInstance->MatchmakingTicketId = MatchmakingTicketId;
 				}
 			}
@@ -376,7 +383,7 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 
 void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
-	UE_LOG(LogTemp, Warning, TEXT("Response from poll matchmaking: %s"), *(Response->GetContentAsString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Response from poll matchmaking: %s"), *(Response->GetContentAsString()));
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;

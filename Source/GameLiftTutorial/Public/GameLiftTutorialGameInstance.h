@@ -19,6 +19,9 @@ public:
 	UGameLiftTutorialGameInstance(const FObjectInitializer& ObjectInitializer);
 
 	virtual void Shutdown() override;
+
+	void SetAwsTokens(FString AccessToken, FString IdToken, FString RefreshToken);
+
 	// AWS Stuff
 	FString IdToken;
 	FString AccessToken;
@@ -26,6 +29,8 @@ public:
 
 	// GameLift Stuff
 	FString MatchmakingTicketId;
+
+	FTimerHandle GetNewTokenHandle;
 
 private:
 	FHttpModule* HttpModule;
@@ -35,5 +40,10 @@ private:
 	FString SignOutUrl;
 	FString GetNewTokenUrl;
 
+	void RetrieveNewAccessToken();
+
 	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
 };
