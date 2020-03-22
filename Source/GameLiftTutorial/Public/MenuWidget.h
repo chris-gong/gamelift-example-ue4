@@ -40,20 +40,11 @@ private:
 	// Widgets
 	UWebBrowser* WebBrowser;
 	UButton* MatchmakingButton;
-	UButton* QuitClientButton;
 	UTextBlock* WinsTextBlock;
 	UTextBlock* LossesTextBlock;
 	UTextBlock* LookingForMatchTextBlock;
 
 	bool SearchingForGame;
-
-	// AWS Stuff
-	FString IdToken;
-	FString AccessToken;
-	FString RefreshToken;
-
-	// GameLift Stuff
-	FString MatchmakingTicketId;
 
 	// Player Info, make this a struct or class or something later
 	FString Wins;
@@ -70,9 +61,6 @@ private:
 
 	UFUNCTION()
 	void OnMatchmakingButtonClicked();
-
-	UFUNCTION()
-	void OnQuitClientButtonClicked();
 
 	// OnResponse Received Functions
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);

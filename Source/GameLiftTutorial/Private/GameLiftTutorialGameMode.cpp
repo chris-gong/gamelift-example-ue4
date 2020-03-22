@@ -345,7 +345,7 @@ void AGameLiftTutorialGameMode::StopBackfill() {
 void AGameLiftTutorialGameMode::EndGame() {
 	GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
 	GetWorldTimerManager().ClearTimer(EndGameHandle);
-
+	
 	int Num = FMath::RandRange(0, 1);
 	FString WinningTeam;
 

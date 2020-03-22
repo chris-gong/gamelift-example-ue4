@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Runtime/Online/HTTP/Public/Http.h"
 #include "GameLiftTutorialGameInstance.generated.h"
 
 /**
@@ -17,6 +18,7 @@ class GAMELIFTTUTORIAL_API UGameLiftTutorialGameInstance : public UGameInstance
 public:
 	UGameLiftTutorialGameInstance(const FObjectInitializer& ObjectInitializer);
 
+	virtual void Shutdown() override;
 	// AWS Stuff
 	FString IdToken;
 	FString AccessToken;
@@ -24,4 +26,12 @@ public:
 
 	// GameLift Stuff
 	FString MatchmakingTicketId;
+
+private:
+	FHttpModule* HttpModule;
+
+	FString ApiUrl;
+	FString CancelMatchLookupUrl;
+
+	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };
