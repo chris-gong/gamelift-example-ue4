@@ -26,8 +26,6 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	LookForMatchUrl = ApiUrl + "/lookformatch";
 	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
 	PollMatchmakingUrl = ApiUrl + "/pollmatchmaking";
-	SignOutUrl = ApiUrl + "/invalidateawscredentials";
-	GetNewTokenUrl = ApiUrl + "/refreshawscredentials";
 
 	HttpModule = &FHttpModule::Get();
 	SearchingForGame = false;

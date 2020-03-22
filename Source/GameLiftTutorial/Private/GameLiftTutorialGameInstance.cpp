@@ -12,8 +12,19 @@ UGameLiftTutorialGameInstance::UGameLiftTutorialGameInstance(const FObjectInitia
 
 	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
 	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
+	SignOutUrl = ApiUrl + "/invalidateawscredentials";
+	GetNewTokenUrl = ApiUrl + "/refreshawscredentials";
 
 	HttpModule = &FHttpModule::Get();
+
+	/*
+	TODOS
+	1) in shutdown, call the signouturl api
+	2) make a setter function for the aws tokens that will be called by the menu widget and thereby initiate the timer function
+	3) make another timer function that is called every 55 minutes to refresh the token
+	4) go back to the widget class to only load the web browser if there is no aws token in the game instance
+	*/
+
 }
 
 void UGameLiftTutorialGameInstance::Shutdown() {

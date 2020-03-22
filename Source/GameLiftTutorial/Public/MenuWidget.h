@@ -34,8 +34,6 @@ private:
 	FString LookForMatchUrl;
 	FString CancelMatchLookupUrl;
 	FString PollMatchmakingUrl;
-	FString SignOutUrl;
-	FString GetNewTokenUrl;
 
 	// Widgets
 	UWebBrowser* WebBrowser;

@@ -32,6 +32,8 @@ private:
 
 	FString ApiUrl;
 	FString CancelMatchLookupUrl;
+	FString SignOutUrl;
+	FString GetNewTokenUrl;
 
 	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };
