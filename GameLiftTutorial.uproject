@@ -22,6 +22,10 @@
 		{
 			"Name": "WebBrowserWidget",
 			"Enabled": true
+		},
+		{
+			"Name":	"OculusVR",
+			"Enabled": false
 		}
 	]
 }
