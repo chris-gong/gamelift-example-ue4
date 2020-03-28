@@ -429,9 +429,9 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
 				// if check is to deal with a race condition involving the user pressing the cancel button
 				if(SearchingForGame) {
+					MatchmakingButton->SetIsEnabled(false);
 					SearchingForGame = false;
 					MatchmakingEventTextBlock->SetText(FText::FromString("Successfully found a match. Now connecting to the server"));
-					MatchmakingButton->SetIsEnabled(false);
 
 					UGameInstance* GameInstance = GetGameInstance();
 					if (GameInstance != nullptr) {
