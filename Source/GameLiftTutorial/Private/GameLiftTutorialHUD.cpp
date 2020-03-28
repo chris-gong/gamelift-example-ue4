@@ -32,10 +32,3 @@ void AGameLiftTutorialHUD::BeginPlay() {
 		}
 	}
 }
-
-// TODO: Consider whether or not this should be done in the widget instead of in the character class
-void AGameLiftTutorialHUD::SetTeamName(FString TeamName) {
-	if (TeamWidget != nullptr) {
-		TeamWidget->SetTeamNameText(TeamName);
-	}
-}

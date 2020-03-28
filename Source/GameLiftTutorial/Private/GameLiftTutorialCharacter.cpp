@@ -160,20 +160,6 @@ void AGameLiftTutorialCharacter::OnRep_PlayerState() {
 
 					GetMesh()->SetMaterial(0, PlayerMaterial);
 
-					//// set player text
-					//AController* FController = GetController();
-					//if (FController != nullptr) {
-					//	APlayerController* PlayerController = Cast<APlayerController>(FController);
-					//	if (PlayerController != nullptr) {
-					//		AHUD* HUD = PlayerController->GetHUD();
-					//		if (HUD != nullptr) {
-					//			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("hud exists"));
-
-					//			AGameLiftTutorialHUD* GameLiftTutorialHUD = Cast<AGameLiftTutorialHUD>(HUD);
-					//			GameLiftTutorialHUD->SetTeamName(Team);
-					//		}
-					//	}
-					//}
 					TeamColorSet = true;
 				}
 			}

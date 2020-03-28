@@ -19,8 +19,6 @@ class GAMELIFTTUTORIAL_API AGameLiftTutorialHUD : public AHUD
 public:
 	AGameLiftTutorialHUD();
 
-	void SetTeamName(FString TeamName);
-
 protected:
 	virtual void BeginPlay() override;
 
