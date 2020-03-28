@@ -430,8 +430,10 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
 				// if check is to deal with a race condition involving the user pressing the cancel button
 				if(SearchingForGame) {
-					MatchmakingButton->SetIsEnabled(false);
 					MatchmakingEventTextBlock->SetText(FText::FromString("Successfully found a match. Now connecting to the server"));
+					SearchingForGame = false;
+					MatchmakingButton->SetIsEnabled(false);
+
 					UGameInstance* GameInstance = GetGameInstance();
 					if (GameInstance != nullptr) {
 						UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
@@ -457,14 +459,6 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				}
 			}
 			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
-				// stop calling the PollMatchmaking function
-				UGameInstance* GameInstance = GetGameInstance();
-				if (GameInstance != nullptr) {
-					UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
-					if (GameLiftTutorialGameInstance != nullptr) {
-						GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
-					}
-				}
 				// modify the text
 				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 				ButtonText->SetText(FText::FromString("Join Game"));
@@ -474,11 +468,19 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				else if (TicketStatus.Compare("MatchmakingTimedOut") == 0) {
 					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request timed out. Please try again"));
 				}
-				else if(TicketStatus.Compare("MatchmakingFailed") == 0) {
+				else if (TicketStatus.Compare("MatchmakingFailed") == 0) {
 					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request failed. Please try again"));
 				}
 
 				SearchingForGame = false;
+				// stop calling the PollMatchmaking function
+				UGameInstance* GameInstance = GetGameInstance();
+				if (GameInstance != nullptr) {
+					UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+					if (GameLiftTutorialGameInstance != nullptr) {
+						GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
+					}
+				}
 			}
 		}
 		else {
@@ -496,7 +498,7 @@ void UMenuWidget::OnTravelFailure(UWorld* World, ETravelFailure::Type FailureTyp
 	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 	ButtonText->SetText(FText::FromString("Join Game"));
 	MatchmakingEventTextBlock->SetText(FText::FromString(FString("Failed to connect to the server, because ") + ReasonString));
-	SearchingForGame = false;
+
 	MatchmakingButton->SetIsEnabled(true);
 
 	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
