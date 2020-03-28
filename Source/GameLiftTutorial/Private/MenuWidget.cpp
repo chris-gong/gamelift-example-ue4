@@ -44,7 +44,7 @@ void UMenuWidget::NativeConstruct() {
 
 	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
 	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
-	LookingForMatchTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_LookingForMatch"));
+	MatchmakingEventTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_MatchmakingEvent"));
 
 	//TODO: check whether or not aws tokens exist, otherwise, hide the webbrowser and make the other stuff visible
 	FString AccessToken;
@@ -170,7 +170,7 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 			else {
 				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 				ButtonText->SetText(FText::FromString("Join Game"));
-				LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+				MatchmakingEventTextBlock->SetText(FText::FromString(""));
 
 				SearchingForGame = !SearchingForGame;
 
@@ -180,7 +180,7 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 		else {
 			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 			ButtonText->SetText(FText::FromString("Join Game"));
-			LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+			MatchmakingEventTextBlock->SetText(FText::FromString(""));
 
 			SearchingForGame = !SearchingForGame;
 
@@ -310,6 +310,7 @@ void UMenuWidget::OnRetrievePlayerDataResponseReceived(FHttpRequestPtr Request, 
 			MatchmakingButton->SetVisibility(ESlateVisibility::Visible);
 			WinsTextBlock->SetVisibility(ESlateVisibility::Visible);
 			LossesTextBlock->SetVisibility(ESlateVisibility::Visible);
+			MatchmakingEventTextBlock->SetVisibility(ESlateVisibility::Visible);
 
 			WinsTextBlock->SetText(FText::FromString("Wins: " + Wins));
 			LossesTextBlock->SetText(FText::FromString("Losses: " + Losses));
@@ -354,7 +355,7 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 
 			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 			ButtonText->SetText(FText::FromString("Cancel"));
-			LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Visible);
+			MatchmakingEventTextBlock->SetText(FText::FromString("Currently looking for a match"));
 
 			SearchingForGame = !SearchingForGame;
 		}
@@ -400,7 +401,7 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 	
 	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 	ButtonText->SetText(FText::FromString("Join Game"));
-	LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	MatchmakingEventTextBlock->SetText(FText::FromString(""));
 
 	SearchingForGame = !SearchingForGame;
 
@@ -455,9 +456,18 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 						GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
 					}
 				}
+				// modify the text
 				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 				ButtonText->SetText(FText::FromString("Join Game"));
-				LookingForMatchTextBlock->SetVisibility(ESlateVisibility::Hidden);
+				if (TicketStatus.Compare("MatchmakingCancelled") == 0) {
+					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request was cancelled. Please try again"));
+				}
+				else if (TicketStatus.Compare("MatchmakingTimedOut") == 0) {
+					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request timed out. Please try again"));
+				}
+				else if(TicketStatus.Compare("MatchmakingFailed") == 0) {
+					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request failed. Please try again"));
+				}
 
 				SearchingForGame = !SearchingForGame;
 			}

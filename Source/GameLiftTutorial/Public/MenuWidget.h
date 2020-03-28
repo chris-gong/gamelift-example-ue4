@@ -42,7 +42,7 @@ private:
 	UButton* MatchmakingButton;
 	UTextBlock* WinsTextBlock;
 	UTextBlock* LossesTextBlock;
-	UTextBlock* LookingForMatchTextBlock;
+	UTextBlock* MatchmakingEventTextBlock;
 
 	bool SearchingForGame;
 
