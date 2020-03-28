@@ -39,11 +39,31 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
 	AssignMatchResultsUrl = ApiUrl + "/assignmatchresults";
 
-	NumTimesFoundNoPlayers = 0;
-	GameStarted = false;
 	HttpModule = &FHttpModule::Get();
 	
 	ServerPassword = "";
+}
+
+void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	// kick the player out id the player did not pass a valid player session id
+#if WITH_GAMELIFT
+	if (*Options && Options.Len() > 0) {
+		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		if (PlayerSessionId.Len() > 0) {
+			auto AcceptPlayerSessionOutcome = Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
+			if (!AcceptPlayerSessionOutcome.IsSuccess()) {
+				ErrorMessage = FString("Unauthorized");
+			}
+		}
+		else {
+			ErrorMessage = FString("Unauthorized");
+		}
+	}
+	else {
+		ErrorMessage = FString("Unauthorized");
+	}
+#endif
 }
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
@@ -242,65 +262,57 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 		PlayerState->Team = "cowboys";
 	}*/
 	UE_LOG(LogTemp, Warning, TEXT("inside init new player"));
+	
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 		const FString& PlayerId = UGameplayStatics::ParseOption(Options, "PlayerId");
 		UE_LOG(LogTemp, Warning, TEXT("Player session id in init new player: %s"), *(PlayerSessionId));
-		if (PlayerSessionId.Len() > 0) {
-#if WITH_GAMELIFT
-			auto AcceptPlayerSessionOutcome = Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
-			if (AcceptPlayerSessionOutcome.IsSuccess()) {
-				APlayerState* State = NewPlayerController->PlayerState;
-				if (State != nullptr) {
-					AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
-					PlayerState->PlayerSessionId = *PlayerSessionId;
-					UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
+		
+		APlayerState* State = NewPlayerController->PlayerState;
+		if (State != nullptr) {
+			AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
+			PlayerState->PlayerSessionId = *PlayerSessionId;
+			UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
 
-					// assign player's mesh color based on the player's team
-					if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToTeam.Num() > 0) {
-						UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and playeridtoteam is populated"));
-						if (UpdateGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
-							FString* Team = UpdateGameSessionState->PlayerIdToTeam.Find(PlayerId);
-							PlayerState->Team = *Team;
-						}
-					}
-					else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToTeam.Num() > 0) {
-						UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and playeridtoteam is populated"));
-
-						if (StartGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
-							FString* Team = StartGameSessionState->PlayerIdToTeam.Find(PlayerId);
-							PlayerState->Team = *Team;
-						}
-					}
+			// assign player's mesh color based on the player's team
+			if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToTeam.Num() > 0) {
+				UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and playeridtoteam is populated"));
+				if (UpdateGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+					FString* Team = UpdateGameSessionState->PlayerIdToTeam.Find(PlayerId);
+					PlayerState->Team = *Team;
 				}
 			}
-			else {
-				UE_LOG(LogTemp, Warning, TEXT("Kicked an unauthorized player out of the game"));
-				FText KickReason = FText::FromString("Unauthorized");
-				// kick the player out because the player most likely did not pass a valid player session id
-				GameSession->KickPlayer(NewPlayerController, KickReason);
+			else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToTeam.Num() > 0) {
+				UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and playeridtoteam is populated"));
+
+				if (StartGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+					FString* Team = StartGameSessionState->PlayerIdToTeam.Find(PlayerId);
+					PlayerState->Team = *Team;
+				}
 			}
-#endif
 		}
 	}
 	return InitializedString;
 }
 
 void AGameLiftTutorialGameMode::CheckPlayerCount() {
+	if (StartGameSessionState != nullptr && StartGameSessionState->Status) {
+
+	}
 	int NumPlayers = GetNumPlayers();
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString("Number of players in the game: ") + FString::FromInt(NumPlayers));
-	if (!GameStarted && NumPlayers >= 4) {
-		NumTimesFoundNoPlayers = 0;
+
+	if (NumPlayers >= 4) {
+		GetWorldTimerManager().ClearTimer(CheckPlayerCountHandle);
 		// "start" the game
 		if (GameLiftTutorialGameState != nullptr) {
 			GameLiftTutorialGameState->LatestEvent = "GameStarted";
 		}
 		GetWorldTimerManager().SetTimer(StopBackfillHandle, this, &AGameLiftTutorialGameMode::StopBackfill, 1.0f, false, 15.0f);
 		GetWorldTimerManager().SetTimer(EndGameHandle, this, &AGameLiftTutorialGameMode::EndGame, 1.0f, false, 30.0f);
-
-		GameStarted = true;
 	}
-	else if (NumPlayers == 0) {
+	//TODO: CONSIDER UNCOMMENTING THE BELOW BECAUSE WE WILL PROBABLY NEED TO CLEAN UP EMPTY GAME SESSIONS
+	/*else if (NumPlayers == 0) {
 		NumTimesFoundNoPlayers++;
 		// after 30 seconds of no one joining the game
 		if (NumTimesFoundNoPlayers == 120) {
@@ -324,7 +336,7 @@ void AGameLiftTutorialGameMode::CheckPlayerCount() {
 	}
 	else {
 		NumTimesFoundNoPlayers = 0;
-	}
+	}*/
 }
 
 void AGameLiftTutorialGameMode::StopBackfill() {
@@ -420,6 +432,19 @@ void AGameLiftTutorialGameMode::EndGame() {
 	}
 #endif
 	
+}
+
+void AGameLiftTutorialGameMode::TerminateSessionDueToInactivity() {
+#if WITH_GAMELIFT
+	auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
+	if (TerminateGameSessionOutcome.IsSuccess()) {
+		auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
+		if (ProcessEndingOutcome.IsSuccess())
+		{
+			FGenericPlatformMisc::RequestExit(false);
+		}
+	}
+#endif
 }
 
 void AGameLiftTutorialGameMode::OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
