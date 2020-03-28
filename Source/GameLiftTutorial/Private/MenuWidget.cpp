@@ -150,6 +150,7 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 
 	if (SearchingForGame) {
 		GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle); // stop searching for a match
+		SearchingForGame = false;
 		UE_LOG(LogTemp, Warning, TEXT("Cancel matchmaking"));
 		
 		if (MatchmakingTicketId.Len() > 0) {
@@ -176,8 +177,6 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 				ButtonText->SetText(FText::FromString("Join Game"));
 				MatchmakingEventTextBlock->SetText(FText::FromString(""));
 
-				SearchingForGame = !SearchingForGame;
-
 				MatchmakingButton->SetIsEnabled(true);
 			}
 		}
@@ -185,8 +184,6 @@ void UMenuWidget::OnMatchmakingButtonClicked() {
 			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 			ButtonText->SetText(FText::FromString("Join Game"));
 			MatchmakingEventTextBlock->SetText(FText::FromString(""));
-
-			SearchingForGame = !SearchingForGame;
 
 			MatchmakingButton->SetIsEnabled(true);
 		}
@@ -361,7 +358,7 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 			ButtonText->SetText(FText::FromString("Cancel"));
 			MatchmakingEventTextBlock->SetText(FText::FromString("Currently looking for a match"));
 
-			SearchingForGame = !SearchingForGame;
+			SearchingForGame = true;
 		}
 	}
 	MatchmakingButton->SetIsEnabled(true);
@@ -407,8 +404,6 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 	ButtonText->SetText(FText::FromString("Join Game"));
 	MatchmakingEventTextBlock->SetText(FText::FromString(""));
 
-	SearchingForGame = !SearchingForGame;
-
 	MatchmakingButton->SetIsEnabled(true);
 }
 
@@ -433,28 +428,33 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
 			}
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
-				UGameInstance* GameInstance = GetGameInstance();
-				if (GameInstance != nullptr) {
-					UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
-					if (GameLiftTutorialGameInstance != nullptr) {
-						GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
+				// if check is to deal with a race condition involving the user pressing the cancel button
+				if(SearchingForGame) {
+					MatchmakingButton->SetIsEnabled(false);
+					MatchmakingEventTextBlock->SetText(FText::FromString("Successfully found a match. Now connecting to the server"));
+					UGameInstance* GameInstance = GetGameInstance();
+					if (GameInstance != nullptr) {
+						UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+						if (GameLiftTutorialGameInstance != nullptr) {
+							GameLiftTutorialGameInstance->MatchmakingTicketId = FString("");
+						}
 					}
-				}
-				// get the game session and player session details and connect to the server
-				TSharedPtr<FJsonObject> GameSessionInfo = Ticket->GetObjectField("GameSessionInfo")->GetObjectField("M");
-				FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
-				FString Port = GameSessionInfo->GetObjectField("Port")->GetStringField("N");
-				FString PlayerSessionId = Ticket->GetObjectField("PlayerSessionId")->GetStringField("S");
-				FString PlayerId = Ticket->GetObjectField("PlayerId")->GetStringField("S");
-				FString LevelName = IpAddress + FString(":") + Port;
-				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId + FString("?PlayerId=") + PlayerId;
+					// get the game session and player session details and connect to the server
+					TSharedPtr<FJsonObject> GameSessionInfo = Ticket->GetObjectField("GameSessionInfo")->GetObjectField("M");
+					FString IpAddress = GameSessionInfo->GetObjectField("IpAddress")->GetStringField("S");
+					FString Port = GameSessionInfo->GetObjectField("Port")->GetStringField("N");
+					FString PlayerSessionId = Ticket->GetObjectField("PlayerSessionId")->GetStringField("S");
+					FString PlayerId = Ticket->GetObjectField("PlayerId")->GetStringField("S");
+					FString LevelName = IpAddress + FString(":") + Port;
+					const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId + FString("?PlayerId=") + PlayerId;
 
-				if (GEngine->OnTravelFailure().IsBoundToObject(this) == false)
-				{
-					TravelFailureDelegateHandle = GEngine->OnTravelFailure().AddUObject(this, &UMenuWidget::OnTravelFailure);
+					if (GEngine->OnTravelFailure().IsBoundToObject(this) == false)
+					{
+						TravelFailureDelegateHandle = GEngine->OnTravelFailure().AddUObject(this, &UMenuWidget::OnTravelFailure);
+					}
+				
+					UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
 				}
-
-				UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
 			}
 			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
 				// stop calling the PollMatchmaking function
@@ -478,7 +478,7 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request failed. Please try again"));
 				}
 
-				SearchingForGame = !SearchingForGame;
+				SearchingForGame = false;
 			}
 		}
 		else {
@@ -496,7 +496,8 @@ void UMenuWidget::OnTravelFailure(UWorld* World, ETravelFailure::Type FailureTyp
 	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 	ButtonText->SetText(FText::FromString("Join Game"));
 	MatchmakingEventTextBlock->SetText(FText::FromString(FString("Failed to connect to the server, because ") + ReasonString));
-	SearchingForGame = !SearchingForGame;
+	SearchingForGame = false;
+	MatchmakingButton->SetIsEnabled(true);
 
 	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
 	{
