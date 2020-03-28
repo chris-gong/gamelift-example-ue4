@@ -21,6 +21,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 	UTextBlock* TeamNameTextBlock;

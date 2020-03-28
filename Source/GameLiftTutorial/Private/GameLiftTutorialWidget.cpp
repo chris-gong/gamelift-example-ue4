@@ -25,6 +25,13 @@ void UGameLiftTutorialWidget::NativeConstruct() {
 
 }
 
+void UGameLiftTutorialWidget::NativeDestruct() {
+	Super::NativeDestruct();
+	GetWorld()->GetTimerManager().ClearTimer(TeammateCountHandle);
+	GetWorld()->GetTimerManager().ClearTimer(CheckGameEventsHandle);
+	UE_LOG(LogTemp, Warning, TEXT("native destruct in UGameLiftTutorialWidget"));
+}
+
 void UGameLiftTutorialWidget::GetTeammateCount() {
 	FString OwningPlayerTeam;
 	// get owning player's team
