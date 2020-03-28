@@ -353,12 +353,11 @@ void UMenuWidget::OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request,
 			}
 
 			GetWorld()->GetTimerManager().SetTimer(PollMatchmakingHandle, this, &UMenuWidget::PollMatchmaking, 1.0f, false, 10.0f);
+			SearchingForGame = true;
 
 			UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 			ButtonText->SetText(FText::FromString("Cancel"));
 			MatchmakingEventTextBlock->SetText(FText::FromString("Currently looking for a match"));
-
-			SearchingForGame = true;
 		}
 	}
 	MatchmakingButton->SetIsEnabled(true);
@@ -430,8 +429,8 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 			else if (TicketStatus.Compare("MatchmakingSucceeded") == 0) {
 				// if check is to deal with a race condition involving the user pressing the cancel button
 				if(SearchingForGame) {
-					MatchmakingEventTextBlock->SetText(FText::FromString("Successfully found a match. Now connecting to the server"));
 					SearchingForGame = false;
+					MatchmakingEventTextBlock->SetText(FText::FromString("Successfully found a match. Now connecting to the server"));
 					MatchmakingButton->SetIsEnabled(false);
 
 					UGameInstance* GameInstance = GetGameInstance();
@@ -459,6 +458,7 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				}
 			}
 			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
+				SearchingForGame = false;
 				// modify the text
 				UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
 				ButtonText->SetText(FText::FromString("Join Game"));
@@ -471,8 +471,6 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				else if (TicketStatus.Compare("MatchmakingFailed") == 0) {
 					MatchmakingEventTextBlock->SetText(FText::FromString("Matchmaking request failed. Please try again"));
 				}
-
-				SearchingForGame = false;
 				// stop calling the PollMatchmaking function
 				UGameInstance* GameInstance = GetGameInstance();
 				if (GameInstance != nullptr) {
