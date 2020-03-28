@@ -34,7 +34,7 @@ void UGameLiftTutorialWidget::GetTeammateCount() {
 		AGameLiftTutorialPlayerState* OwningGameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(OwningPlayerState);
 		if (OwningGameLiftTutorialPlayerState != nullptr) {
 			OwningPlayerTeam = OwningGameLiftTutorialPlayerState->Team;
-			SetTeamNameText(OwningPlayerTeam);
+			TeamNameTextBlock->SetText(FText::FromString(FString("Team Name: ") + OwningPlayerTeam));
 		}
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("Owning Player Team: %s"), *(OwningPlayerTeam));
@@ -114,8 +114,4 @@ void UGameLiftTutorialWidget::CheckGameEvents() {
 		}
 	}
 
-}
-
-void UGameLiftTutorialWidget::SetTeamNameText(FString TeamName) {
-	TeamNameTextBlock->SetText(FText::FromString(FString("Team Name: ") + TeamName));
 }

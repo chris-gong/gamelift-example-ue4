@@ -19,8 +19,6 @@ class GAMELIFTTUTORIAL_API UGameLiftTutorialWidget : public UUserWidget
 public:
 	UGameLiftTutorialWidget(const FObjectInitializer& ObjectInitializer);
 
-	void SetTeamNameText(FString TeamName);
-
 protected:
 	virtual void NativeConstruct() override;
 
