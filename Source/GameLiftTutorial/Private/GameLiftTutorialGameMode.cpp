@@ -117,6 +117,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 					UE_LOG(LogTemp, Warning, TEXT("backfill ticket id: %s"), *(LatestBackfillTicketId));
 				}
 				State->LatestBackfillTicketId = LatestBackfillTicketId;
+
 				TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
 				for (TSharedPtr<FJsonValue> Team : Teams) {
 					TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
@@ -146,6 +147,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			Aws::GameLift::Server::Model::UpdateReason Reason = UpdateGameSessionObj.GetUpdateReason();
 
 			if (Reason == Aws::GameLift::Server::Model::UpdateReason::MATCHMAKING_DATA_UPDATED) {
+				State->Reason = EUpdateReason::MATCHMAKING_DATA_UPDATED;
 				// extract matchmaker data
 				Aws::GameLift::Server::Model::GameSession GameSessionObj = UpdateGameSessionObj.GetGameSession();
 				FString MatchmakerData = GameSessionObj.GetMatchmakerData();
@@ -160,25 +162,43 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 				//Deserialize the json data given Reader and the actual object to deserialize
 				if (FJsonSerializer::Deserialize(Reader, JsonObject))
 				{
+					UE_LOG(LogTemp, Warning, TEXT("deserialized json response from get matchmaker data"));
+					FString LatestBackfillTicketId = JsonObject->GetStringField("autoBackfillTicketId");
+					if (LatestBackfillTicketId.Len() > 0) {
+						UE_LOG(LogTemp, Warning, TEXT("backfill ticket id: %s"), *(LatestBackfillTicketId));
+					}
+					State->LatestBackfillTicketId = LatestBackfillTicketId;
+
 					TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
 					for (TSharedPtr<FJsonValue> Team : Teams) {
 						TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
 						FString TeamName = TeamObj->GetStringField("name");
+						if (TeamName.Len() > 0) {
+							UE_LOG(LogTemp, Warning, TEXT("team: %s"), *(TeamName));
+						}
 						TArray<TSharedPtr<FJsonValue>> Players = TeamObj->GetArrayField("players");
 
 						for (TSharedPtr<FJsonValue> Player : Players) {
 							TSharedPtr<FJsonObject> PlayerObj = Player->AsObject();
 							FString PlayerId = PlayerObj->GetStringField("playerId");
+							if (PlayerId.Len() > 0) {
+								UE_LOG(LogTemp, Warning, TEXT("player id: %s"), *(PlayerId));
+							}
 							State->PlayerIdToTeam.Add(PlayerId, TeamName);
 						}
 					}
 				}
 			}
-			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_FAILED || Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_TIMED_OUT || Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_CANCELLED) {
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_FAILED) {
 				// clear timer handles, and terminate the game session
+				State->Reason = EUpdateReason::BACKFILL_FAILED;
 			}
-		
-			State->LatestBackfillTicketId = UpdateGameSessionObj.GetBackfillTicketId();
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_TIMED_OUT) {
+				State->Reason = EUpdateReason::BACKFILL_TIMED_OUT;
+			}
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_CANCELLED) {
+				State->Reason = EUpdateReason::BACKFILL_CANCELLED;
+			}
 		};
 
 		Aws::GameLift::Server::ProcessTerminateFn OnProcessTerminate = [](void* Params)
@@ -251,6 +271,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 	}
 #endif
 	GetWorldTimerManager().SetTimer(CheckPlayerCountHandle, this, &AGameLiftTutorialGameMode::CheckPlayerCount, 0.25f, true, 5.0f);
+	GetWorldTimerManager().SetTimer(HandleBackfillHandle, this, &AGameLiftTutorialGameMode::HandleBackfill, 1.f, true, 5.0f);
 }
 
 FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
@@ -271,23 +292,26 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 		APlayerState* State = NewPlayerController->PlayerState;
 		if (State != nullptr) {
 			AGameLiftTutorialPlayerState* PlayerState = Cast<AGameLiftTutorialPlayerState>(State);
-			PlayerState->PlayerSessionId = *PlayerSessionId;
-			UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
+			if (PlayerState != nullptr) {
+				PlayerState->PlayerSessionId = *PlayerSessionId;
+				PlayerState->PlayerId = *PlayerId;
+				UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
 
-			// assign player's mesh color based on the player's team
-			if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToTeam.Num() > 0) {
-				UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and playeridtoteam is populated"));
-				if (UpdateGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
-					FString* Team = UpdateGameSessionState->PlayerIdToTeam.Find(PlayerId);
-					PlayerState->Team = *Team;
+				// assign player's mesh color based on the player's team
+				if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToTeam.Num() > 0) {
+					UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and playeridtoteam is populated"));
+					if (UpdateGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+						FString* Team = UpdateGameSessionState->PlayerIdToTeam.Find(PlayerId);
+						PlayerState->Team = *Team;
+					}
 				}
-			}
-			else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToTeam.Num() > 0) {
-				UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and playeridtoteam is populated"));
+				else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToTeam.Num() > 0) {
+					UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and playeridtoteam is populated"));
 
-				if (StartGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
-					FString* Team = StartGameSessionState->PlayerIdToTeam.Find(PlayerId);
-					PlayerState->Team = *Team;
+					if (StartGameSessionState->PlayerIdToTeam.Contains(PlayerId)) {
+						FString* Team = StartGameSessionState->PlayerIdToTeam.Find(PlayerId);
+						PlayerState->Team = *Team;
+					}
 				}
 			}
 		}
@@ -434,17 +458,8 @@ void AGameLiftTutorialGameMode::EndGame() {
 	
 }
 
-void AGameLiftTutorialGameMode::TerminateSessionDueToInactivity() {
-#if WITH_GAMELIFT
-	auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
-	if (TerminateGameSessionOutcome.IsSuccess()) {
-		auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
-		if (ProcessEndingOutcome.IsSuccess())
-		{
-			FGenericPlatformMisc::RequestExit(false);
-		}
-	}
-#endif
+void AGameLiftTutorialGameMode::HandleBackfill() {
+
 }
 
 void AGameLiftTutorialGameMode::OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {

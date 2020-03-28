@@ -10,6 +10,14 @@
 class FGameLiftServerSDKModule;
 class AGameLiftTutorialGameState;
 
+enum class EUpdateReason : uint8
+{
+	MATCHMAKING_DATA_UPDATED,
+	BACKFILL_FAILED,
+	BACKFILL_TIMED_OUT,
+	BACKFILL_CANCELLED
+};
+
 struct FStartGameSessionState
 {
 	bool Status;
@@ -19,6 +27,7 @@ struct FStartGameSessionState
 
 struct FUpdateGameSessionState
 {
+	EUpdateReason Reason;
 	FString LatestBackfillTicketId;
 	TMap<FString, FString> PlayerIdToTeam;
 };
@@ -64,12 +73,12 @@ private:
 	FTimerHandle CheckPlayerCountHandle;
 	FTimerHandle StopBackfillHandle;
 	FTimerHandle EndGameHandle;
-	FTimerHandle TerminateSessionDueToInactivityHandle;
+	FTimerHandle HandleBackfillHandle;
 
 	void CheckPlayerCount();
 	void StopBackfill();
 	void EndGame();
-	void TerminateSessionDueToInactivity();
+	void HandleBackfill();
 
 	void OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 

@@ -14,14 +14,9 @@ class GAMELIFTTUTORIAL_API AGameLiftTutorialPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite)
 	FString PlayerSessionId;
+	FString PlayerId;
 
 	UPROPERTY(Replicated, BlueprintReadWrite)
 	FString Team;
-
-	/*virtual bool IsSupportedForNetworking() const override
-	{
-		return true;
-	}*/
 };
