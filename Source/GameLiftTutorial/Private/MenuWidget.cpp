@@ -45,7 +45,7 @@ void UMenuWidget::NativeConstruct() {
 	WinsTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Wins"));
 	LossesTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_Losses"));
 	MatchmakingEventTextBlock = (UTextBlock*)GetWidgetFromName(TEXT("TextBlock_MatchmakingEvent"));
-
+	
 	//TODO: check whether or not aws tokens exist, otherwise, hide the webbrowser and make the other stuff visible
 	FString AccessToken;
 	UGameInstance* GameInstance = GetGameInstance();
@@ -89,6 +89,10 @@ void UMenuWidget::NativeConstruct() {
 void UMenuWidget::NativeDestruct() {
 	Super::NativeDestruct();
 	GetWorld()->GetTimerManager().ClearTimer(PollMatchmakingHandle);
+	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
+	{
+		GEngine->OnTravelFailure().Remove(TravelFailureDelegateHandle);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("native destruct in umenuwdiget"));
 }
 
@@ -445,6 +449,11 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 				FString LevelName = IpAddress + FString(":") + Port;
 				const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionId + FString("?PlayerId=") + PlayerId;
 
+				if (GEngine->OnTravelFailure().IsBoundToObject(this) == false)
+				{
+					TravelFailureDelegateHandle = GEngine->OnTravelFailure().AddUObject(this, &UMenuWidget::OnTravelFailure);
+				}
+
 				UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
 			}
 			else if (TicketStatus.Compare("MatchmakingTimedOut") == 0 || TicketStatus.Compare("MatchmakingCancelled") == 0 || TicketStatus.Compare("MatchmakingFailed") == 0) {
@@ -481,10 +490,16 @@ void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHt
 	}
 }
 
-void UMenuWidget::OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+void UMenuWidget::OnTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& ReasonString) {
+	UE_LOG(LogTemp, Warning, TEXT("Travel failed %s"), *ReasonString);
 
-}
+	UTextBlock* ButtonText = (UTextBlock*)MatchmakingButton->GetChildAt(0);
+	ButtonText->SetText(FText::FromString("Join Game"));
+	MatchmakingEventTextBlock->SetText(FText::FromString(FString("Failed to connect to the server, because ") + ReasonString));
+	SearchingForGame = !SearchingForGame;
 
-void UMenuWidget::OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-
+	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
+	{
+		GEngine->OnTravelFailure().Remove(TravelFailureDelegateHandle);
+	}
 }

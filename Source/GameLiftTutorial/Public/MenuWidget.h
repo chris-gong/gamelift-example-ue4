@@ -55,12 +55,17 @@ private:
 
 	void PollMatchmaking();
 
-	// Delegate Functions
+	// Delegate Handles and Functions
+	FDelegateHandle TravelFailureDelegateHandle;
+
 	UFUNCTION()
 	void CheckIfLoginSuccessful();
 
 	UFUNCTION()
 	void OnMatchmakingButtonClicked();
+
+	UFUNCTION()
+	void OnTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& ReasonString);
 
 	// OnResponse Received Functions
 	void OnAwsTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
@@ -68,7 +73,5 @@ private:
 	void OnInitiateMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 };
