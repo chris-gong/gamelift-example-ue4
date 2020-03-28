@@ -7,6 +7,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameLiftTutorialPlayerState.h"
 #include "GameLiftTutorialGameState.h"
+#include "GameLiftTutorialGameInstance.h"
 
 UGameLiftTutorialWidget::UGameLiftTutorialWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 
@@ -30,6 +31,27 @@ void UGameLiftTutorialWidget::NativeDestruct() {
 	GetWorld()->GetTimerManager().ClearTimer(TeammateCountHandle);
 	GetWorld()->GetTimerManager().ClearTimer(CheckGameEventsHandle);
 	UE_LOG(LogTemp, Warning, TEXT("native destruct in UGameLiftTutorialWidget"));
+}
+
+FReply UGameLiftTutorialWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) {
+	FReply Reply = Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+	FString KeyName = InKeyEvent.GetKey().ToString();
+	if (KeyName.Compare("Escape") == 0) {
+		// Clean up first
+		NativeDestruct();
+		UGameInstance* GameInstance = GetGameInstance();
+		if (GameInstance != nullptr) {
+			UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+			if (GameLiftTutorialGameInstance != nullptr) {
+				GameLiftTutorialGameInstance->Shutdown();
+			}
+		}
+		if (!WITH_EDITOR) {
+			// Quit the game
+			FGenericPlatformMisc::RequestExit(false);
+		}
+	}
+	return Reply;
 }
 
 void UGameLiftTutorialWidget::GetTeammateCount() {
