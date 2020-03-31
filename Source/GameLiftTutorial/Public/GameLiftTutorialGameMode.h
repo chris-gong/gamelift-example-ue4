@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Runtime/Online/HTTP/Public/Http.h"
+#include "GameLiftServerSDK.h"
 #include "GameLiftTutorialGameMode.generated.h"
 
 class FGameLiftServerSDKModule;
@@ -12,6 +13,7 @@ class AGameLiftTutorialGameState;
 
 enum class EUpdateReason : uint8
 {
+	BACKFILL_INITIATED, // custom one to tell whether or not a backfill request has been updated yet
 	MATCHMAKING_DATA_UPDATED,
 	BACKFILL_FAILED,
 	BACKFILL_TIMED_OUT,
@@ -21,15 +23,16 @@ enum class EUpdateReason : uint8
 struct FStartGameSessionState
 {
 	bool Status;
-	FString LatestBackfillTicketId;
-	TMap<FString, FString> PlayerIdToTeam;
+	FString MatchmakingConfigurationArn;
+	TMap<FString, FPlayer> PlayerIdToPlayer;
 };
 
 struct FUpdateGameSessionState
 {
 	EUpdateReason Reason;
+	FString MatchmakingConfigurationArn;
 	FString LatestBackfillTicketId;
-	TMap<FString, FString> PlayerIdToTeam;
+	TMap<FString, FPlayer> PlayerIdToPlayer;
 };
 
 struct FProcessTerminateState
@@ -65,20 +68,29 @@ private:
 	FString ApiUrl;
 	FString AssignMatchResultsUrl;
 
+	bool GameSessionActivated;
+	bool WaitingForPlayersToJoin;
+	int WaitingForPlayersToJoinTime;
+	int TimeUntilGameOver;
+	FString LatestBackfillTicketId;
+	TMap<FString, FPlayer> ConnectedPlayers; // kind of misleading, because it's supposed to represent the players who should be connected
+
 	FStartGameSessionState* StartGameSessionState;
 	FUpdateGameSessionState* UpdateGameSessionState;
 	FProcessTerminateState* ProcessTerminateState;
 	FHealthCheckState* HealthCheckState;
 	
-	FTimerHandle CheckPlayerCountHandle;
-	FTimerHandle StopBackfillHandle;
+	FTimerHandle CountDownUntilGameOverHandle;
 	FTimerHandle EndGameHandle;
-	FTimerHandle HandleBackfillHandle;
+	FTimerHandle PickAWinningTeamHandle;
+	FTimerHandle HandleBackfillUpdatesHandle;
 
-	void CheckPlayerCount();
-	void StopBackfill();
+	void CountDownUntilGameOver();
 	void EndGame();
-	void HandleBackfill();
+	void PickAWinningTeam();
+	void HandleBackfillUpdates();
+
+	void CreateBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, TMap<FString, FPlayer> Players);
 
 	void OnAssignMatchResultsResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 

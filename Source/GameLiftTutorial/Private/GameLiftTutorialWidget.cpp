@@ -100,13 +100,7 @@ void UGameLiftTutorialWidget::CheckGameEvents() {
 	}
 
 	if (LatestEvent.Len() > 0) {
-		if (LatestEvent.Compare("GameStarted") == 0) {
-			EventTextBlock->SetText(FText::FromString(FString("Game has started!")));
-		}
-		else if (LatestEvent.Compare("BackfillEnded") == 0) {
-			EventTextBlock->SetText(FText::FromString(FString("Backfill ended, no one can join this game now.")));
-		}
-		else if (LatestEvent.Compare("GameEnded") == 0) {
+		if (LatestEvent.Compare("GameEnded") == 0) {
 			FString OwningPlayerTeam;
 			// get owning player's team
 			APlayerState* OwningPlayerState = GetOwningPlayerState();
@@ -130,17 +124,8 @@ void UGameLiftTutorialWidget::CheckGameEvents() {
 			GetWorld()->GetTimerManager().ClearTimer(CheckGameEventsHandle);
 
 		}
-	}
-	else {
-		TArray<APlayerState*> PlayerStates = GetWorld()->GetGameState()->PlayerArray;
-		int NumPlayers = PlayerStates.Num();
-		if (NumPlayers < 4) {
-			EventTextBlock->SetText(FText::FromString(FString("Need 4 players to start a game")));
-		}
 		else {
-			EventTextBlock->SetText(FText::FromString(FString("Game is about to start")));
-
+			EventTextBlock->SetText(FText::FromString(LatestEvent));
 		}
 	}
-
 }
