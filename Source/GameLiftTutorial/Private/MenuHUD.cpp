@@ -25,6 +25,7 @@ void AMenuHUD::BeginPlay() {
 		if (MenuWidget != nullptr)
 		{
 			MenuWidget->AddToViewport();
+			MenuWidget->SetFocus();
 		}
 	}
 }

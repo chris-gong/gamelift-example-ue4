@@ -29,6 +29,7 @@ void AGameLiftTutorialHUD::BeginPlay() {
 		if (TeamWidget != nullptr)
 		{
 			TeamWidget->AddToViewport();
+			TeamWidget->SetFocus();
 		}
 	}
 }

@@ -8,9 +8,10 @@
 #include "GameLiftTutorialPlayerState.h"
 #include "GameLiftTutorialGameState.h"
 #include "GameLiftTutorialGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 UGameLiftTutorialWidget::UGameLiftTutorialWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
-
+	
 }
 
 void UGameLiftTutorialWidget::NativeConstruct() {
@@ -30,6 +31,10 @@ void UGameLiftTutorialWidget::NativeDestruct() {
 	Super::NativeDestruct();
 	GetWorld()->GetTimerManager().ClearTimer(TeammateCountHandle);
 	GetWorld()->GetTimerManager().ClearTimer(CheckGameEventsHandle);
+	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
+	{
+		GEngine->OnTravelFailure().Remove(TravelFailureDelegateHandle);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("native destruct in UGameLiftTutorialWidget"));
 }
 
@@ -37,19 +42,14 @@ FReply UGameLiftTutorialWidget::NativeOnKeyDown(const FGeometry& InGeometry, con
 	FReply Reply = Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	FString KeyName = InKeyEvent.GetKey().ToString();
 	if (KeyName.Compare("Escape") == 0) {
-		// Clean up first
-		NativeDestruct();
-		UGameInstance* GameInstance = GetGameInstance();
-		if (GameInstance != nullptr) {
-			UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
-			if (GameLiftTutorialGameInstance != nullptr) {
-				GameLiftTutorialGameInstance->Shutdown();
-			}
+		FString LevelName = "Level_Menu";
+		if (GEngine->OnTravelFailure().IsBoundToObject(this) == false)
+		{
+			TravelFailureDelegateHandle = GEngine->OnTravelFailure().AddUObject(this, &UGameLiftTutorialWidget::OnTravelFailure);
 		}
-		if (!WITH_EDITOR) {
-			// Quit the game
-			FGenericPlatformMisc::RequestExit(false);
-		}
+
+		UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, "");
+		
 	}
 	return Reply;
 }
@@ -127,5 +127,26 @@ void UGameLiftTutorialWidget::CheckGameEvents() {
 		else {
 			EventTextBlock->SetText(FText::FromString(LatestEvent));
 		}
+	}
+}
+
+void UGameLiftTutorialWidget::OnTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& ReasonString) {
+	// Clean up first
+	if (GEngine->OnTravelFailure().IsBoundToObject(this) == true)
+	{
+		GEngine->OnTravelFailure().Remove(TravelFailureDelegateHandle);
+	}
+
+	NativeDestruct();
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance != nullptr) {
+		UGameLiftTutorialGameInstance* GameLiftTutorialGameInstance = Cast<UGameLiftTutorialGameInstance>(GameInstance);
+		if (GameLiftTutorialGameInstance != nullptr) {
+			GameLiftTutorialGameInstance->Shutdown();
+		}
+	}
+	if (!WITH_EDITOR) {
+		// Quit the game
+		FGenericPlatformMisc::RequestExit(false);
 	}
 }

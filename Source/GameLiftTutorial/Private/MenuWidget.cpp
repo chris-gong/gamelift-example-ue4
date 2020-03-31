@@ -34,6 +34,7 @@ UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(Ob
 
 void UMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
+
 	WebBrowser = (UWebBrowser*)GetWidgetFromName(TEXT("WebBrowser_Login"));
 
 	MatchmakingButton = (UButton*)GetWidgetFromName(TEXT("Button_Matchmaking"));
@@ -429,7 +430,7 @@ void UMenuWidget::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHtt
 
 void UMenuWidget::OnPollMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
-	//UE_LOG(LogTemp, Warning, TEXT("Response from poll matchmaking: %s"), *(Response->GetContentAsString()));
+	UE_LOG(LogTemp, Warning, TEXT("Response from poll matchmaking: %s"), *(Response->GetContentAsString()));
 	if (bWasSuccessful) {
 		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;

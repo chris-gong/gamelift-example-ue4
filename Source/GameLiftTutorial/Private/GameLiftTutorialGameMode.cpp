@@ -533,7 +533,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				}
 			}
 		}
-		else if (WaitingForPlayersToJoin){
+		else if (WaitingForPlayersToJoin) {
 			if (WaitingForPlayersToJoinTime == 60) {
 				// gave players 60 seconds to join the game since that is how much time they have to accept his/her player session
 				WaitingForPlayersToJoin = false;
@@ -590,6 +590,59 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 			}
 			else {
 				WaitingForPlayersToJoinTime++;
+			}
+		}
+		else {
+			// if we are not in the middle of a backfill request and if we are not waiting on players, 
+			// then we should always check if anyone left the game
+			// because this case will only happen if there are 4 people in the game at one point
+			// but maybe just maybe someone left the game after there were at one point 4 people in the game
+			// or there was a successful backfill request that only resulted in two people being in the game successfully
+			TArray<APlayerState*> PlayerStates = GetWorld()->GetGameState()->PlayerArray;
+
+			int NumPlayersInGame = PlayerStates.Num();
+			if (NumPlayersInGame > 0 && NumPlayersInGame < 4) {
+				TMap<FString, FPlayer> ConnectedPlayersUpdated;
+				for (APlayerState* PlayerState : PlayerStates) {
+					if (PlayerState != nullptr) {
+						AGameLiftTutorialPlayerState* GameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(PlayerState);
+						if (GameLiftTutorialPlayerState != nullptr) {
+							FPlayer* PlayerObj = ConnectedPlayers.Find(GameLiftTutorialPlayerState->PlayerId);
+							if (PlayerObj != nullptr) {
+								ConnectedPlayersUpdated.Add(GameLiftTutorialPlayerState->PlayerId, *PlayerObj);
+							}
+						}
+					}
+				}
+
+				ConnectedPlayers = ConnectedPlayersUpdated;
+				// start a new backfill request
+				auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+				if (GameSessionIdOutcome.IsSuccess()) {
+					FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
+					// the only benefit of this if check is in the case where the matchmaking configuration arn ever changes, in our tutorial that won't be the case
+					if (UpdateGameSessionState != nullptr && UpdateGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
+						CreateBackfillRequest(GameSessionArn, UpdateGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+					}
+					else if (StartGameSessionState != nullptr && StartGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
+						CreateBackfillRequest(GameSessionArn, StartGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+					}
+				}
+			}
+			else if (NumPlayersInGame == 0) {
+				// terminate the game session if everyone just left the game
+				GetWorldTimerManager().ClearTimer(CountDownUntilGameOverHandle);
+				GetWorldTimerManager().ClearTimer(HandleBackfillUpdatesHandle);
+				GetWorldTimerManager().ClearTimer(PickAWinningTeamHandle);
+				GetWorldTimerManager().ClearTimer(EndGameHandle);
+				auto TerminateGameSessionOutcome = Aws::GameLift::Server::TerminateGameSession();
+				if (TerminateGameSessionOutcome.IsSuccess()) {
+					auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
+					if (ProcessEndingOutcome.IsSuccess())
+					{
+						FGenericPlatformMisc::RequestExit(false);
+					}
+				}
 			}
 		}
 	}

@@ -32,6 +32,11 @@ private:
 	FTimerHandle TeammateCountHandle;
 	FTimerHandle CheckGameEventsHandle;
 
+	FDelegateHandle TravelFailureDelegateHandle;
+
 	void GetTeammateCount();
 	void CheckGameEvents();
+
+	UFUNCTION()
+	void OnTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& ReasonString);
 };
