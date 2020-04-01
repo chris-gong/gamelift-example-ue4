@@ -17,7 +17,8 @@ enum class EUpdateReason : uint8
 	MATCHMAKING_DATA_UPDATED,
 	BACKFILL_FAILED,
 	BACKFILL_TIMED_OUT,
-	BACKFILL_CANCELLED
+	BACKFILL_CANCELLED,
+	BACKFILL_COMPLETED // custom one to tell whether we have acknowledged that the backfill request is done
 };
 
 struct FStartGameSessionState

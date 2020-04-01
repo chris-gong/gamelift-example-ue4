@@ -453,6 +453,9 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 					CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, StartGameSessionState->PlayerIdToPlayer);
 				}
 			}
+			else {
+				UpdateGameSessionState->Reason = EUpdateReason::BACKFILL_COMPLETED;
+			}
 
 			ConnectedPlayers = StartGameSessionState->PlayerIdToPlayer;
 			WaitingForPlayersToJoin = true;
@@ -465,7 +468,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 		}
 	}
 	else {
-		if (UpdateGameSessionState != nullptr && UpdateGameSessionState->Reason != EUpdateReason::BACKFILL_INITIATED) {
+		if (UpdateGameSessionState != nullptr && UpdateGameSessionState->Reason != EUpdateReason::BACKFILL_INITIATED && UpdateGameSessionState->Reason != EUpdateReason::BACKFILL_COMPLETED) {
 			// something happened to the current backfill request 
 			if (UpdateGameSessionState->Reason == EUpdateReason::MATCHMAKING_DATA_UPDATED) {
 				int NumRequestedPlayers = UpdateGameSessionState->PlayerIdToPlayer.Num();
@@ -478,6 +481,9 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 						FString MatchmakingConfigurationArn = UpdateGameSessionState->MatchmakingConfigurationArn;
 						CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, UpdateGameSessionState->PlayerIdToPlayer);
 					}
+				}
+				else {
+					UpdateGameSessionState->Reason = EUpdateReason::BACKFILL_COMPLETED;
 				}
 
 				ConnectedPlayers = UpdateGameSessionState->PlayerIdToPlayer;
@@ -505,9 +511,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				}
 
 				int NumPlayersJoined = ConnectedPlayersUpdated.Num();
-				// if all the players in the game are the ones who are supposed to be in the game,
-				// then do not do anything because there is currently a backfill request involving those players
-				if (NumPlayersJoined > 0) {
+				if (NumPlayersJoined > 0 && NumPlayersJoined < 4) {
 					ConnectedPlayers = ConnectedPlayersUpdated;
 					// start a new backfill request
 					auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
@@ -557,7 +561,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				int NumPlayersJoined = ConnectedPlayersUpdated.Num();
 				// if all the players in the game are the ones who are supposed to be in the game,
 				// then do not do anything because there is currently a backfill request involving those players
-				if (NumPlayersJoined > 0 && ConnectedPlayers.Num() != NumPlayersJoined) {
+				if (NumPlayersJoined > 0 && NumPlayersJoined < 4 && ConnectedPlayers.Num() != NumPlayersJoined) {
 					ConnectedPlayers = ConnectedPlayersUpdated;
 					// start a new backfill request
 					auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
@@ -592,8 +596,9 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				WaitingForPlayersToJoinTime++;
 			}
 		}
-		else {
-			// if we are not in the middle of a backfill request and if we are not waiting on players, 
+		else if(UpdateGameSessionState != nullptr && (UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_INITIATED || UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_COMPLETED)){
+			// if we are not waiting on players, either update the current backfill request 
+			// or create a new backfill request to account for players leaving
 			// then we should always check if anyone left the game
 			// because this case will only happen if there are 4 people in the game at one point
 			// but maybe just maybe someone left the game after there were at one point 4 people in the game
@@ -601,7 +606,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 			TArray<APlayerState*> PlayerStates = GetWorld()->GetGameState()->PlayerArray;
 
 			int NumPlayersInGame = PlayerStates.Num();
-			if (NumPlayersInGame > 0 && NumPlayersInGame < 4) {
+			if (NumPlayersInGame > 0 && NumPlayersInGame < 4 && ConnectedPlayers.Num() != NumPlayersInGame) {
 				TMap<FString, FPlayer> ConnectedPlayersUpdated;
 				for (APlayerState* PlayerState : PlayerStates) {
 					if (PlayerState != nullptr) {
