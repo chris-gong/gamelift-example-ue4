@@ -27,11 +27,6 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 		GameStateClass = AGameLiftTutorialGameState::StaticClass();
 	}
 
-	StartGameSessionState = new FStartGameSessionState();
-	UpdateGameSessionState = new FUpdateGameSessionState();
-	ProcessTerminateState = new FProcessTerminateState();
-	HealthCheckState = new FHealthCheckState();
-
 	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
 	AssignMatchResultsUrl = ApiUrl + "/assignmatchresults";
@@ -94,7 +89,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 	auto InitSDKOutcome = Aws::GameLift::Server::InitSDK();
 
 	if (InitSDKOutcome.IsSuccess()) {
-		Aws::GameLift::Server::StartGameSessionFn OnStartGameSession = [](Aws::GameLift::Server::Model::GameSession GameSessionObj, void* Params)
+		auto OnStartGameSession = [](Aws::GameLift::Server::Model::GameSession GameSessionObj, void* Params)
 		{
 			FStartGameSessionState* State = (FStartGameSessionState*)Params;
 
@@ -155,7 +150,7 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			}
 		};
 
-		Aws::GameLift::Server::UpdateGameSessionFn OnUpdateGameSession = [](Aws::GameLift::Server::Model::UpdateGameSession UpdateGameSessionObj, void* Params)
+		auto OnUpdateGameSession = [](Aws::GameLift::Server::Model::UpdateGameSession UpdateGameSessionObj, void* Params)
 		{
 			FUpdateGameSessionState* State = (FUpdateGameSessionState*)Params;
 
@@ -234,14 +229,25 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 			}
 		};
 
-		Aws::GameLift::Server::ProcessTerminateFn OnProcessTerminate = [](void* Params)
+		auto OnProcessTerminate = [](void* Params)
 		{
 			FProcessTerminateState* State = (FProcessTerminateState*)Params;
+			auto GetTerminationTimeOutcome = Aws::GameLift::Server::GetTerminationTime();
+			if (GetTerminationTimeOutcome.IsSuccess()) {
+				State->TerminationTime = GetTerminationTimeOutcome.GetResult();
+			}
 
-			State->Status = true;
+			auto ProcessEndingOutcome = Aws::GameLift::Server::ProcessEnding();
+				
+			if (ProcessEndingOutcome.IsSuccess())
+			{
+				State->Status = true;
+				FGenericPlatformMisc::RequestExit(false);
+			}
+
 		};
 
-		Aws::GameLift::Server::HealthCheckFn OnHealthCheck = [](void* Params)
+		auto OnHealthCheck = [](void* Params)
 		{
 			FHealthCheckState* State = (FHealthCheckState*)Params;
 			State->Status = true;
@@ -279,13 +285,13 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 		const Aws::GameLift::Server::ProcessParameters* Params =
 			new Aws::GameLift::Server::ProcessParameters(
 				OnStartGameSession,
-				StartGameSessionState,
+				&StartGameSessionState,
 				OnUpdateGameSession,
-				UpdateGameSessionState,
+				&UpdateGameSessionState,
 				OnProcessTerminate,
-				ProcessTerminateState,
+				&ProcessTerminateState,
 				OnHealthCheck,
-				HealthCheckState,
+				&HealthCheckState,
 				Port,
 				*LogParams
 			);
@@ -330,19 +336,19 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 				UE_LOG(LogTemp, Warning, TEXT("state is not null in init new player"));
 
 				// assign player's mesh color based on the player's team
-				if (UpdateGameSessionState != nullptr && UpdateGameSessionState->PlayerIdToPlayer.Num() > 0) {
+				if (UpdateGameSessionState.PlayerIdToPlayer.Num() > 0) {
 					UE_LOG(LogTemp, Warning, TEXT("Updategamesessionstate is not null and PlayerIdToPlayer is populated"));
-					if (UpdateGameSessionState->PlayerIdToPlayer.Contains(PlayerId)) {
-						FPlayer* PlayerObj = UpdateGameSessionState->PlayerIdToPlayer.Find(PlayerId);
+					if (UpdateGameSessionState.PlayerIdToPlayer.Contains(PlayerId)) {
+						FPlayer* PlayerObj = UpdateGameSessionState.PlayerIdToPlayer.Find(PlayerId);
 						FString Team = PlayerObj->m_team;
 						PlayerState->Team = *Team;
 					}
 				}
-				else if (StartGameSessionState != nullptr && StartGameSessionState->PlayerIdToPlayer.Num() > 0) {
+				else if (StartGameSessionState.PlayerIdToPlayer.Num() > 0) {
 					UE_LOG(LogTemp, Warning, TEXT("StartGameSessionState is not null and PlayerIdToPlayer is populated"));
 
-					if (StartGameSessionState->PlayerIdToPlayer.Contains(PlayerId)) {
-						FPlayer* PlayerObj = StartGameSessionState->PlayerIdToPlayer.Find(PlayerId);
+					if (StartGameSessionState.PlayerIdToPlayer.Contains(PlayerId)) {
+						FPlayer* PlayerObj = StartGameSessionState.PlayerIdToPlayer.Find(PlayerId);
 						FString Team = PlayerObj->m_team;
 						PlayerState->Team = *Team;
 					}
@@ -439,25 +445,25 @@ void AGameLiftTutorialGameMode::PickAWinningTeam() {
 void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 #if WITH_GAMELIFT
 	if (!GameSessionActivated) {
-		if (StartGameSessionState != nullptr && StartGameSessionState->Status) {
+		if (StartGameSessionState.Status) {
 			GameSessionActivated = true;
-			int NumRequestedPlayers = StartGameSessionState->PlayerIdToPlayer.Num();
+			int NumRequestedPlayers = StartGameSessionState.PlayerIdToPlayer.Num();
 
 			// create the game session's first backfill request using those players if there are less than four players
 			if (NumRequestedPlayers < 4) {
 				auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
 				if (GameSessionIdOutcome.IsSuccess()) {
 					FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
-					FString MatchmakingConfigurationArn = StartGameSessionState->MatchmakingConfigurationArn;
+					FString MatchmakingConfigurationArn = StartGameSessionState.MatchmakingConfigurationArn;
 					UE_LOG(LogTemp, Warning, TEXT("in handle backfill updates gamesessionid: %s"), *(GameSessionArn));
-					CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, StartGameSessionState->PlayerIdToPlayer);
+					CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, StartGameSessionState.PlayerIdToPlayer);
 				}
 			}
 			else {
-				UpdateGameSessionState->Reason = EUpdateReason::BACKFILL_COMPLETED;
+				UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_COMPLETED;
 			}
 
-			ConnectedPlayers = StartGameSessionState->PlayerIdToPlayer;
+			ConnectedPlayers = StartGameSessionState.PlayerIdToPlayer;
 			WaitingForPlayersToJoin = true;
 			WaitingForPlayersToJoinTime = 0;
 
@@ -468,30 +474,30 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 		}
 	}
 	else {
-		if (UpdateGameSessionState != nullptr && UpdateGameSessionState->Reason != EUpdateReason::BACKFILL_INITIATED && UpdateGameSessionState->Reason != EUpdateReason::BACKFILL_COMPLETED) {
+		if (UpdateGameSessionState.Reason != EUpdateReason::BACKFILL_INITIATED && UpdateGameSessionState.Reason != EUpdateReason::BACKFILL_COMPLETED && UpdateGameSessionState.Reason != EUpdateReason::NO_UPDATE) {
 			// something happened to the current backfill request 
-			if (UpdateGameSessionState->Reason == EUpdateReason::MATCHMAKING_DATA_UPDATED) {
-				int NumRequestedPlayers = UpdateGameSessionState->PlayerIdToPlayer.Num();
+			if (UpdateGameSessionState.Reason == EUpdateReason::MATCHMAKING_DATA_UPDATED) {
+				int NumRequestedPlayers = UpdateGameSessionState.PlayerIdToPlayer.Num();
 
 				// create the game session's first backfill request using those players if there are less than four players
 				if (NumRequestedPlayers < 4) {
 					auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
 					if (GameSessionIdOutcome.IsSuccess()) {
 						FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
-						FString MatchmakingConfigurationArn = UpdateGameSessionState->MatchmakingConfigurationArn;
-						CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, UpdateGameSessionState->PlayerIdToPlayer);
+						FString MatchmakingConfigurationArn = UpdateGameSessionState.MatchmakingConfigurationArn;
+						CreateBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, UpdateGameSessionState.PlayerIdToPlayer);
 					}
 				}
 				else {
-					UpdateGameSessionState->Reason = EUpdateReason::BACKFILL_COMPLETED;
+					UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_COMPLETED;
 				}
 
-				ConnectedPlayers = UpdateGameSessionState->PlayerIdToPlayer;
+				ConnectedPlayers = UpdateGameSessionState.PlayerIdToPlayer;
 				WaitingForPlayersToJoin = true;
 				WaitingForPlayersToJoinTime = 0;
 			}
-			else if (UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_FAILED || UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_TIMED_OUT
-				|| UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_CANCELLED) {
+			else if (UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_FAILED || UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_TIMED_OUT
+				|| UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_CANCELLED) {
 				WaitingForPlayersToJoin = false;
 				WaitingForPlayersToJoinTime = 0;
 				// make a new backfill request with the players currently in the game, because in this situation, we shouldn't be waiting on players to connect anymore
@@ -517,7 +523,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 					auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
 					if (GameSessionIdOutcome.IsSuccess()) {
 						FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
-						CreateBackfillRequest(GameSessionArn, UpdateGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+						CreateBackfillRequest(GameSessionArn, UpdateGameSessionState.MatchmakingConfigurationArn, ConnectedPlayers);
 					}
 				}
 				else if (NumPlayersJoined == 0) {
@@ -568,11 +574,11 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 					if (GameSessionIdOutcome.IsSuccess()) {
 						FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
 						// the only benefit of this if check is in the case where the matchmaking configuration arn ever changes, in our tutorial that won't be the case
-						if (UpdateGameSessionState != nullptr && UpdateGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
-							CreateBackfillRequest(GameSessionArn, UpdateGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+						if (UpdateGameSessionState.MatchmakingConfigurationArn.Len() > 0) {
+							CreateBackfillRequest(GameSessionArn, UpdateGameSessionState.MatchmakingConfigurationArn, ConnectedPlayers);
 						}
-						else if (StartGameSessionState != nullptr && StartGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
-							CreateBackfillRequest(GameSessionArn, StartGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+						else if (StartGameSessionState.MatchmakingConfigurationArn.Len() > 0) {
+							CreateBackfillRequest(GameSessionArn, StartGameSessionState.MatchmakingConfigurationArn, ConnectedPlayers);
 						}
 					}
 				}
@@ -596,7 +602,7 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				WaitingForPlayersToJoinTime++;
 			}
 		}
-		else if(UpdateGameSessionState != nullptr && (UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_INITIATED || UpdateGameSessionState->Reason == EUpdateReason::BACKFILL_COMPLETED)){
+		else if(UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_INITIATED || UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_COMPLETED){
 			// if we are not waiting on players, either update the current backfill request 
 			// or create a new backfill request to account for players leaving
 			// then we should always check if anyone left the game
@@ -626,11 +632,11 @@ void AGameLiftTutorialGameMode::HandleBackfillUpdates() {
 				if (GameSessionIdOutcome.IsSuccess()) {
 					FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
 					// the only benefit of this if check is in the case where the matchmaking configuration arn ever changes, in our tutorial that won't be the case
-					if (UpdateGameSessionState != nullptr && UpdateGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
-						CreateBackfillRequest(GameSessionArn, UpdateGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+					if (UpdateGameSessionState.MatchmakingConfigurationArn.Len() > 0) {
+						CreateBackfillRequest(GameSessionArn, UpdateGameSessionState.MatchmakingConfigurationArn, ConnectedPlayers);
 					}
-					else if (StartGameSessionState != nullptr && StartGameSessionState->MatchmakingConfigurationArn.Len() > 0) {
-						CreateBackfillRequest(GameSessionArn, StartGameSessionState->MatchmakingConfigurationArn, ConnectedPlayers);
+					else if (StartGameSessionState.MatchmakingConfigurationArn.Len() > 0) {
+						CreateBackfillRequest(GameSessionArn, StartGameSessionState.MatchmakingConfigurationArn, ConnectedPlayers);
 					}
 				}
 			}
@@ -679,7 +685,7 @@ void AGameLiftTutorialGameMode::CreateBackfillRequest(FString GameSessionArn, FS
 	auto StartMatchBackfillOutcome = Aws::GameLift::Server::StartMatchBackfill(*StartMatchBackfillRequest);
 	if (StartMatchBackfillOutcome.IsSuccess()) {
 		UE_LOG(LogTemp, Warning, TEXT("Start match backfill request succeeded"));
-		UpdateGameSessionState->Reason = EUpdateReason::BACKFILL_INITIATED;
+		UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_INITIATED;
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Start match backfill request failed"));

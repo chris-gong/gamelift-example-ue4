@@ -8,9 +8,9 @@
 #include "GameLiftServerSDK.h"
 #include "GameLiftTutorialGameMode.generated.h"
 
-class FGameLiftServerSDKModule;
 class AGameLiftTutorialGameState;
 
+UENUM()
 enum class EUpdateReason : uint8
 {
 	BACKFILL_INITIATED, // custom one to tell whether or not a backfill request has been updated yet
@@ -18,32 +18,74 @@ enum class EUpdateReason : uint8
 	BACKFILL_FAILED,
 	BACKFILL_TIMED_OUT,
 	BACKFILL_CANCELLED,
-	BACKFILL_COMPLETED // custom one to tell whether we have acknowledged that the backfill request is done
+	BACKFILL_COMPLETED, // custom one to tell whether we have acknowledged that the backfill request is done
+	NO_UPDATE // custom one to say that updategamesession lambda handler hasn't been called yet
 };
 
+USTRUCT()
 struct FStartGameSessionState
 {
+	GENERATED_BODY();
+
+	UPROPERTY()
 	bool Status;
+
+	UPROPERTY()
 	FString MatchmakingConfigurationArn;
+
 	TMap<FString, FPlayer> PlayerIdToPlayer;
+
+	FStartGameSessionState() {
+		Status = false;
+	}
 };
 
+USTRUCT()
 struct FUpdateGameSessionState
 {
+	GENERATED_BODY();
+
+	UPROPERTY()
 	EUpdateReason Reason;
+	UPROPERTY()
 	FString MatchmakingConfigurationArn;
+	UPROPERTY()
 	FString LatestBackfillTicketId;
 	TMap<FString, FPlayer> PlayerIdToPlayer;
+
+	FUpdateGameSessionState() {
+		Reason = EUpdateReason::NO_UPDATE;
+	}
 };
 
+USTRUCT()
 struct FProcessTerminateState
 {
+	GENERATED_BODY();
+
+	UPROPERTY()
 	bool Status;
+
+	// made this a long variable since the GetTerminationTime method returns an outcome with a long and did not feel like converting
+	// long variables can not be upropertiees
+	long TerminationTime; 
+
+	FProcessTerminateState() {
+		Status = false;
+	}
 };
 
+USTRUCT()
 struct FHealthCheckState
 {
+	GENERATED_BODY();
+
+	UPROPERTY()
 	bool Status;
+
+	FHealthCheckState() {
+		Status = false;
+	}
 };
 
 UCLASS(minimalapi)
@@ -76,10 +118,14 @@ private:
 	FString LatestBackfillTicketId;
 	TMap<FString, FPlayer> ConnectedPlayers; // kind of misleading, because it's supposed to represent the players who should be connected
 
-	FStartGameSessionState* StartGameSessionState;
-	FUpdateGameSessionState* UpdateGameSessionState;
-	FProcessTerminateState* ProcessTerminateState;
-	FHealthCheckState* HealthCheckState;
+	UPROPERTY()
+	FStartGameSessionState StartGameSessionState;
+	UPROPERTY()
+	FUpdateGameSessionState UpdateGameSessionState;
+	UPROPERTY()
+	FProcessTerminateState ProcessTerminateState;
+	UPROPERTY()
+	FHealthCheckState HealthCheckState;
 	
 	FTimerHandle CountDownUntilGameOverHandle;
 	FTimerHandle EndGameHandle;
