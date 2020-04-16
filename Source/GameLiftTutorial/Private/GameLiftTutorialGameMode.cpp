@@ -280,9 +280,9 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 
 		const char* LogFile = "aLogFile.txt";
 		const char** LogFiles = &LogFile;
-		const Aws::GameLift::Server::LogParameters* LogParams = new Aws::GameLift::Server::LogParameters(LogFiles, 1);
+		auto LogParams = new Aws::GameLift::Server::LogParameters(LogFiles, 1);
 
-		const Aws::GameLift::Server::ProcessParameters* Params =
+		auto Params =
 			new Aws::GameLift::Server::ProcessParameters(
 				OnStartGameSession,
 				&StartGameSessionState,
