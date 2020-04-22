@@ -1,0 +1,3 @@
+- Support for 4.22, 4.23 and 4.24 versions of Unreal Engine.
+
+- Bug fixes

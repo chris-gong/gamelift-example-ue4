@@ -17,7 +17,7 @@ Windows -
 ```sh
 mkdir out
 cd out
-cmake -G "Visual Studio 14 2015 Win64" -DBUILD_FOR_UNREAL=1 ..
+cmake -G "Visual Studio 15 2017 Win64" -DBUILD_FOR_UNREAL=1 ..
 msbuild ALL_BUILD.vcxproj /p:Configuration=Release
 ```
 This step produces the following binary files required by the plugin.  
@@ -169,6 +169,9 @@ Supported UE4 Versions
 4.19
 4.20
 4.21
+4.22
+4.23
+4.24
 
 #### UE 4.17 Compatibility Notes
 

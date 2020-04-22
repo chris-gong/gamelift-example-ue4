@@ -14,11 +14,11 @@
 #pragma once
 
 
-#include "ModuleManager.h"
-#include "DelegateCombinations.h"
+#include "Modules/ModuleManager.h"
+#include "Delegates/DelegateCombinations.h"
 
 #if PLATFORM_WINDOWS
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #endif
 
 #include "aws/gamelift/common/Outcome.h"
@@ -27,7 +27,7 @@
 #include <map>
 
 #if PLATFORM_WINDOWS
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 DECLARE_DELEGATE_OneParam(FOnStartGameSession, Aws::GameLift::Server::Model::GameSession);

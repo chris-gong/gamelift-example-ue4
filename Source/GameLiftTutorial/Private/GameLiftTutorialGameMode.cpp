@@ -43,6 +43,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 
 void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	UE_LOG(LogTemp, Warning, TEXT("prelogin"));
 	// kick the player out id the player did not pass a valid player session id
 #if WITH_GAMELIFT
 	if (*Options && Options.Len() > 0) {
@@ -51,6 +52,29 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 			auto AcceptPlayerSessionOutcome = Aws::GameLift::Server::AcceptPlayerSession(TCHAR_TO_ANSI(*PlayerSessionId));
 			if (!AcceptPlayerSessionOutcome.IsSuccess()) {
 				ErrorMessage = FString("Unauthorized");
+			}
+			// Set request parameters
+			Aws::GameLift::Server::Model::DescribePlayerSessionsRequest DescribePlayerSessionsRequest;
+			DescribePlayerSessionsRequest.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));
+
+			// Call DescribePlayerSessions
+			auto DescribePlayerSessionsOutcome = Aws::GameLift::Server::DescribePlayerSessions(DescribePlayerSessionsRequest);
+			if (DescribePlayerSessionsOutcome.IsSuccess()) {
+				UE_LOG(LogTemp, Warning, TEXT("describe player sessions succeeded"));
+				auto DescribePlayerSessionsResult = DescribePlayerSessionsOutcome.GetResult();
+				int Count = 1;
+				auto PlayerSessions = DescribePlayerSessionsResult.GetPlayerSessions(Count);
+				if (PlayerSessions != nullptr) {
+					auto PlayerSession = PlayerSessions[0];
+					FString PlayerId = PlayerSession.GetPlayerId();
+					UE_LOG(LogTemp, Warning, TEXT("player id associated with player session id %s is %s"), *PlayerSessionId, *PlayerId);
+				}
+				else {
+					UE_LOG(LogTemp, Warning, TEXT("player sessions null"));
+				}
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("describe player sessions failed"));
 			}
 		}
 		else {
@@ -324,6 +348,31 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 	
 	if (*Options && Options.Len() > 0) {
 		const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+#if WITH_GAMELIFT
+		// Set request parameters
+		Aws::GameLift::Server::Model::DescribePlayerSessionsRequest DescribePlayerSessionsRequest;
+		DescribePlayerSessionsRequest.SetPlayerSessionId(TCHAR_TO_ANSI(*PlayerSessionId));  
+
+		// Call DescribePlayerSessions
+		auto DescribePlayerSessionsOutcome = Aws::GameLift::Server::DescribePlayerSessions(DescribePlayerSessionsRequest);
+		if (DescribePlayerSessionsOutcome.IsSuccess()) {
+			UE_LOG(LogTemp, Warning, TEXT("describe player sessions succeeded"));
+			auto DescribePlayerSessionsResult = DescribePlayerSessionsOutcome.GetResult();
+			int Count = 1;
+			auto PlayerSessions = DescribePlayerSessionsResult.GetPlayerSessions(Count);
+			if (PlayerSessions != nullptr) {
+				auto PlayerSession = PlayerSessions[0];
+				FString PlayerId = PlayerSession.GetPlayerId();
+				UE_LOG(LogTemp, Warning, TEXT("player id associated with player session id %s is %s"), *PlayerSessionId, *PlayerId);
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("player sessions null"));
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("describe player sessions failed"));
+		}
+#endif
 		const FString& PlayerId = UGameplayStatics::ParseOption(Options, "PlayerId");
 		UE_LOG(LogTemp, Warning, TEXT("Player session id in init new player: %s"), *(PlayerSessionId));
 		
