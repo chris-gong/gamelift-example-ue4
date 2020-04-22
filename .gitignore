@@ -87,3 +87,6 @@ SecretUrls/
 WindowsClient/
 
 WindowsServer/
+
+# GameLiftServerSDK library files
+!Plugins/GameLiftServerSDK/ThirdParty/GameLiftServerSDK/Win64/*
