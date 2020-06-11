@@ -16,34 +16,50 @@ class GAMELIFTTUTORIAL_API UGameLiftTutorialGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-	UGameLiftTutorialGameInstance(const FObjectInitializer& ObjectInitializer);
+	UGameLiftTutorialGameInstance();
 
 	virtual void Shutdown() override;
 
-	void SetAwsTokens(FString AccessToken, FString IdToken, FString RefreshToken);
+	virtual void Init() override;
 
-	// AWS Stuff
-	FString IdToken;
-	FString AccessToken;
-	FString RefreshToken;
+	UPROPERTY()
+		FString AccessToken;
 
-	// GameLift Stuff
-	FString MatchmakingTicketId;
+	UPROPERTY()
+		FString IdToken;
 
-	FTimerHandle GetNewTokenHandle;
+	UPROPERTY()
+		FString RefreshToken;
+
+	UPROPERTY()
+		FString MatchmakingTicketId;
+
+	UPROPERTY()
+		FTimerHandle RetrieveNewTokensHandle;
+
+	UPROPERTY()
+		FTimerHandle GetResponseTimeHandle;
+
+	TDoubleLinkedList<float> PlayerLatencies;
+
+	UFUNCTION()
+		void SetCognitoTokens(FString NewAccessToken, FString NewIdToken, FString NewRefreshToken);
 
 private:
 	FHttpModule* HttpModule;
 
-	FString ApiUrl;
-	FString CancelMatchLookupUrl;
-	FString SignOutUrl;
-	FString GetNewTokenUrl;
+	UPROPERTY()
+		FString ApiUrl;
 
-	void RetrieveNewAccessToken();
+	UPROPERTY()
+		FString RegionCode;
 
-	void OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	UFUNCTION()
+		void RetrieveNewTokens();
 
+	UFUNCTION()
+		void GetResponseTime();
+
+	void OnRetrieveNewTokensResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnGetResponseTimeResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

@@ -1,7 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "GameLiftTutorialCharacter.h"
-#include "GameLiftTutorialPlayerState.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,10 +8,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Engine/Engine.h"
-#include "UnrealNetwork.h"
-#include "GameFramework/HUD.h"
-#include "GameLiftTutorialHUD.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
@@ -50,7 +45,6 @@ AGameLiftTutorialCharacter::AGameLiftTutorialCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
-	TeamColorSet = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +75,7 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AGameLiftTutorialCharacter::OnResetVR);
 }
+
 
 void AGameLiftTutorialCharacter::OnResetVR()
 {
@@ -135,34 +130,5 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
-	}
-}
-
-void AGameLiftTutorialCharacter::OnRep_PlayerState() {
-	Super::OnRep_PlayerState();
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("OnRep_PlayerState called"));
-
-	if (!TeamColorSet) {
-		APlayerState* AState = GetPlayerState();
-		if (AState != nullptr) {
-			AGameLiftTutorialPlayerState* State = Cast<AGameLiftTutorialPlayerState>(AState);
-			if (State != nullptr) {
-				FString Team = State->Team;
-				if (Team.Len() > 0) {
-					// set player color
-					UMaterialInstanceDynamic* PlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
-					if (Team.Compare("cowboys") == 0) {
-						PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Red);
-					}
-					else if (Team.Compare("aliens") == 0) {
-						PlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Blue);
-					}
-
-					GetMesh()->SetMaterial(0, PlayerMaterial);
-
-					TeamColorSet = true;
-				}
-			}
-		}
 	}
 }

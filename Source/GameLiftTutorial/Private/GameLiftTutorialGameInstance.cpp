@@ -6,178 +6,121 @@
 #include "JsonUtilities.h"
 #include "TextReaderComponent.h"
 
-UGameLiftTutorialGameInstance::UGameLiftTutorialGameInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
-{
+UGameLiftTutorialGameInstance::UGameLiftTutorialGameInstance() {
 	UTextReaderComponent* TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 
-	ApiUrl = TextReader->ReadFile("SecretUrls/ApiUrl.txt");
-	CancelMatchLookupUrl = ApiUrl + "/cancelmatchlookup";
-	SignOutUrl = ApiUrl + "/invalidateawscredentials";
-	GetNewTokenUrl = ApiUrl + "/refreshawscredentials";
+	ApiUrl = TextReader->ReadFile("Urls/ApiUrl.txt");
+	RegionCode = TextReader->ReadFile("Urls/RegionCode.txt");
 
 	HttpModule = &FHttpModule::Get();
-
-	/*
-	TODOS
-	1) update to the newest version of chrome for the web browser widget
-	*/
-
 }
 
 void UGameLiftTutorialGameInstance::Shutdown() {
-	Super::Shutdown();
-	//GetWorld()->GetTimerManager().ClearTimer(GetNewTokenHandle); // can't do this in a shut down
-	UE_LOG(LogTemp, Warning, TEXT("game instance shutdown"));
+	GetWorld()->GetTimerManager().ClearTimer(RetrieveNewTokensHandle);
+	GetWorld()->GetTimerManager().ClearTimer(GetResponseTimeHandle);
 
-	if (MatchmakingTicketId.Len() > 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Cancel matchmaking"));
-		// cancel matchmaking request
+	if (AccessToken.Len() > 0) {
+		if (MatchmakingTicketId.Len() > 0) {
+			TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
+			RequestObj->SetStringField("ticketId", MatchmakingTicketId);
+
+			FString RequestBody;
+			TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
+			if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
+				TSharedRef<IHttpRequest> StopMatchmakingRequest = HttpModule->CreateRequest();
+				StopMatchmakingRequest->SetURL(ApiUrl + "/stopmatchmaking");
+				StopMatchmakingRequest->SetVerb("POST");
+				StopMatchmakingRequest->SetHeader("Content-Type", "application/json");
+				StopMatchmakingRequest->SetHeader("Authorization", AccessToken);
+				StopMatchmakingRequest->SetContentAsString(RequestBody);
+				StopMatchmakingRequest->ProcessRequest();
+			}
+		}
+		TSharedRef<IHttpRequest> InvalidateTokensRequest = HttpModule->CreateRequest();
+		InvalidateTokensRequest->SetURL(ApiUrl + "/invalidatetokens");
+		InvalidateTokensRequest->SetVerb("GET");
+		InvalidateTokensRequest->SetHeader("Content-Type", "application/json");
+		InvalidateTokensRequest->SetHeader("Authorization", AccessToken);
+		InvalidateTokensRequest->ProcessRequest();
+	}
+
+	Super::Shutdown();
+}
+
+void UGameLiftTutorialGameInstance::Init() {
+	Super::Init();
+
+	GetWorld()->GetTimerManager().SetTimer(GetResponseTimeHandle, this, &UGameLiftTutorialGameInstance::GetResponseTime, 1.0f, true, 1.0f);
+}
+
+void UGameLiftTutorialGameInstance::SetCognitoTokens(FString NewAccessToken, FString NewIdToken, FString NewRefreshToken) {
+	AccessToken = NewAccessToken;
+	IdToken = NewIdToken;
+	RefreshToken = NewRefreshToken;
+
+	//UE_LOG(LogTemp, Warning, TEXT("access token: %s"), *AccessToken);
+	//UE_LOG(LogTemp, Warning, TEXT("refresh token: %s"), *RefreshToken);
+
+	GetWorld()->GetTimerManager().SetTimer(RetrieveNewTokensHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewTokens, 1.0f, false, 3300.0f);
+}
+
+void UGameLiftTutorialGameInstance::RetrieveNewTokens() {
+	if (AccessToken.Len() > 0 && RefreshToken.Len() > 0) {
 		TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
-		RequestObj->SetStringField("ticketId", MatchmakingTicketId);
+		RequestObj->SetStringField("refreshToken", RefreshToken);
 
 		FString RequestBody;
 		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 
 		if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-			// send a get request to google discovery document to retrieve endpoints
-			TSharedRef<IHttpRequest> CancelMatchLookupRequest = HttpModule->CreateRequest();
-			CancelMatchLookupRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnEndMatchmakingResponseReceived);
-			CancelMatchLookupRequest->SetURL(CancelMatchLookupUrl);
-			CancelMatchLookupRequest->SetVerb("POST");
-			CancelMatchLookupRequest->SetHeader("Content-Type", "application/json");
-			CancelMatchLookupRequest->SetHeader("Authorization", AccessToken);
-			CancelMatchLookupRequest->SetContentAsString(RequestBody);
-			CancelMatchLookupRequest->ProcessRequest();
-		}
-	}
-
-	if (AccessToken.Len() > 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Invalidating refresh token"));
-
-		TSharedRef<IHttpRequest> SignOutRequest = HttpModule->CreateRequest();
-		SignOutRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnSignOutResponseReceived);
-		SignOutRequest->SetURL(SignOutUrl);
-		SignOutRequest->SetVerb("GET");
-		SignOutRequest->SetHeader("Content-Type", "application/json");
-		SignOutRequest->SetHeader("Authorization", AccessToken);
-		SignOutRequest->ProcessRequest();
-	}
-}
-
-void UGameLiftTutorialGameInstance::SetAwsTokens(FString FAccessToken, FString FIdToken, FString FRefreshToken) {
-	GetWorld()->GetTimerManager().ClearTimer(GetNewTokenHandle);
-	this->AccessToken = FAccessToken;
-	this->IdToken = FIdToken;
-	this->RefreshToken = FRefreshToken;
-	GetWorld()->GetTimerManager().SetTimer(GetNewTokenHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewAccessToken, 1.0f, false, 3300.0f);
-}
-
-void UGameLiftTutorialGameInstance::RetrieveNewAccessToken() {
-	GetWorld()->GetTimerManager().ClearTimer(GetNewTokenHandle);
-
-	// make api request for refreshing the aws token
-	TSharedPtr<FJsonObject> RequestObj = MakeShareable(new FJsonObject);
-	RequestObj->SetStringField("refreshToken", RefreshToken);
-
-	FString RequestBody;
-	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
-
-	if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer) && AccessToken.Len() > 0) {
-		// send a get request to google discovery document to retrieve endpoints
-		TSharedRef<IHttpRequest> PollMatchmakingRequest = HttpModule->CreateRequest();
-		PollMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnGetNewTokenResponseReceived);
-		PollMatchmakingRequest->SetURL(GetNewTokenUrl);
-		PollMatchmakingRequest->SetVerb("POST");
-		PollMatchmakingRequest->SetHeader("Content-Type", "application/json");
-		PollMatchmakingRequest->SetHeader("Authorization", AccessToken);
-		PollMatchmakingRequest->SetContentAsString(RequestBody);
-		PollMatchmakingRequest->ProcessRequest();
-	}
-	else {
-		// need to try to refresh the token quickly if for any reason attempts to do so fail
-		GetWorld()->GetTimerManager().SetTimer(GetNewTokenHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewAccessToken, 1.0f, false, 60.0f);
-	}
-}
-
-void UGameLiftTutorialGameInstance::OnEndMatchmakingResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-	UE_LOG(LogTemp, Warning, TEXT("Response from cancel matchmaking %s"), *(Response->GetContentAsString()));
-
-	if (bWasSuccessful) {
-		//Create a pointer to hold the json serialized data
-		TSharedPtr<FJsonObject> JsonObject;
-
-		//Create a reader pointer to read the json data
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		//Deserialize the json data given Reader and the actual object to deserialize
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
-
-			//TSharedPtr<FJsonObject> PlayerData = JsonObject->GetObjectField("playerData");
-
+			TSharedRef<IHttpRequest> RetrieveNewTokensRequest = HttpModule->CreateRequest();
+			RetrieveNewTokensRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnRetrieveNewTokensResponseReceived);
+			RetrieveNewTokensRequest->SetURL(ApiUrl + "/retrievenewtokens");
+			RetrieveNewTokensRequest->SetVerb("POST");
+			RetrieveNewTokensRequest->SetHeader("Content-Type", "application/json");
+			RetrieveNewTokensRequest->SetHeader("Authorization", AccessToken);
+			RetrieveNewTokensRequest->SetContentAsString(RequestBody);
+			RetrieveNewTokensRequest->ProcessRequest();
 		}
 		else {
-
+			GetWorld()->GetTimerManager().SetTimer(RetrieveNewTokensHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewTokens, 1.0f, false, 30.0f);
 		}
-	}
-	else {
-
 	}
 }
 
-void UGameLiftTutorialGameInstance::OnSignOutResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-	UE_LOG(LogTemp, Warning, TEXT("Response from signing out %s"), *(Response->GetContentAsString())); 
-
+void UGameLiftTutorialGameInstance::OnRetrieveNewTokensResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
 	if (bWasSuccessful) {
-		//Create a pointer to hold the json serialized data
 		TSharedPtr<FJsonObject> JsonObject;
-
-		//Create a reader pointer to read the json data
 		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		//Deserialize the json data given Reader and the actual object to deserialize
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("response: ") + Response->GetContentAsString());
-
-			//TSharedPtr<FJsonObject> PlayerData = JsonObject->GetObjectField("playerData");
-
+		if (FJsonSerializer::Deserialize(Reader, JsonObject)) {
+			if (JsonObject->HasField("accessToken") && JsonObject->HasField("idToken")) {
+				SetCognitoTokens(JsonObject->GetStringField("accessToken"), JsonObject->GetStringField("idToken"), RefreshToken);
+			}
 		}
 		else {
-
+			GetWorld()->GetTimerManager().SetTimer(RetrieveNewTokensHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewTokens, 1.0f, false, 30.0f);
 		}
 	}
 	else {
-
+		GetWorld()->GetTimerManager().SetTimer(RetrieveNewTokensHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewTokens, 1.0f, false, 30.0f);
 	}
 }
 
-void UGameLiftTutorialGameInstance::OnGetNewTokenResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
-	//UE_LOG(LogTemp, Warning, TEXT("Response from getting new token %s"), *(Response->GetContentAsString()));
+void UGameLiftTutorialGameInstance::GetResponseTime() {
+	TSharedRef<IHttpRequest> GetResponseTimeRequest = HttpModule->CreateRequest();
+	GetResponseTimeRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnGetResponseTimeResponseReceived);
+	GetResponseTimeRequest->SetURL("https://gamelift." + RegionCode + ".amazonaws.com");
+	GetResponseTimeRequest->SetVerb("GET");
+	GetResponseTimeRequest->ProcessRequest();
+}
 
-	if (bWasSuccessful) {
-		//Create a pointer to hold the json serialized data
-		TSharedPtr<FJsonObject> JsonObject;
-
-		//Create a reader pointer to read the json data
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
-
-		//Deserialize the json data given Reader and the actual object to deserialize
-		if (FJsonSerializer::Deserialize(Reader, JsonObject))
-		{
-			AccessToken = JsonObject->GetStringField("accessToken");
-			UE_LOG(LogTemp, Warning, TEXT("New access token assigned"));
-			//UE_LOG(LogTemp, Warning, TEXT("New access token %s"), *(AccessToken));
-			GetWorld()->GetTimerManager().SetTimer(GetNewTokenHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewAccessToken, 1.0f, false, 3300.0f);
-		}
-		else {
-			// need to try to refresh the token quickly if for any reason attempts to do so fail
-			GetWorld()->GetTimerManager().SetTimer(GetNewTokenHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewAccessToken, 1.0f, false, 60.0f);
-		}
+void UGameLiftTutorialGameInstance::OnGetResponseTimeResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	if (PlayerLatencies.Num() >= 4) {
+		PlayerLatencies.RemoveNode(PlayerLatencies.GetHead());
 	}
-	else {
-		// need to try to refresh the token quickly if for any reason attempts to do so fail
-		GetWorld()->GetTimerManager().SetTimer(GetNewTokenHandle, this, &UGameLiftTutorialGameInstance::RetrieveNewAccessToken, 1.0f, false, 60.0f);
-	}
+
+	float ResponseTime = Request->GetElapsedTime() * 1000;
+	//UE_LOG(LogTemp, Warning, TEXT("response time in milliseconds: %s"), *FString::SanitizeFloat(ResponseTime));
+
+	PlayerLatencies.AddTail(ResponseTime);
 }

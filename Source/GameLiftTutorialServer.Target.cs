@@ -9,6 +9,7 @@ public class GameLiftTutorialServerTarget : TargetRules
 	public GameLiftTutorialServerTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Server;
+		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.Add("GameLiftTutorial");
 	}
 }

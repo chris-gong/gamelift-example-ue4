@@ -8,6 +8,7 @@ public class GameLiftTutorialEditorTarget : TargetRules
 	public GameLiftTutorialEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
+		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.Add("GameLiftTutorial");
 	}
 }
