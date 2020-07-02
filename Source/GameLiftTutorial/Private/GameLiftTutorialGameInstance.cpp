@@ -39,7 +39,7 @@ void UGameLiftTutorialGameInstance::Shutdown() {
 		TSharedRef<IHttpRequest> InvalidateTokensRequest = HttpModule->CreateRequest();
 		InvalidateTokensRequest->SetURL(ApiUrl + "/invalidatetokens");
 		InvalidateTokensRequest->SetVerb("GET");
-		InvalidateTokensRequest->SetHeader("Content-Type", "application/json");
+		//InvalidateTokensRequest->SetHeader("Content-Type", "application/json");
 		InvalidateTokensRequest->SetHeader("Authorization", AccessToken);
 		InvalidateTokensRequest->ProcessRequest();
 	}

@@ -61,7 +61,7 @@ void UMainMenuWidget::NativeConstruct() {
 		GetPlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnGetPlayerDataResponseReceived);
 		GetPlayerDataRequest->SetURL(ApiUrl + "/getplayerdata");
 		GetPlayerDataRequest->SetVerb("GET");
-		GetPlayerDataRequest->SetHeader("Content-Type", "application/json");
+		//GetPlayerDataRequest->SetHeader("Content-Type", "application/json");
 		GetPlayerDataRequest->SetHeader("Authorization", AccessToken);
 		GetPlayerDataRequest->ProcessRequest();
 	}
@@ -144,7 +144,7 @@ void UMainMenuWidget::OnExchangeCodeForTokensResponseReceived(FHttpRequestPtr Re
 						GetPlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnGetPlayerDataResponseReceived);
 						GetPlayerDataRequest->SetURL(ApiUrl + "/getplayerdata");
 						GetPlayerDataRequest->SetVerb("GET");
-						GetPlayerDataRequest->SetHeader("Content-Type", "application/json");
+						//GetPlayerDataRequest->SetHeader("Content-Type", "application/json");
 						GetPlayerDataRequest->SetHeader("Authorization", AccessToken);
 						GetPlayerDataRequest->ProcessRequest();
 					}

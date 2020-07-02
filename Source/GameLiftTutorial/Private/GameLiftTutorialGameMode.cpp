@@ -3,6 +3,7 @@
 #include "GameLiftTutorialGameMode.h"
 #include "GameLiftTutorialCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "GameLiftTutorialHUD.h"
 
 AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 {
@@ -11,6 +12,7 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+		HUDClass = AGameLiftTutorialHUD::StaticClass();
 	}
 }
 
