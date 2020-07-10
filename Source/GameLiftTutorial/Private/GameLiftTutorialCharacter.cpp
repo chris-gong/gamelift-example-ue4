@@ -8,6 +8,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameLiftTutorialPlayerState.h"
+#include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AGameLiftTutorialCharacter
@@ -74,6 +77,8 @@ void AGameLiftTutorialCharacter::SetupPlayerInputComponent(class UInputComponent
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AGameLiftTutorialCharacter::OnResetVR);
+
+	PlayerInputComponent->BindAction("ReturnToMainMenu", IE_Pressed, this, &AGameLiftTutorialCharacter::ReturnToMainMenu);
 }
 
 
@@ -130,5 +135,36 @@ void AGameLiftTutorialCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void AGameLiftTutorialCharacter::ReturnToMainMenu() {
+	FString LevelName = "MainMenuMap";
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, "");
+}
+
+void AGameLiftTutorialCharacter::OnRep_PlayerState() {
+	Super::OnRep_PlayerState();
+
+	APlayerState* OwningPlayerState = GetPlayerState();
+	if (OwningPlayerState != nullptr) {
+		AGameLiftTutorialPlayerState* OwningGameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(OwningPlayerState);
+		if (OwningGameLiftTutorialPlayerState != nullptr) {
+			FString TeamName = OwningGameLiftTutorialPlayerState->Team;
+
+			if (TeamName.Len() > 0) {
+				UMaterialInstanceDynamic* OwningPlayerMaterial = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+
+				if (TeamName.Equals("cowboys")) {
+					OwningPlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Red);
+				}
+				else if (TeamName.Equals("aliens")) {
+					OwningPlayerMaterial->SetVectorParameterValue("BodyColor", FLinearColor::Blue);
+				}
+
+				GetMesh()->SetMaterial(0, OwningPlayerMaterial);
+			}
+		}
 	}
 }

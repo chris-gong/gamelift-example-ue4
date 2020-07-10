@@ -4,6 +4,8 @@
 #include "GameLiftTutorialCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include "GameLiftTutorialHUD.h"
+#include "GameLiftTutorialPlayerState.h"
+#include "GameLiftTutorialGameState.h"
 
 AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 {
@@ -13,6 +15,8 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 		HUDClass = AGameLiftTutorialHUD::StaticClass();
+		PlayerStateClass = AGameLiftTutorialPlayerState::StaticClass();
+		GameStateClass = AGameLiftTutorialGameState::StaticClass();
 	}
 }
 
@@ -98,4 +102,31 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 		auto ProcessReadyOutcome = Aws::GameLift::Server::ProcessReady(*Params);
 	}
 #endif
+	/*if (GameState != nullptr) {
+		AGameLiftTutorialGameState* GameLiftTutorialGameState = Cast<AGameLiftTutorialGameState>(GameState);
+		if (GameLiftTutorialGameState != nullptr) {
+			GameLiftTutorialGameState->LatestEvent = "GameEnded";
+			GameLiftTutorialGameState->WinningTeam = "cowboys";
+		}
+	}*/
+}
+
+FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
+	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+
+	/*if (NewPlayerController != nullptr) {
+		APlayerState* PlayerState = NewPlayerController->PlayerState;
+		if (PlayerState != nullptr) {
+			AGameLiftTutorialPlayerState* GameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(PlayerState);
+			if (GameLiftTutorialPlayerState != nullptr) {
+				if (FMath::RandRange(0, 1) == 0) {
+					GameLiftTutorialPlayerState->Team = "cowboys";
+				}
+				else {
+					GameLiftTutorialPlayerState->Team = "aliens";
+				}
+			}
+		}
+	}*/
+	return InitializedString;
 }
