@@ -30,6 +30,9 @@ AGameLiftTutorialGameMode::AGameLiftTutorialGameMode()
 
 	RemainingGameTime = 240;
 	GameSessionActivated = false;
+
+	WaitingForPlayersToJoin = false;
+	TimeSpentWaitingForPlayersToJoin = 0;
 }
 
 void AGameLiftTutorialGameMode::BeginPlay() {
@@ -84,6 +87,55 @@ void AGameLiftTutorialGameMode::BeginPlay() {
 		auto OnUpdateGameSession = [](Aws::GameLift::Server::Model::UpdateGameSession UpdateGameSessionObj, void* Params)
 		{
 			FUpdateGameSessionState* State = (FUpdateGameSessionState*)Params;
+
+			auto Reason = UpdateGameSessionObj.GetUpdateReason();
+
+			if (Reason == Aws::GameLift::Server::Model::UpdateReason::MATCHMAKING_DATA_UPDATED) {
+				State->Reason = EUpdateReason::MATCHMAKING_DATA_UPDATED;
+
+				auto GameSessionObj = UpdateGameSessionObj.GetGameSession();
+				FString MatchmakerData = GameSessionObj.GetMatchmakerData();
+
+				TSharedPtr<FJsonObject> JsonObject;
+				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(MatchmakerData);
+
+				if (FJsonSerializer::Deserialize(Reader, JsonObject)) {
+					TArray<TSharedPtr<FJsonValue>> Teams = JsonObject->GetArrayField("teams");
+					for (TSharedPtr<FJsonValue> Team : Teams) {
+						TSharedPtr<FJsonObject> TeamObj = Team->AsObject();
+						FString TeamName = TeamObj->GetStringField("name");
+
+						TArray<TSharedPtr<FJsonValue>> Players = TeamObj->GetArrayField("players");
+
+						for (TSharedPtr<FJsonValue> Player : Players) {
+							TSharedPtr<FJsonObject> PlayerObj = Player->AsObject();
+							FString PlayerId = PlayerObj->GetStringField("playerId");
+
+							TSharedPtr<FJsonObject> Attributes = PlayerObj->GetObjectField("attributes");
+							TSharedPtr<FJsonObject> Skill = Attributes->GetObjectField("skill");
+							FString SkillValue = Skill->GetStringField("valueAttribute");
+							auto SkillAttributeValue = new Aws::GameLift::Server::Model::AttributeValue(FCString::Atod(*SkillValue));
+
+							Aws::GameLift::Server::Model::Player AwsPlayerObj;
+
+							AwsPlayerObj.SetPlayerId(TCHAR_TO_ANSI(*PlayerId));
+							AwsPlayerObj.SetTeam(TCHAR_TO_ANSI(*TeamName));
+							AwsPlayerObj.AddPlayerAttribute("skill", *SkillAttributeValue);
+
+							State->PlayerIdToPlayer.Add(PlayerId, AwsPlayerObj);
+						}
+					}
+				}
+			}
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_CANCELLED) {
+				State->Reason = EUpdateReason::BACKFILL_CANCELLED;
+			}
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_FAILED) {
+				State->Reason = EUpdateReason::BACKFILL_FAILED;
+			}
+			else if (Reason == Aws::GameLift::Server::Model::UpdateReason::BACKFILL_TIMED_OUT) {
+				State->Reason = EUpdateReason::BACKFILL_TIMED_OUT;
+			}
 		};
 
 		auto OnProcessTerminate = [](void* Params)
@@ -210,6 +262,14 @@ void AGameLiftTutorialGameMode::PreLogin(const FString& Options, const FString& 
 
 void AGameLiftTutorialGameMode::Logout(AController* Exiting) {
 #if WITH_GAMELIFT
+	if (LatestBackfillTicketId.Len() > 0) {
+		auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+		if (GameSessionIdOutcome.IsSuccess()) {
+			FString GameSessionId = GameSessionIdOutcome.GetResult();
+			FString MatchmakingConfigurationArn = StartGameSessionState.MatchmakingConfigurationArn;
+			StopBackfillRequest(GameSessionId, MatchmakingConfigurationArn, LatestBackfillTicketId);
+		}
+	}
 	if (Exiting != nullptr) {
 		APlayerState* PlayerState = Exiting->PlayerState;
 		if (PlayerState != nullptr) {
@@ -253,7 +313,14 @@ FString AGameLiftTutorialGameMode::InitNewPlayer(APlayerController* NewPlayerCon
 				GameLiftTutorialPlayerState->PlayerSessionId = *PlayerSessionId;
 				GameLiftTutorialPlayerState->MatchmakingPlayerId = *PlayerId;
 
-				if (StartGameSessionState.PlayerIdToPlayer.Num() > 0) {
+				if (UpdateGameSessionState.PlayerIdToPlayer.Num() > 0) {
+					if (UpdateGameSessionState.PlayerIdToPlayer.Contains(PlayerId)) {
+						auto PlayerObj = UpdateGameSessionState.PlayerIdToPlayer.Find(PlayerId);
+						FString Team = PlayerObj->GetTeam();
+						GameLiftTutorialPlayerState->Team = *Team;
+					}
+				}
+				else if (StartGameSessionState.PlayerIdToPlayer.Num() > 0) {
 					if (StartGameSessionState.PlayerIdToPlayer.Contains(PlayerId)) {
 						auto PlayerObj = StartGameSessionState.PlayerIdToPlayer.Find(PlayerId);
 						FString Team = PlayerObj->GetTeam();
@@ -289,6 +356,7 @@ void AGameLiftTutorialGameMode::EndGame() {
 	GetWorldTimerManager().ClearTimer(PickAWinningTeamHandle);
 	GetWorldTimerManager().ClearTimer(HandleProcessTerminationHandle);
 	GetWorldTimerManager().ClearTimer(HandleGameSessionUpdateHandle);
+	GetWorldTimerManager().ClearTimer(SuspendBackfillHandle);
 
 #if WITH_GAMELIFT
 	Aws::GameLift::Server::TerminateGameSession();
@@ -355,6 +423,18 @@ void AGameLiftTutorialGameMode::HandleProcessTermination() {
 		GetWorldTimerManager().ClearTimer(CountDownUntilGameOverHandle);
 		GetWorldTimerManager().ClearTimer(HandleProcessTerminationHandle);
 		GetWorldTimerManager().ClearTimer(HandleGameSessionUpdateHandle);
+		GetWorldTimerManager().ClearTimer(SuspendBackfillHandle);
+
+#if WITH_GAMELIFT
+		if (LatestBackfillTicketId.Len() > 0) {
+			auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+			if (GameSessionIdOutcome.IsSuccess()) {
+				FString GameSessionArn = FString(GameSessionIdOutcome.GetResult());
+				FString MatchmakingConfigurationArn = StartGameSessionState.MatchmakingConfigurationArn;
+				StopBackfillRequest(GameSessionArn, MatchmakingConfigurationArn, LatestBackfillTicketId);
+			}
+		}
+#endif
 
 		FString ProcessInterruptionMessage;
 
@@ -378,16 +458,155 @@ void AGameLiftTutorialGameMode::HandleProcessTermination() {
 }
 
 void AGameLiftTutorialGameMode::HandleGameSessionUpdate() {
+#if WITH_GAMELIFT
 	if (!GameSessionActivated) {
 		if (StartGameSessionState.Status) {
 			GameSessionActivated = true;
 
+			ExpectedPlayers = StartGameSessionState.PlayerIdToPlayer;
+
+			WaitingForPlayersToJoin = true;
+
 			GetWorldTimerManager().SetTimer(PickAWinningTeamHandle, this, &AGameLiftTutorialGameMode::PickAWinningTeam, 1.0f, false, (float)RemainingGameTime);
+			GetWorldTimerManager().SetTimer(SuspendBackfillHandle, this, &AGameLiftTutorialGameMode::SuspendBackfill, 1.0f, false, (float)(RemainingGameTime - 60));
 			GetWorldTimerManager().SetTimer(CountDownUntilGameOverHandle, this, &AGameLiftTutorialGameMode::CountDownUntilGameOver, 1.0f, true, 0.0f);
 		}
 	}
+	else if (WaitingForPlayersToJoin) {
+		if (TimeSpentWaitingForPlayersToJoin < 60) {
+			auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+			if (GameSessionIdOutcome.IsSuccess()) {
+				FString GameSessionId = FString(GameSessionIdOutcome.GetResult());
+
+				Aws::GameLift::Server::Model::DescribePlayerSessionsRequest DescribePlayerSessionsRequest;
+				DescribePlayerSessionsRequest.SetGameSessionId(TCHAR_TO_ANSI(*GameSessionId));
+				DescribePlayerSessionsRequest.SetPlayerSessionStatusFilter("RESERVED");
+
+				auto DescribePlayerSessionsOutcome = Aws::GameLift::Server::DescribePlayerSessions(DescribePlayerSessionsRequest);
+				if (DescribePlayerSessionsOutcome.IsSuccess()) {
+					auto DescribePlayerSessionsResult = DescribePlayerSessionsOutcome.GetResult();
+					int Count = DescribePlayerSessionsResult.GetPlayerSessionsCount();
+					if (Count == 0) {
+						UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_COMPLETED;
+
+						WaitingForPlayersToJoin = false;
+						TimeSpentWaitingForPlayersToJoin = 0;
+					}
+					else {
+						TimeSpentWaitingForPlayersToJoin++;
+					}
+				}
+				else {
+					TimeSpentWaitingForPlayersToJoin++;
+				}
+			}
+			else {
+				TimeSpentWaitingForPlayersToJoin++;
+			}
+		}
+		else {
+			UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_COMPLETED;
+
+			WaitingForPlayersToJoin = false;
+			TimeSpentWaitingForPlayersToJoin = 0;
+		}
+	}
+	else if (UpdateGameSessionState.Reason == EUpdateReason::MATCHMAKING_DATA_UPDATED) {
+		LatestBackfillTicketId = "";
+		ExpectedPlayers = UpdateGameSessionState.PlayerIdToPlayer;
+
+		WaitingForPlayersToJoin = true;
+	}
+	else if (UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_CANCELLED || UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_COMPLETED
+		|| UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_FAILED || UpdateGameSessionState.Reason == EUpdateReason::BACKFILL_TIMED_OUT) {
+		LatestBackfillTicketId = "";
+
+		TArray<APlayerState*> PlayerStates = GetWorld()->GetGameState()->PlayerArray;
+
+		TMap<FString, Aws::GameLift::Server::Model::Player> ConnectedPlayers;
+		for (APlayerState* PlayerState : PlayerStates) {
+			if (PlayerState != nullptr) {
+				AGameLiftTutorialPlayerState* GameLiftTutorialPlayerState = Cast<AGameLiftTutorialPlayerState>(PlayerState);
+				if (GameLiftTutorialPlayerState != nullptr) {
+					auto PlayerObj = ExpectedPlayers.Find(GameLiftTutorialPlayerState->MatchmakingPlayerId);
+					if (PlayerObj != nullptr) {
+						ConnectedPlayers.Add(GameLiftTutorialPlayerState->MatchmakingPlayerId, *PlayerObj);
+					}
+				}
+			}
+		}
+
+		if (ConnectedPlayers.Num() == 0) {
+			EndGame();
+		}
+		else if (ConnectedPlayers.Num() < 4) {
+			auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+			if (GameSessionIdOutcome.IsSuccess()) {
+				FString GameSessionId = FString(GameSessionIdOutcome.GetResult());
+				FString MatchmakingConfigurationArn = StartGameSessionState.MatchmakingConfigurationArn;
+				LatestBackfillTicketId = CreateBackfillRequest(GameSessionId, MatchmakingConfigurationArn, ConnectedPlayers);
+				if (LatestBackfillTicketId.Len() > 0) {
+					UpdateGameSessionState.Reason = EUpdateReason::BACKFILL_INITIATED;
+				}
+			}
+		}
+	}
+#endif
 }
 
 void AGameLiftTutorialGameMode::OnRecordMatchResultResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
 	GetWorldTimerManager().SetTimer(EndGameHandle, this, &AGameLiftTutorialGameMode::EndGame, 1.0f, false, 5.0f);
+}
+
+void AGameLiftTutorialGameMode::SuspendBackfill() {
+	GetWorldTimerManager().ClearTimer(HandleGameSessionUpdateHandle);
+#if WITH_GAMELIFT
+	if (LatestBackfillTicketId.Len() > 0) {
+		auto GameSessionIdOutcome = Aws::GameLift::Server::GetGameSessionId();
+		if (GameSessionIdOutcome.IsSuccess()) {
+			FString GameSessionId = GameSessionIdOutcome.GetResult();
+			FString MatchmakingConfigurationArn = StartGameSessionState.MatchmakingConfigurationArn;
+			if (!StopBackfillRequest(GameSessionId, MatchmakingConfigurationArn, LatestBackfillTicketId)) {
+				GetWorldTimerManager().SetTimer(SuspendBackfillHandle, this, &AGameLiftTutorialGameMode::SuspendBackfill, 1.0f, false, 1.0f);
+			}
+		}
+		else {
+			GetWorldTimerManager().SetTimer(SuspendBackfillHandle, this, &AGameLiftTutorialGameMode::SuspendBackfill, 1.0f, false, 1.0f);
+		}
+	}
+#endif
+}
+
+FString AGameLiftTutorialGameMode::CreateBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, TMap<FString, Aws::GameLift::Server::Model::Player> Players) {
+#if WITH_GAMELIFT
+	Aws::GameLift::Server::Model::StartMatchBackfillRequest StartMatchBackfillRequest;
+	StartMatchBackfillRequest.SetGameSessionArn(TCHAR_TO_ANSI(*GameSessionArn));
+	StartMatchBackfillRequest.SetMatchmakingConfigurationArn(TCHAR_TO_ANSI(*MatchmakingConfigurationArn));
+
+	for (auto& Elem : Players) {
+		auto PlayerObj = Elem.Value;
+		StartMatchBackfillRequest.AddPlayer(PlayerObj);
+	}
+
+	auto StartMatchBackfillOutcome = Aws::GameLift::Server::StartMatchBackfill(StartMatchBackfillRequest);
+	if (StartMatchBackfillOutcome.IsSuccess()) {
+		return StartMatchBackfillOutcome.GetResult().GetTicketId();
+	}
+	else {
+		return "";
+	}
+#endif
+}
+
+bool AGameLiftTutorialGameMode::StopBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, FString TicketId) {
+#if WITH_GAMELIFT
+	Aws::GameLift::Server::Model::StopMatchBackfillRequest StopMatchBackfillRequest;
+	StopMatchBackfillRequest.SetGameSessionArn(TCHAR_TO_ANSI(*GameSessionArn));
+	StopMatchBackfillRequest.SetMatchmakingConfigurationArn(TCHAR_TO_ANSI(*MatchmakingConfigurationArn));
+	StopMatchBackfillRequest.SetTicketId(TCHAR_TO_ANSI(*TicketId));
+
+	auto StopMatchBackfillOutcome = Aws::GameLift::Server::StopMatchBackfill(StopMatchBackfillRequest);
+
+	return StopMatchBackfillOutcome.IsSuccess();
+#endif
 }

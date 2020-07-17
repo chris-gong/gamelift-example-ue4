@@ -8,6 +8,18 @@
 #include "Runtime/Online/HTTP/Public/Http.h"
 #include "GameLiftTutorialGameMode.generated.h"
 
+UENUM()
+enum class EUpdateReason : uint8
+{
+	NO_UPDATE_RECEIVED,
+	BACKFILL_INITIATED,
+	MATCHMAKING_DATA_UPDATED,
+	BACKFILL_FAILED,
+	BACKFILL_TIMED_OUT,
+	BACKFILL_CANCELLED,
+	BACKFILL_COMPLETED
+};
+
 USTRUCT()
 struct FStartGameSessionState
 {
@@ -31,8 +43,13 @@ struct FUpdateGameSessionState
 {
 	GENERATED_BODY();
 
-	FUpdateGameSessionState() {
+	UPROPERTY()
+		EUpdateReason Reason;
 
+	TMap<FString, Aws::GameLift::Server::Model::Player> PlayerIdToPlayer;
+
+	FUpdateGameSessionState() {
+		Reason = EUpdateReason::NO_UPDATE_RECEIVED;
 	}
 };
 
@@ -93,6 +110,9 @@ public:
 	UPROPERTY()
 		FTimerHandle HandleGameSessionUpdateHandle;
 
+	UPROPERTY()
+		FTimerHandle SuspendBackfillHandle;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -125,6 +145,17 @@ private:
 	UPROPERTY()
 		bool GameSessionActivated;
 
+	UPROPERTY()
+		FString LatestBackfillTicketId;
+
+	UPROPERTY()
+		bool WaitingForPlayersToJoin;
+
+	UPROPERTY()
+		int TimeSpentWaitingForPlayersToJoin;
+
+	TMap<FString, Aws::GameLift::Server::Model::Player> ExpectedPlayers;
+
 	UFUNCTION()
 		void CountDownUntilGameOver();
 
@@ -140,6 +171,11 @@ private:
 	UFUNCTION()
 		void HandleGameSessionUpdate();
 
+	UFUNCTION()
+		void SuspendBackfill();
+
+	FString CreateBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, TMap<FString, Aws::GameLift::Server::Model::Player> Players);
+	bool StopBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, FString TicketId);
 	void OnRecordMatchResultResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };
 
