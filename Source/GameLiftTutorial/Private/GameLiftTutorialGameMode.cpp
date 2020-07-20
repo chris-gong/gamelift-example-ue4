@@ -596,6 +596,7 @@ FString AGameLiftTutorialGameMode::CreateBackfillRequest(FString GameSessionArn,
 		return "";
 	}
 #endif
+	return "";
 }
 
 bool AGameLiftTutorialGameMode::StopBackfillRequest(FString GameSessionArn, FString MatchmakingConfigurationArn, FString TicketId) {
@@ -609,4 +610,5 @@ bool AGameLiftTutorialGameMode::StopBackfillRequest(FString GameSessionArn, FStr
 
 	return StopMatchBackfillOutcome.IsSuccess();
 #endif
+	return false;
 }
