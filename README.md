@@ -7,6 +7,10 @@ I would highly suggest watching our tutorials on youtube before jumping straight
 
 - [How To Make A Multiplayer Game With Unreal Engine and Amazon GameLift](https://www.youtube.com/watch?v=tOy0xYaP3wA&list=PLa1dM5bPQv0u2IWZRIxtRqwWVJNOUtlbF)
 
+[![Twitter](https://img.shields.io/badge/%40Flopperam--blue.svg?style=social&logo=Twitter)](https://twitter.com/Flopperam)
+[![Instagram](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=Instagram)](https://instagram.com/flopperam)
+[![Youtube](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw)
+
 ## What is GameLift
 
 GameLift is a service fully managed by Amazon that is used for deploying multiplayer session-based dedicated servers to the cloud.
