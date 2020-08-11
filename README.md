@@ -1,4 +1,4 @@
-# GameLift Example in UE4
+# GameLift Example in UE4 [![License](https://img.shields.io/github/license/chris-gong/gamelift-example-ue4.svg)](https://github.com/chris-gong/gamelift-example-ue4/blob/master/LICENSE)
 
 ## About
 This repository is an example project that implements the basic features of AWS GameLift in Unreal Engine.
