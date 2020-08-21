@@ -91,4 +91,4 @@ WindowsServer/
 LinuxServer/
 
 # GameLiftServerSDK library files
-!Plugins/GameLiftServerSDK/ThirdParty/GameLiftServerSDK/*
+!Plugins/GameLiftServerSDK/ThirdParty/GameLiftServerSDK/**
