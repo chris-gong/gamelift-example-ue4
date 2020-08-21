@@ -88,5 +88,7 @@ WindowsClient/
 
 WindowsServer/
 
+LinuxServer/
+
 # GameLiftServerSDK library files
-!Plugins/GameLiftServerSDK/ThirdParty/GameLiftServerSDK/Win64/*
+!Plugins/GameLiftServerSDK/ThirdParty/GameLiftServerSDK/*
