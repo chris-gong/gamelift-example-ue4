@@ -359,7 +359,6 @@ void AGameLiftTutorialGameMode::EndGame() {
 	GetWorldTimerManager().ClearTimer(SuspendBackfillHandle);
 
 #if WITH_GAMELIFT
-	Aws::GameLift::Server::TerminateGameSession();
 	Aws::GameLift::Server::ProcessEnding();
 	FGenericPlatformMisc::RequestExit(false);
 #endif
