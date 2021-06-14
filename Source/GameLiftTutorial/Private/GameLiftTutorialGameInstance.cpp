@@ -27,7 +27,7 @@ void UGameLiftTutorialGameInstance::Shutdown() {
 			FString RequestBody;
 			TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 			if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-				TSharedRef<IHttpRequest> StopMatchmakingRequest = HttpModule->CreateRequest();
+				auto StopMatchmakingRequest = HttpModule->CreateRequest();
 				StopMatchmakingRequest->SetURL(ApiUrl + "/stopmatchmaking");
 				StopMatchmakingRequest->SetVerb("POST");
 				StopMatchmakingRequest->SetHeader("Content-Type", "application/json");
@@ -36,7 +36,7 @@ void UGameLiftTutorialGameInstance::Shutdown() {
 				StopMatchmakingRequest->ProcessRequest();
 			}
 		}
-		TSharedRef<IHttpRequest> InvalidateTokensRequest = HttpModule->CreateRequest();
+		auto InvalidateTokensRequest = HttpModule->CreateRequest();
 		InvalidateTokensRequest->SetURL(ApiUrl + "/invalidatetokens");
 		InvalidateTokensRequest->SetVerb("GET");
 		//InvalidateTokensRequest->SetHeader("Content-Type", "application/json");
@@ -73,7 +73,7 @@ void UGameLiftTutorialGameInstance::RetrieveNewTokens() {
 		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 
 		if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-			TSharedRef<IHttpRequest> RetrieveNewTokensRequest = HttpModule->CreateRequest();
+			auto RetrieveNewTokensRequest = HttpModule->CreateRequest();
 			RetrieveNewTokensRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnRetrieveNewTokensResponseReceived);
 			RetrieveNewTokensRequest->SetURL(ApiUrl + "/retrievenewtokens");
 			RetrieveNewTokensRequest->SetVerb("POST");
@@ -107,7 +107,7 @@ void UGameLiftTutorialGameInstance::OnRetrieveNewTokensResponseReceived(FHttpReq
 }
 
 void UGameLiftTutorialGameInstance::GetResponseTime() {
-	TSharedRef<IHttpRequest> GetResponseTimeRequest = HttpModule->CreateRequest();
+	auto GetResponseTimeRequest = HttpModule->CreateRequest();
 	GetResponseTimeRequest->OnProcessRequestComplete().BindUObject(this, &UGameLiftTutorialGameInstance::OnGetResponseTimeResponseReceived);
 	GetResponseTimeRequest->SetURL("https://gamelift." + RegionCode + ".amazonaws.com");
 	GetResponseTimeRequest->SetVerb("GET");
