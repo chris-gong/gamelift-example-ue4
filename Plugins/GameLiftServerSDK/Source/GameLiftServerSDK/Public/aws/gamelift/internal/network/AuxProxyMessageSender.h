@@ -52,11 +52,14 @@ namespace Network
         GenericOutcome ReportHealth(bool healthStatus);
         StartMatchBackfillOutcome BackfillMatchmaking(const StartMatchBackfillRequest &request);
         GenericOutcome StopMatchmaking(const StopMatchBackfillRequest &request);
+        GetInstanceCertificateOutcome GetInstanceCertificate();
+
     private:
         std::shared_ptr<std::string> ParseMessage(google::protobuf::MessageLite* message);
         GenericOutcome EmitEvent(google::protobuf::MessageLite* message);
         DescribePlayerSessionsOutcome Call(pbuffer::DescribePlayerSessionsRequest* message);
         StartMatchBackfillOutcome Call(pbuffer::BackfillMatchmakingRequest* message);
+        GetInstanceCertificateOutcome Call(pbuffer::GetInstanceCertificate* message);
         void Send(google::protobuf::MessageLite* message, std::function<void(sio::message::list const&)> ackFunction);
         static GameLiftError From(pbuffer::GameLiftResponse& gameliftResponse);
 

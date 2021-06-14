@@ -42,6 +42,87 @@ inline GAMELIFTSERVERSDK_API FString GetNameForPlayerSessionCreationPolicy(EPlay
     }
 }
 
+enum class GAMELIFTSERVERSDK_API EPlayerSessionStatus
+{
+    NOT_SET,
+    RESERVED,
+    ACTIVE,
+    COMPLETED,
+    TIMEDOUT
+};
+
+inline GAMELIFTSERVERSDK_API EPlayerSessionStatus GetPlayerSessionStatusForName(FString& name)
+{
+    if (name == "RESERVED") {
+        return EPlayerSessionStatus::RESERVED;
+    }
+    if (name == "ACTIVE") {
+        return EPlayerSessionStatus::ACTIVE;
+    }
+    if (name == "COMPLETED") {
+        return EPlayerSessionStatus::COMPLETED;
+    }
+    if (name == "TIMEDOUT") {
+        return EPlayerSessionStatus::TIMEDOUT;
+    }
+    return EPlayerSessionStatus::NOT_SET;
+}
+inline GAMELIFTSERVERSDK_API FString GetNameForPlayerSessionStatus(EPlayerSessionStatus value)
+{
+    switch (value) {
+        case EPlayerSessionStatus::RESERVED:
+            return FString("RESERVED");
+        case EPlayerSessionStatus::ACTIVE:
+            return FString("ACTIVE");
+        case EPlayerSessionStatus::COMPLETED:
+            return FString("COMPLETED");
+        case EPlayerSessionStatus::TIMEDOUT:
+            return FString("TIMEDOUT");
+        default:
+            return FString("NOT_SET");
+    }
+}
+
+
+struct GAMELIFTSERVERSDK_API FGameLiftPlayerSession
+{	
+    FString m_playerSessionId;
+    FString m_playerId;
+    FString m_gameSessionId;
+    FString m_fleetId;
+    long m_creationTime = 0;
+    long m_terminationTime = 0;
+    EPlayerSessionStatus m_status = EPlayerSessionStatus::NOT_SET;
+    FString m_ipAddress;
+    int m_port = 0;
+    FString m_playerData;
+    FString m_dnsName;
+};
+
+struct GAMELIFTSERVERSDK_API FGameLiftDescribePlayerSessionsResult 
+{
+    TArray<FGameLiftPlayerSession> m_playerSessions;
+    FString m_nextToken;
+};
+
+struct GAMELIFTSERVERSDK_API FGameLiftDescribePlayerSessionsRequest 
+{
+    FString m_gameSessionId;
+    FString m_playerId;
+    FString m_playerSessionId;
+    FString m_playerSessionStatusFilter;
+    int m_limit = 0;
+    FString m_nextToken;
+};
+
+struct GAMELIFTSERVERSDK_API FGameLiftGetInstanceCertificateResult
+{
+    FString m_certificate_path;
+    FString m_certificate_chain_path;
+    FString m_private_key_path;
+    FString m_hostname;
+    FString m_root_certificate_path;
+};
 
 struct GAMELIFTSERVERSDK_API FGameLiftError {
     Aws::GameLift::GAMELIFT_ERROR_TYPE m_errorType;
@@ -159,3 +240,5 @@ private:
 typedef TGameLiftOutcome<void*, FGameLiftError> FGameLiftGenericOutcome;
 typedef TGameLiftOutcome<FString, FGameLiftError> FGameLiftStringOutcome;
 typedef TGameLiftOutcome<long, FGameLiftError> FGameLiftLongOutcome;
+typedef TGameLiftOutcome<FGameLiftDescribePlayerSessionsResult, FGameLiftError> FGameLiftDescribePlayerSessionsOutcome;
+typedef TGameLiftOutcome< FGameLiftGetInstanceCertificateResult, FGameLiftError> FGameLiftGetInstanceCertificateOutcome;

@@ -10,8 +10,14 @@
 *
 */
 #pragma once
-#pragma warning(disable:4996)
+
 #include <aws/gamelift/common/GameLift_EXPORTS.h>
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(push) // Save warning settings.
+#pragma warning(disable : 4996) // Disable deprecated warning for strncpy
+#endif
+
 
 #ifndef GAMELIFT_USE_STD
     #ifndef MAX_CERT_PATH_LENGTH
@@ -51,7 +57,8 @@ namespace Model
           m_certificate_path(other.m_certificate_path),
           m_certificate_chain_path(other.m_certificate_chain_path),
           m_private_key_path(other.m_private_key_path),
-          m_hostname(other.m_hostname)
+          m_hostname(other.m_hostname),
+          m_root_certificate_path(other.m_root_certificate_path)
       { }
 
       /**
@@ -71,7 +78,7 @@ namespace Model
           m_certificate_chain_path = other.m_certificate_chain_path;
           m_private_key_path = other.m_private_key_path;
           m_hostname = other.m_hostname;
-
+          m_root_certificate_path = other.m_root_certificate_path;
           return *this;
       }
 
@@ -84,7 +91,7 @@ namespace Model
           m_certificate_chain_path = std::move(other.m_certificate_chain_path);
           m_private_key_path = std::move(other.m_private_key_path);
           m_hostname = std::move(other.m_hostname);
-
+          m_root_certificate_path = std::move(other.m_root_certificate_path);
           return *this;
       }
 
@@ -324,11 +331,71 @@ namespace Model
         return *this;
     }
 
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline const std::string& GetRootCertificatePath() const
+    {
+        return m_root_certificate_path;
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline void SetRootCertificatePath(const std::string& value)
+    {
+        m_root_certificate_path = value;
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline void SetRootCertificatePath(std::string&& value)
+    {
+        m_root_certificate_path = std::move(value);
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline void SetRootCertificatePath(const char* value)
+    {
+        m_root_certificate_path.assign(value);
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline GetInstanceCertificateResult& WithRootCertificatePath(const std::string value)
+    {
+        SetRootCertificatePath(value);
+        return *this;
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline GetInstanceCertificateResult& WithRootCertificatePath(const std::string&& value)
+    {
+        SetRootCertificatePath(value);
+        return *this;
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance</p>
+    */
+    inline GetInstanceCertificateResult& WithRootCertificatePath(const char* value)
+    {
+        SetRootCertificatePath(value);
+        return *this;
+    }
+
   private:
     std::string m_certificate_path;
     std::string m_certificate_chain_path;
     std::string m_private_key_path;
     std::string m_hostname;
+    std::string m_root_certificate_path;
 #else
 public:
     GetInstanceCertificateResult()
@@ -337,6 +404,7 @@ public:
         memset(m_certificate_chain_path, 0, sizeof(m_certificate_chain_path));
         memset(m_private_key_path, 0, sizeof(m_private_key_path));
         memset(m_hostname, 0, sizeof(m_hostname));
+        memset(m_root_certificate_path, 0, sizeof(m_root_certificate_path));
     }
 
     /**
@@ -353,6 +421,7 @@ public:
         strncpy(m_certificate_chain_path, other.m_certificate_chain_path, sizeof(other.m_certificate_chain_path));
         strncpy(m_private_key_path, other.m_private_key_path, sizeof(other.m_private_key_path));
         strncpy(m_hostname, other.m_hostname, sizeof(other.m_hostname));
+        strncpy(m_root_certificate_path, other.m_root_certificate_path, sizeof(other.m_root_certificate_path));
     }
 
     /**
@@ -372,6 +441,7 @@ public:
         strncpy(m_certificate_chain_path, other.m_certificate_chain_path, sizeof(other.m_certificate_chain_path));
         strncpy(m_private_key_path, other.m_private_key_path, sizeof(other.m_private_key_path));
         strncpy(m_hostname, other.m_hostname, sizeof(other.m_hostname));
+        strncpy(m_root_certificate_path, other.m_root_certificate_path, sizeof(other.m_root_certificate_path));
 
         return *this;
     }
@@ -385,11 +455,13 @@ public:
         strncpy(m_certificate_chain_path, other.m_certificate_chain_path, sizeof(other.m_certificate_chain_path));
         strncpy(m_private_key_path, other.m_private_key_path, sizeof(other.m_private_key_path));
         strncpy(m_hostname, other.m_hostname, sizeof(other.m_hostname));
+        strncpy(m_root_certificate_path, other.m_root_certificate_path, sizeof(other.m_root_certificate_path));
 
         memset(other.m_certificate_path, 0, sizeof(other.m_certificate_path));
         memset(other.m_certificate_chain_path, 0, sizeof(other.m_certificate_chain_path));
         memset(other.m_private_key_path, 0, sizeof(other.m_private_key_path));
         memset(other.m_hostname, 0, sizeof(other.m_hostname));
+        memset(other.m_root_certificate_path, 0, sizeof(other.m_root_certificate_path));
 
         return *this;
     }
@@ -498,11 +570,38 @@ public:
         return *this;
     }
 
+    /**
+   * <p>RootCertificatePath of this instance.</p>
+   */
+    inline const char* GetRootCertificatePath() const
+    {
+        return m_root_certificate_path;
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance.</p>
+    */
+    inline void SetRootCertificatePath(const char* value)
+    {
+        strncpy(m_root_certificate_path, value, sizeof(m_root_certificate_path));
+        m_root_certificate_path[sizeof(m_root_certificate_path) - 1] = '\0';
+    }
+
+    /**
+    * <p>RootCertificatePath of this instance.</p>
+    */
+    inline GetInstanceCertificateResult& WithRootCertificatePath(const char* value)
+    {
+        SetRootCertificatePath(value);
+        return *this;
+    }
+
   private:
     char m_certificate_path[MAX_CERT_PATH_LENGTH];
     char m_certificate_chain_path[MAX_CERT_PATH_LENGTH];
     char m_private_key_path[MAX_CERT_PATH_LENGTH];
     char m_hostname[MAX_HOST_NAME_LENGTH];
+    char m_root_certificate_path[MAX_CERT_PATH_LENGTH];
 #endif
   };
 
@@ -510,3 +609,7 @@ public:
 } // namespace Server
 } // namespace GameLift
 } // namespace Aws
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(pop) // Restore warnings to previous state.
+#endif

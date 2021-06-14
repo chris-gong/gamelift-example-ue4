@@ -90,8 +90,9 @@ namespace Server
     Reports to GameLift that the GameSession has now ended.
     GameLift will now expect the server process to call either ProcessReady in order to launch a new GameSession
     or ProcessEnding which will trigger this process and host to be recycled.
+    This API is deprecated. Use ProcessEnding to end current process and start a new one instead.
     */
-    AWS_GAMELIFT_API GenericOutcome TerminateGameSession();
+    AWS_GAMELIFT_DEPRECATED AWS_GAMELIFT_API GenericOutcome TerminateGameSession();
 
     /**
     Reports to GameLift that we need to backfill a match using FlexMatch.
@@ -150,10 +151,6 @@ namespace Server
     */
     AWS_GAMELIFT_API DescribePlayerSessionsOutcome DescribePlayerSessions(const Aws::GameLift::Server::Model::DescribePlayerSessionsRequest &describePlayerSessionsRequest);
 
-    /**
-        Destroys allocated resources.
-    */
-    AWS_GAMELIFT_API GenericOutcome Destroy();
 #else
     /**
     @return The current SDK version.
@@ -192,15 +189,16 @@ namespace Server
     Reports to GameLift that the GameSession has now ended.
     GameLift will now expect the server process to call either ProcessReady in order to launch a new GameSession
     or ProcessEnding which will trigger this process and host to be recycled.
+    This API is deprecated. Use ProcessEnding to end current process and start a new one instead.
     */
-    AWS_GAMELIFT_API GenericOutcome TerminateGameSession();
+    AWS_GAMELIFT_DEPRECATED AWS_GAMELIFT_API GenericOutcome TerminateGameSession();
 
-	/**
-	Reports to GameLift that we need to backfill a match using FlexMatch.
-	When the match has been succeessfully backfilled updated matchmaker data will be sent to
-	the OnUpdateGameSession callback.
-	*/
-	AWS_GAMELIFT_API StartMatchBackfillOutcome StartMatchBackfill(const Aws::GameLift::Server::Model::StartMatchBackfillRequest &backfillMatchmakingRequest);
+    /**
+    Reports to GameLift that we need to backfill a match using FlexMatch.
+    When the match has been succeessfully backfilled updated matchmaker data will be sent to
+    the OnUpdateGameSession callback.
+    */
+    AWS_GAMELIFT_API StartMatchBackfillOutcome StartMatchBackfill(const Aws::GameLift::Server::Model::StartMatchBackfillRequest &backfillMatchmakingRequest);
 
     /**
     Reports to GameLift that we need to backfill a match using FlexMatch.
@@ -271,11 +269,19 @@ namespace Server
     */
     AWS_GAMELIFT_API DescribePlayerSessionsOutcome DescribePlayerSessions(const Aws::GameLift::Server::Model::DescribePlayerSessionsRequest &describePlayerSessionsRequest);
 
+#endif
+
     /**
-    Destroys allocated resources.
+    <p>Destroys allocated resources.</p>
     */
     AWS_GAMELIFT_API GenericOutcome Destroy();
-#endif
+
+    /**
+    <p>Retrieves the certificate, private key and password in PEM format. 
+    Will only succeed if the certificate generation is enabled on the fleet.</p>
+    */
+    AWS_GAMELIFT_API GetInstanceCertificateOutcome GetInstanceCertificate();
+
 } //namespace Server
 } //namespace GameLift
 } //namespace Aws

@@ -155,33 +155,21 @@ AGameLiftFPSGameMode::AGameLiftFPSGameMode()
 When cooking an Unreal server build, the engine will produce two executables. One will be located in the root of the folder and will act as a wrapper for the actual server executable. Is it recommended that the actual server executable be passed in as the launch path when creating a fleet.
 For example, I might have a GameLiftFPS.exe file at the root and another at \GameLiftFPS\Binaries\Win64\GameLiftFPSServer.exe. So, when creating a fleet, it is recommended to use C:\GameLiftFPS\Binaries\Win64\GameLiftFPSServer.exe as the launch path of the runtime configuration.
 
+Make sure to open the necessary UDP ports on the GameLift Fleet so that the Server can communicate to the client. By default Unreal Engine uses port 7777.
+
+Include an install.bat file to setup preqrequiests on the fleet. Example install.bat file:
+
+````
+VC_redist.x64.exe /q
+UE4PrereqSetup_x64.exe /q
+````
+
 ### Compatability Notes
 Supported UE4 Versions
 ------
-4.11
-4.12
-4.13
-4.14
-4.15
-4.16
-4.17* (see below)
-4.18
-4.19
-4.20
-4.21
 4.22
 4.23
 4.24
-
-#### UE 4.17 Compatibility Notes
-
-When opening your project in the Unreal Engine 4.17 editor you may encounter the following warning popup:
-
-Missing Plugin: This project requires the 'GameLiftServerSDK' plugin, which is not compatible with the current engine version.  Would you like to disable it?  You will no longer be able to open any assets created using it.
-
-Click 'No'.  You will then see this warning:
-
-Missing Modules: The following modules are missing or build with a different engine version: UE4Editor-GameLiftServerSDK.dll.  Would you like to rebuild them now?
-
-Click 'Yes'.  Once the plugin has been built you will no longer see this warning.
+4.25
+4.26
 

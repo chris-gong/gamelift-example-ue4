@@ -10,6 +10,12 @@
 *
 */
 #pragma once
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(push) // Save warning settings.
+#pragma warning(disable : 4996) // Disable deprecated warning for strncpy
+#endif
+
 #include <aws/gamelift/common/GameLift_EXPORTS.h>
 #include <aws/gamelift/server/model/PlayerSessionStatus.h>
 
@@ -56,6 +62,7 @@ namespace Model
     PlayerSession() :
       m_creationTime(0),
       m_terminationTime(0),
+      m_status(),
       m_port(0)
     { }
 
@@ -73,10 +80,11 @@ namespace Model
         m_gameSessionId(other.m_gameSessionId),
         m_creationTime(other.m_creationTime),
         m_terminationTime(other.m_terminationTime),
+        m_status(other.m_status),
         m_ipAddress(other.m_ipAddress),
         m_port(other.m_port),
-        m_playerData(other.m_playerData),
-		m_dnsName(other.m_dnsName)
+		m_playerData(other.m_playerData),
+        m_dnsName(other.m_dnsName)
     { }
 
     /**
@@ -612,13 +620,13 @@ namespace Model
 		other.m_terminationTime = 0;
 		other.m_port = 0;
 
-		memset(m_playerSessionId, 0, sizeof(m_playerSessionId));
-		memset(m_playerId, 0, sizeof(m_playerId));
-		memset(m_gameSessionId, 0, sizeof(m_gameSessionId));
-		memset(m_fleetId, 0, sizeof(m_fleetId));
-		memset(m_ipAddress, 0, sizeof(m_ipAddress));
-		memset(m_playerData, 0, sizeof(m_playerData));
-		memset(m_dnsName, 0, sizeof(m_dnsName));
+		memset(other.m_playerSessionId , 0, sizeof(other.m_playerSessionId));
+		memset(other.m_playerId , 0, sizeof(other.m_playerId));
+		memset(other.m_gameSessionId, 0, sizeof(other.m_gameSessionId));
+		memset(other.m_fleetId, 0, sizeof(other.m_fleetId));
+		memset(other.m_ipAddress, 0, sizeof(other.m_ipAddress));
+		memset(other.m_playerData, 0, sizeof(other.m_playerData));
+		memset(other.m_dnsName, 0, sizeof(other.m_dnsName));
 
         return *this;
     }
@@ -876,3 +884,7 @@ namespace Model
 } // namespace Server
 } // namespace GameLift
 } // namespace Aws
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(pop) // Restore warnings to previous state.
+#endif

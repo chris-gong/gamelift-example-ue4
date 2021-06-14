@@ -1915,9 +1915,9 @@ class GetInstanceCertificateResponse : public ::google::protobuf::Message /* @@p
   ::std::string* release_privatekeypath();
   void set_allocated_privatekeypath(::std::string* privatekeypath);
 
-  // string hostname = 4;
+  // string hostName = 4;
   void clear_hostname();
-  static const int kHostnameFieldNumber = 4;
+  static const int kHostNameFieldNumber = 4;
   const ::std::string& hostname() const;
   void set_hostname(const ::std::string& value);
   #if LANG_CXX11
@@ -1929,6 +1929,20 @@ class GetInstanceCertificateResponse : public ::google::protobuf::Message /* @@p
   ::std::string* release_hostname();
   void set_allocated_hostname(::std::string* hostname);
 
+  // string rootCertificatePath = 5;
+  void clear_rootcertificatepath();
+  static const int kRootCertificatePathFieldNumber = 5;
+  const ::std::string& rootcertificatepath() const;
+  void set_rootcertificatepath(const ::std::string& value);
+  #if LANG_CXX11
+  void set_rootcertificatepath(::std::string&& value);
+  #endif
+  void set_rootcertificatepath(const char* value);
+  void set_rootcertificatepath(const char* value, size_t size);
+  ::std::string* mutable_rootcertificatepath();
+  ::std::string* release_rootcertificatepath();
+  void set_allocated_rootcertificatepath(::std::string* rootcertificatepath);
+
   // @@protoc_insertion_point(class_scope:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse)
  private:
 
@@ -1937,6 +1951,7 @@ class GetInstanceCertificateResponse : public ::google::protobuf::Message /* @@p
   ::google::protobuf::internal::ArenaStringPtr certificatechainpath_;
   ::google::protobuf::internal::ArenaStringPtr privatekeypath_;
   ::google::protobuf::internal::ArenaStringPtr hostname_;
+  ::google::protobuf::internal::ArenaStringPtr rootcertificatepath_;
   mutable int _cached_size_;
   friend struct protobuf_sdk_2eproto::TableStruct;
 };
@@ -4862,46 +4877,46 @@ inline void GetInstanceCertificateResponse::set_allocated_privatekeypath(::std::
   // @@protoc_insertion_point(field_set_allocated:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.privateKeyPath)
 }
 
-// string hostname = 4;
+// string hostName = 4;
 inline void GetInstanceCertificateResponse::clear_hostname() {
   hostname_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 inline const ::std::string& GetInstanceCertificateResponse::hostname() const {
-  // @@protoc_insertion_point(field_get:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_get:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
   return hostname_.GetNoArena();
 }
 inline void GetInstanceCertificateResponse::set_hostname(const ::std::string& value) {
   
   hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_set:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
 }
 #if LANG_CXX11
 inline void GetInstanceCertificateResponse::set_hostname(::std::string&& value) {
   
   hostname_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_set_rvalue:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
 }
 #endif
 inline void GetInstanceCertificateResponse::set_hostname(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_set_char:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
 }
 inline void GetInstanceCertificateResponse::set_hostname(const char* value, size_t size) {
   
   hostname_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_set_pointer:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
 }
 inline ::std::string* GetInstanceCertificateResponse::mutable_hostname() {
   
-  // @@protoc_insertion_point(field_mutable:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_mutable:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
   return hostname_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 inline ::std::string* GetInstanceCertificateResponse::release_hostname() {
-  // @@protoc_insertion_point(field_release:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_release:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
   
   return hostname_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -4912,7 +4927,60 @@ inline void GetInstanceCertificateResponse::set_allocated_hostname(::std::string
     
   }
   hostname_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), hostname);
-  // @@protoc_insertion_point(field_set_allocated:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostname)
+  // @@protoc_insertion_point(field_set_allocated:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.hostName)
+}
+
+// string rootCertificatePath = 5;
+inline void GetInstanceCertificateResponse::clear_rootcertificatepath() {
+  rootcertificatepath_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& GetInstanceCertificateResponse::rootcertificatepath() const {
+  // @@protoc_insertion_point(field_get:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+  return rootcertificatepath_.GetNoArena();
+}
+inline void GetInstanceCertificateResponse::set_rootcertificatepath(const ::std::string& value) {
+  
+  rootcertificatepath_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+}
+#if LANG_CXX11
+inline void GetInstanceCertificateResponse::set_rootcertificatepath(::std::string&& value) {
+  
+  rootcertificatepath_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+}
+#endif
+inline void GetInstanceCertificateResponse::set_rootcertificatepath(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  rootcertificatepath_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+}
+inline void GetInstanceCertificateResponse::set_rootcertificatepath(const char* value, size_t size) {
+  
+  rootcertificatepath_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+}
+inline ::std::string* GetInstanceCertificateResponse::mutable_rootcertificatepath() {
+  
+  // @@protoc_insertion_point(field_mutable:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+  return rootcertificatepath_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* GetInstanceCertificateResponse::release_rootcertificatepath() {
+  // @@protoc_insertion_point(field_release:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
+  
+  return rootcertificatepath_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void GetInstanceCertificateResponse::set_allocated_rootcertificatepath(::std::string* rootcertificatepath) {
+  if (rootcertificatepath != NULL) {
+    
+  } else {
+    
+  }
+  rootcertificatepath_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), rootcertificatepath);
+  // @@protoc_insertion_point(field_set_allocated:com.amazon.whitewater.auxproxy.pbuffer.GetInstanceCertificateResponse.rootCertificatePath)
 }
 
 // -------------------------------------------------------------------
