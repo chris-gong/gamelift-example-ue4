@@ -1,0 +1,4 @@
+- Support for Unreal Engine 4.26
+- Support for DescribePlayerSessions API
+- Support for GetInstanceCertificate API
+- Bug fixes

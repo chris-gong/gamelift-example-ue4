@@ -1,0 +1,2 @@
+- Add missing delegate for OnUpdateGameSession
+- Deprecate TerminateGameSession API

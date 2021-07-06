@@ -10,7 +10,7 @@
 *
 */
 #pragma once
-#pragma warning(disable:4996)
+
 #include <string.h> 
 #include <aws/gamelift/common/GameLift_EXPORTS.h>
 
@@ -60,4 +60,3 @@ namespace Server
 } // namespace Server
 } // namespace GameLift
 } // namespace Aws
-

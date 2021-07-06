@@ -126,6 +126,8 @@ FGameLiftGenericOutcome FGameLiftServerSDKModule::ActivateGameSession() {
 #endif
 }
 
+#pragma warning(push)
+#pragma warning(disable: 4996) // Disabling deprecation warning (just for building plugin itself)
 FGameLiftGenericOutcome FGameLiftServerSDKModule::TerminateGameSession() {
 #if WITH_GAMELIFT
     auto outcome = Aws::GameLift::Server::TerminateGameSession();
@@ -139,6 +141,7 @@ FGameLiftGenericOutcome FGameLiftServerSDKModule::TerminateGameSession() {
     return FGameLiftGenericOutcome(nullptr);
 #endif
 }
+#pragma warning(pop)
 
 FGameLiftGenericOutcome FGameLiftServerSDKModule::AcceptPlayerSession(const FString& playerSessionId) {
 #if WITH_GAMELIFT
@@ -168,9 +171,78 @@ FGameLiftGenericOutcome FGameLiftServerSDKModule::RemovePlayerSession(const FStr
 #endif
 }
 
+FGameLiftDescribePlayerSessionsOutcome FGameLiftServerSDKModule::DescribePlayerSessions(const FGameLiftDescribePlayerSessionsRequest &describePlayerSessionsRequest)
+{
+#if WITH_GAMELIFT
+    Aws::GameLift::Server::Model::DescribePlayerSessionsRequest request;
+    request.SetGameSessionId(TCHAR_TO_UTF8(*describePlayerSessionsRequest.m_gameSessionId));
+    request.SetPlayerId(TCHAR_TO_UTF8(*describePlayerSessionsRequest.m_playerId));
+    request.SetPlayerSessionId(TCHAR_TO_UTF8(*describePlayerSessionsRequest.m_playerSessionId));
+    request.SetPlayerSessionStatusFilter(TCHAR_TO_UTF8(*describePlayerSessionsRequest.m_playerSessionStatusFilter));
+    request.SetLimit(describePlayerSessionsRequest.m_limit);
+    request.SetNextToken(TCHAR_TO_UTF8(*describePlayerSessionsRequest.m_nextToken));
+
+    auto outcome = Aws::GameLift::Server::DescribePlayerSessions(request);
+
+    if (outcome.IsSuccess()) {
+        auto& outres = outcome.GetResult();
+        FGameLiftDescribePlayerSessionsResult result;
+  
+        int sessionCount = 0;
+        auto sessions = outres.GetPlayerSessions(sessionCount);
+        if (sessionCount > 0) {
+            TArray<FGameLiftPlayerSession> outSessions;
+            outSessions.Reserve(sessionCount);
+
+            for (int i = 0; i < sessionCount; ++i) {
+                auto session = sessions + i;
+                FGameLiftPlayerSession& outSession = outSessions.AddDefaulted_GetRef();
+
+                outSession.m_playerSessionId = UTF8_TO_TCHAR(session->GetPlayerSessionId());
+                outSession.m_playerId = UTF8_TO_TCHAR(session->GetPlayerId());
+                outSession.m_gameSessionId = UTF8_TO_TCHAR(session->GetGameSessionId());
+                outSession.m_fleetId = UTF8_TO_TCHAR(session->GetFleetId());
+                outSession.m_creationTime = session->GetCreationTime();
+                outSession.m_terminationTime = session->GetTerminationTime();
+
+                switch (session->GetStatus()) {
+                    case Aws::GameLift::Server::Model::PlayerSessionStatus::NOT_SET: outSession.m_status = EPlayerSessionStatus::NOT_SET; break;
+                    case Aws::GameLift::Server::Model::PlayerSessionStatus::RESERVED: outSession.m_status = EPlayerSessionStatus::RESERVED; break;
+                    case Aws::GameLift::Server::Model::PlayerSessionStatus::ACTIVE: outSession.m_status = EPlayerSessionStatus::ACTIVE; break;
+                    case Aws::GameLift::Server::Model::PlayerSessionStatus::COMPLETED: outSession.m_status = EPlayerSessionStatus::COMPLETED; break;
+                    case Aws::GameLift::Server::Model::PlayerSessionStatus::TIMEDOUT: outSession.m_status = EPlayerSessionStatus::TIMEDOUT; break;
+                }
+
+                outSession.m_ipAddress = UTF8_TO_TCHAR(session->GetIpAddress());
+                outSession.m_port = session->GetPort();
+
+                outSession.m_playerData = UTF8_TO_TCHAR(session->GetPlayerData());
+                outSession.m_dnsName = UTF8_TO_TCHAR(session->GetDnsName());
+            }
+
+            result.m_playerSessions = outSessions;
+        }
+
+        result.m_nextToken = (UTF8_TO_TCHAR(outres.GetNextToken()));
+
+        return FGameLiftDescribePlayerSessionsOutcome(result);
+    }
+    else {
+        return FGameLiftDescribePlayerSessionsOutcome(FGameLiftError(outcome.GetError()));
+    }
+#else
+    return FGameLiftDescribePlayerSessionsOutcome(FGameLiftDescribePlayerSessionsResult());
+#endif
+}
+
 void OnActivateFunctionInternal(Aws::GameLift::Server::Model::GameSession gameSession, void* state) {
     FProcessParameters* processParameters = (FProcessParameters*)state;
     processParameters->OnActivateFunction(gameSession);
+}
+
+void OnUpdateFunctionInternal(Aws::GameLift::Server::Model::UpdateGameSession updateGameSession, void* state) {
+    FProcessParameters* processParameters = (FProcessParameters*)state;
+    processParameters->OnUpdateFunction(updateGameSession);
 }
 
 void OnTerminateFunctionInternal(void* state) {
@@ -208,6 +280,8 @@ FGameLiftGenericOutcome FGameLiftServerSDKModule::ProcessReady(FProcessParameter
 
     Aws::GameLift::Server::ProcessParameters processParams = Aws::GameLift::Server::ProcessParameters(
         OnActivateFunctionInternal,
+        &(processParameters),
+        OnUpdateFunctionInternal,
         &(processParameters),
         OnTerminateFunctionInternal,
         &(processParameters),
@@ -345,6 +419,31 @@ FGameLiftGenericOutcome FGameLiftServerSDKModule::StopMatchBackfill(const FStopM
     return FGameLiftGenericOutcome(nullptr);
 #endif
 }
+
+
+FGameLiftGetInstanceCertificateOutcome FGameLiftServerSDKModule::GetInstanceCertificate()
+{
+#if WITH_GAMELIFT
+    auto outcome = Aws::GameLift::Server::GetInstanceCertificate();
+    if (outcome.IsSuccess()) {
+        auto& outres = outcome.GetResult();
+        FGameLiftGetInstanceCertificateResult result;
+        result.m_certificate_path = UTF8_TO_TCHAR(outres.GetCertificatePath());
+        result.m_certificate_chain_path = UTF8_TO_TCHAR(outres.GetCertificateChainPath());
+        result.m_private_key_path = UTF8_TO_TCHAR(outres.GetPrivateKeyPath());
+        result.m_hostname = UTF8_TO_TCHAR(outres.GetHostName());
+        result.m_root_certificate_path = UTF8_TO_TCHAR(outres.GetRootCertificatePath());
+        return FGameLiftGetInstanceCertificateOutcome(result);
+    }
+    else {
+        return FGameLiftGetInstanceCertificateOutcome(FGameLiftError(outcome.GetError()));
+    }
+#else
+    return FGameLiftGetInstanceCertificateOutcome(FGameLiftGetInstanceCertificateResult());
+#endif
+}
+
+
 
 #undef LOCTEXT_NAMESPACE
 

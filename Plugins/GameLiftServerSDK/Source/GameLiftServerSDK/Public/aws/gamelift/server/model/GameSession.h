@@ -10,6 +10,12 @@
 *
 */
 #pragma once
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(push) // Save warning settings.
+#pragma warning(disable : 4996) // Disable deprecated warning for strncpy
+#endif
+
 #include <aws/gamelift/common/GameLift_EXPORTS.h>
 #include <aws/gamelift/server/model/GameSessionStatus.h>
 #include <aws/gamelift/server/model/PlayerSessionCreationPolicy.h>
@@ -61,6 +67,7 @@ namespace Model
     public:
         GameSession() :
             m_maximumPlayerSessionCount(0),
+            m_status(),
             m_port(0)
         { }
 
@@ -73,14 +80,14 @@ namespace Model
         * <p>Copy Constructor.</p>
         */
         GameSession(const GameSession& other) :
-            m_maximumPlayerSessionCount(other.m_maximumPlayerSessionCount),
-            m_port(other.m_port),
-            m_ipAddress(other.m_ipAddress),
             m_gameSessionId(other.m_gameSessionId),
             m_name(other.m_name),
             m_fleetId(other.m_fleetId),
+            m_maximumPlayerSessionCount(other.m_maximumPlayerSessionCount),
             m_status(other.m_status),
             m_gameProperties(other.m_gameProperties),
+            m_ipAddress(other.m_ipAddress),
+            m_port(other.m_port),
             m_gameSessionData(other.m_gameSessionData),
             m_matchmakerData(other.m_matchmakerData),
             m_dnsName(other.m_dnsName)
@@ -90,14 +97,14 @@ namespace Model
         * <p>Move Constructor.</p>
         */
         GameSession(GameSession&& other)  :
-        m_maximumPlayerSessionCount(other.m_maximumPlayerSessionCount),
-            m_port(other.m_port),
-            m_ipAddress(std::move(other.m_ipAddress)),
-            m_gameSessionId(std::move(other.m_gameSessionId)),
+        m_gameSessionId(std::move(other.m_gameSessionId)),
             m_name(std::move(other.m_name)),
             m_fleetId(std::move(other.m_fleetId)),
+            m_maximumPlayerSessionCount(other.m_maximumPlayerSessionCount),
             m_status(std::move(other.m_status)),
             m_gameProperties(std::move(other.m_gameProperties)),
+            m_ipAddress(std::move(other.m_ipAddress)),
+            m_port(other.m_port),
             m_gameSessionData(std::move(other.m_gameSessionData)),
             m_matchmakerData(std::move(other.m_matchmakerData)),
             m_dnsName(other.m_dnsName)
@@ -841,3 +848,7 @@ namespace Model
 } // namespace Server
 } // namespace GameLift
 } // namespace Aws
+
+#if defined(_MSC_VER) && !defined(GAMELIFT_USE_STD)
+#pragma warning(pop) // Restore warnings to previous state.
+#endif

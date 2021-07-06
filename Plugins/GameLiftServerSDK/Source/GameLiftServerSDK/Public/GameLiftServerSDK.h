@@ -31,10 +31,12 @@
 #endif
 
 DECLARE_DELEGATE_OneParam(FOnStartGameSession, Aws::GameLift::Server::Model::GameSession);
+DECLARE_DELEGATE_OneParam(FOnUpdateGameSession, Aws::GameLift::Server::Model::UpdateGameSession);
 DECLARE_DELEGATE_RetVal(bool, FOnHealthCheck);
 
 struct GAMELIFTSERVERSDK_API FProcessParameters {
     FOnStartGameSession OnStartGameSession;
+    FOnUpdateGameSession OnUpdateGameSession;
     FOnHealthCheck OnHealthCheck;
     FSimpleDelegate OnTerminate;
     int port = -1;
@@ -53,6 +55,10 @@ struct GAMELIFTSERVERSDK_API FProcessParameters {
 
     void OnActivateFunction(Aws::GameLift::Server::Model::GameSession gameSession) {
         this->OnStartGameSession.ExecuteIfBound(gameSession);
+    }
+
+    void OnUpdateFunction(Aws::GameLift::Server::Model::UpdateGameSession updateGameSession) {
+        this->OnUpdateGameSession.ExecuteIfBound(updateGameSession);
     }
 };
 
@@ -108,6 +114,7 @@ struct GAMELIFTSERVERSDK_API FStopMatchBackfillRequest {
     }
 };
 
+
 class GAMELIFTSERVERSDK_API FGameLiftServerSDKModule : public IModuleInterface
 {
 public:
@@ -126,9 +133,10 @@ public:
 
     virtual FGameLiftGenericOutcome ProcessEnding();
     virtual FGameLiftGenericOutcome ActivateGameSession();
-    virtual FGameLiftGenericOutcome TerminateGameSession();
+    AWS_GAMELIFT_DEPRECATED virtual FGameLiftGenericOutcome TerminateGameSession();
     virtual FGameLiftGenericOutcome AcceptPlayerSession(const FString& playerSessionId);
     virtual FGameLiftGenericOutcome RemovePlayerSession(const FString& playerSessionId);
+    virtual FGameLiftDescribePlayerSessionsOutcome DescribePlayerSessions(const FGameLiftDescribePlayerSessionsRequest& describePlayerSessionsRequest);
 
     virtual FGameLiftGenericOutcome UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy policy);
     virtual FGameLiftStringOutcome GetGameSessionId();
@@ -136,6 +144,8 @@ public:
 
     virtual FGameLiftStringOutcome StartMatchBackfill(const FStartMatchBackfillRequest& request);
     virtual FGameLiftGenericOutcome StopMatchBackfill(const FStopMatchBackfillRequest& request);
+
+    virtual FGameLiftGetInstanceCertificateOutcome GetInstanceCertificate();
 
 private:
     /** Handle to the dll we will load */

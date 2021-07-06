@@ -73,7 +73,7 @@ public:
     }
 
 
-    inline const AttrType GetType() const { return m_attrType; }
+    inline AttrType GetType() const { return m_attrType; }
 
 
 #ifdef GAMELIFT_USE_STD
@@ -150,7 +150,7 @@ public:
     inline const std::string& GetS() const { return m_S; }
 
 
-    inline const double GetN() const { return m_N; }
+    inline double GetN() const { return m_N; }
 
 
     inline const std::vector<std::string>& GetSL() const { return m_SL; }

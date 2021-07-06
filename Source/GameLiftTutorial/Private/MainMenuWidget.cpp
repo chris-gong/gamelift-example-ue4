@@ -57,7 +57,7 @@ void UMainMenuWidget::NativeConstruct() {
 	}
 
 	if (AccessToken.Len() > 0) {
-		TSharedRef<IHttpRequest> GetPlayerDataRequest = HttpModule->CreateRequest();
+		auto GetPlayerDataRequest = HttpModule->CreateRequest();
 		GetPlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnGetPlayerDataResponseReceived);
 		GetPlayerDataRequest->SetURL(ApiUrl + "/getplayerdata");
 		GetPlayerDataRequest->SetVerb("GET");
@@ -111,7 +111,7 @@ void UMainMenuWidget::HandleLoginUrlChange() {
 					TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 
 					if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-						TSharedRef<IHttpRequest> ExchangeCodeForTokensRequest = HttpModule->CreateRequest();
+						auto ExchangeCodeForTokensRequest = HttpModule->CreateRequest();
 						ExchangeCodeForTokensRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnExchangeCodeForTokensResponseReceived);
 						ExchangeCodeForTokensRequest->SetURL(ApiUrl + "/exchangecodefortokens");
 						ExchangeCodeForTokensRequest->SetVerb("POST");
@@ -140,7 +140,7 @@ void UMainMenuWidget::OnExchangeCodeForTokensResponseReceived(FHttpRequestPtr Re
 						FString RefreshToken = JsonObject->GetStringField("refresh_token");
 						GameLiftTutorialGameInstance->SetCognitoTokens(AccessToken, IdToken, RefreshToken);
 						
-						TSharedRef<IHttpRequest> GetPlayerDataRequest = HttpModule->CreateRequest();
+						auto GetPlayerDataRequest = HttpModule->CreateRequest();
 						GetPlayerDataRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnGetPlayerDataResponseReceived);
 						GetPlayerDataRequest->SetURL(ApiUrl + "/getplayerdata");
 						GetPlayerDataRequest->SetVerb("GET");
@@ -226,7 +226,7 @@ void UMainMenuWidget::OnMatchmakingButtonClicked() {
 			FString RequestBody;
 			TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 			if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-				TSharedRef<IHttpRequest> StopMatchmakingRequest = HttpModule->CreateRequest();
+				auto StopMatchmakingRequest = HttpModule->CreateRequest();
 				StopMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnStopMatchmakingResponseReceived);
 				StopMatchmakingRequest->SetURL(ApiUrl + "/stopmatchmaking");
 				StopMatchmakingRequest->SetVerb("POST");
@@ -262,7 +262,7 @@ void UMainMenuWidget::OnMatchmakingButtonClicked() {
 			FString RequestBody;
 			TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 			if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-				TSharedRef<IHttpRequest> StartMatchmakingRequest = HttpModule->CreateRequest();
+				auto StartMatchmakingRequest = HttpModule->CreateRequest();
 				StartMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnStartMatchmakingResponseReceived);
 				StartMatchmakingRequest->SetURL(ApiUrl + "/startmatchmaking");
 				StartMatchmakingRequest->SetVerb("POST");
@@ -345,7 +345,7 @@ void UMainMenuWidget::PollMatchmaking() {
 		FString RequestBody;
 		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 		if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-			TSharedRef<IHttpRequest> PollMatchmakingRequest = HttpModule->CreateRequest();
+			auto PollMatchmakingRequest = HttpModule->CreateRequest();
 			PollMatchmakingRequest->OnProcessRequestComplete().BindUObject(this, &UMainMenuWidget::OnPollMatchmakingResponseReceived);
 			PollMatchmakingRequest->SetURL(ApiUrl + "/pollmatchmaking");
 			PollMatchmakingRequest->SetVerb("POST");

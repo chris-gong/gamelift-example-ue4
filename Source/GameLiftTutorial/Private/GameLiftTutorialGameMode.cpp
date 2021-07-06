@@ -359,7 +359,6 @@ void AGameLiftTutorialGameMode::EndGame() {
 	GetWorldTimerManager().ClearTimer(SuspendBackfillHandle);
 
 #if WITH_GAMELIFT
-	Aws::GameLift::Server::TerminateGameSession();
 	Aws::GameLift::Server::ProcessEnding();
 	FGenericPlatformMisc::RequestExit(false);
 #endif
@@ -391,7 +390,7 @@ void AGameLiftTutorialGameMode::PickAWinningTeam() {
 				FString RequestBody;
 				TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 				if (FJsonSerializer::Serialize(RequestObj.ToSharedRef(), Writer)) {
-					TSharedRef<IHttpRequest> RecordMatchResultRequest = HttpModule->CreateRequest();
+					auto RecordMatchResultRequest = HttpModule->CreateRequest();
 					RecordMatchResultRequest->OnProcessRequestComplete().BindUObject(this, &AGameLiftTutorialGameMode::OnRecordMatchResultResponseReceived);
 					RecordMatchResultRequest->SetURL(ApiUrl + "/recordmatchresult");
 					RecordMatchResultRequest->SetVerb("POST");
